@@ -407,7 +407,7 @@ test("new recipient assigned to an occasion appears in the gift picker", async (
   await expect(page.getByRole("combobox", { name: "Occasion" })).toHaveValue("");
   await page.getByRole("combobox", { name: "Occasion" }).selectOption("e2");
   const personSelector = page.getByRole("combobox", { name: "For", exact: true });
-  await expect(personSelector.locator("option")).toContainText(["Jamie new"]);
+  await expect(personSelector).toContainText("Jamie new");
   await personSelector.selectOption(created.id);
   await page.getByLabel("Gift name", { exact: true }).fill("Board game");
   await page.getByLabel("Price (₽)").fill("1200");
