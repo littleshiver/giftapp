@@ -78,9 +78,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (
       e.type === "gift" &&
       !e.id &&
-      !data.events.some((event) =>
-        event.people.some((id) => data.people.some((p) => p.id === id)),
-      )
+      (!data.events.length || !data.people.length)
     ) {
       notify("Add a person to an occasion first.");
       return;

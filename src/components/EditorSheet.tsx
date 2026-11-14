@@ -28,14 +28,16 @@ export function EditorSheet() {
         data.events.find((e) =>
           e.people.includes(editor?.personId || prefill?.personId || ""),
         )?.id ||
-        data.events.find((e) => e.people.length)?.id ||
+        (data.events.length === 1 ? data.events[0].id : "") ||
         "",
     ),
     [personId, setPersonId] = useState(
       g?.personId ||
         editor?.personId ||
         prefill?.personId ||
-        data.events.find((e) => e.id === eventId)?.people[0] ||
+        (data.events.find((e) => e.id === eventId)?.people.length === 1
+          ? data.events.find((e) => e.id === eventId)?.people[0]
+          : "") ||
         "",
     );
   if (!editor) return null;
@@ -119,18 +121,19 @@ export function EditorSheet() {
           ? data.events.map((e) => (e.id === id ? value : e))
           : [...data.events, value];
       } else {
-        if (
-          type === "gift" &&
-          !data.events.some(
-            (e) =>
-              e.id === eventId &&
-              e.people.includes(personId) &&
-              data.people.some((p) => p.id === personId),
-          )
-        )
-          throw Error(
-            "Choose a recipient assigned to this occasion. Add them in Edit occasion first.",
-          );
+        if (type === "gift") {
+          const selectedOccasion = data.events.find((e) => e.id === eventId);
+          if (!selectedOccasion || !data.people.some((p) => p.id === personId))
+            throw Error("Choose an occasion and a recipient.");
+          // Selecting an existing person also explicitly assigns them to this
+          // occasion. Do not invent or overwrite an individual budget.
+          if (!selectedOccasion.people.includes(personId))
+            next.events = data.events.map((e) =>
+              e.id === eventId
+                ? { ...e, people: [...e.people, personId] }
+                : e,
+            );
+        }
         const old = type === "gift" ? g : idea;
         let image = old?.image || prefill?.image || "";
         const file = fd.get("imageFile");
@@ -219,9 +222,16 @@ export function EditorSheet() {
     }
   };
   const source = type === "gift" ? g || prefill : idea,
-    recipients = data.people.filter((p) =>
-      data.events.find((e) => e.id === eventId)?.people.includes(p.id),
-    );
+    selectedOccasion = data.events.find((e) => e.id === eventId),
+    assignedRecipientIds = new Set(selectedOccasion?.people || []),
+    recipients = eventId
+      ? [
+          ...data.people.filter((p) => assignedRecipientIds.has(p.id)),
+          ...data.people.filter((p) => !assignedRecipientIds.has(p.id)),
+        ]
+      : [],
+    recipientNeedsAssignment =
+      !!selectedOccasion && !!personId && !assignedRecipientIds.has(personId);
   return (
     <Sheet title={heading} busy={busy} onClose={closeEditor}>
       <form
@@ -392,18 +402,34 @@ export function EditorSheet() {
                     onChange={(e) => setPersonId(e.target.value)}
                   >
                     <option value="">Choose recipient</option>
-                    {!recipients.some((p) => p.id === personId) && personId && (
-                      <option value={personId}>
-                        Recipient needs assignment
-                      </option>
-                    )}
+                    {personId &&
+                      !data.people.some((p) => p.id === personId) && (
+                        <option value={personId}>
+                          Missing recipient — choose another
+                        </option>
+                      )}
                     {recipients.map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.name}
+                        {assignedRecipientIds.has(p.id)
+                          ? ""
+                          : " · add to occasion"}
                       </option>
                     ))}
                   </select>
                 </Field>
+                {recipientNeedsAssignment && (
+                  <p className="section-note" role="status">
+                    Saving this gift will also add{" "}
+                    {data.people.find((p) => p.id === personId)?.name} to{" "}
+                    {selectedOccasion?.name}. Their budget will remain unset.
+                  </p>
+                )}
+                {!eventId && (
+                  <p className="section-note">
+                    Choose an occasion first, then choose who will receive the gift.
+                  </p>
+                )}
               </div>
             ) : (
               <Field label="For (optional)">

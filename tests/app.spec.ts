@@ -67,6 +67,11 @@ test("FAB actions; gift photo/status, membership validation and independent idea
   await expect(page.getByLabel("Product link")).toHaveValue(
     "https://example.com",
   );
+  // An idea saved for Anyone requires an explicit occasion and recipient.
+  await page.getByRole("combobox", { name: "Occasion", exact: true })
+    .selectOption("e1");
+  await page.getByRole("combobox", { name: "For", exact: true })
+    .selectOption("p1");
   await page.getByRole("button", { name: "Save gift", exact: true }).click();
   const data = await readData(page);
   expect(data.ideas.some((i) => i.name === "A photo idea")).toBe(true);
@@ -96,7 +101,7 @@ test("FAB actions; gift photo/status, membership validation and independent idea
   ).toHaveValue("p2");
   await expect(
     page.getByRole("combobox", { name: "For", exact: true }).locator("option"),
-  ).not.toContainText(["Anna"]);
+  ).toContainText(["Choose recipient", "Denis", "Anna · add to occasion", "Mira · add to occasion"]);
   await page.getByRole("button", { name: "Save gift", exact: true }).click();
   expect((await readData(page)).gifts.find((g) => g.id === "g1").personId).toBe(
     "p2",
@@ -378,4 +383,84 @@ test("an imported gift with a missing occasion stays visible and can be repaired
   expect(repaired.eventId).toBe("e1");
   expect(repaired.note).toBe("Keep the original note");
   expect(repaired.image).toBe(data.gifts[0].image);
+});
+
+
+test("new recipient assigned to an occasion appears in the gift picker", async ({
+  page,
+}) => {
+  await seed(page);
+  await page.goto("/#/people");
+  await page.getByRole("button", { name: "Add person", exact: true }).click();
+  await page.getByLabel("Name", { exact: true }).fill("Jamie new");
+  await page.getByRole("button", { name: "Save person", exact: true }).click();
+  const created = (await readData(page)).people.find((p) => p.name === "Jamie new");
+  expect(created).toBeTruthy();
+
+  await page.goto("/#/events/e2");
+  await page.getByRole("button", { name: "Edit", exact: true }).click();
+  await page.getByLabel("Include Jamie new").check();
+  await page.getByLabel("Budget for Jamie new").fill("2000");
+  await page.getByRole("button", { name: "Save event", exact: true }).click();
+  expect((await readData(page)).events.find((e) => e.id === "e2").people)
+    .toContain(created.id);
+
+  // A global Add action must not silently choose a different occasion.
+  await page.goto("/#/ideas");
+  await page.getByRole("button", { name: "Create", exact: true }).click();
+  await page.getByRole("button", { name: "Add gift to occasion" }).click();
+  await expect(page.getByRole("combobox", { name: "Occasion" })).toHaveValue("");
+  await page.getByRole("combobox", { name: "Occasion" }).selectOption("e2");
+  const personSelector = page.getByRole("combobox", { name: "For", exact: true });
+  await expect(personSelector).toContainText("Jamie new");
+  await personSelector.selectOption(created.id);
+  await page.getByLabel("Gift name", { exact: true }).fill("Board game");
+  await page.getByLabel("Price (₽)").fill("1200");
+  await page.getByRole("button", { name: "Save gift", exact: true }).click();
+
+  await page.reload();
+  const saved = await readData(page);
+  expect(saved.gifts.find((g) => g.name === "Board game")).toMatchObject({
+    eventId: "e2",
+    personId: created.id,
+    status: "to_buy",
+    price: 1200,
+  });
+  expect(saved.events.find((e) => e.id === "e2").budgets[created.id]).toBe(2000);
+});
+
+test("gift editor can explicitly add a person to an occasion without inventing a budget", async ({
+  page,
+}) => {
+  await seed(page);
+  await page.goto("/#/people");
+  await page.getByRole("button", { name: "Add person", exact: true }).click();
+  await page.getByLabel("Name", { exact: true }).fill("Rory new");
+  await page.getByRole("button", { name: "Save person", exact: true }).click();
+  const created = (await readData(page)).people.find((p) => p.name === "Rory new");
+  expect(created).toBeTruthy();
+
+  await page.goto("/#/events/e1");
+  await page.getByRole("button", { name: "Add gift", exact: true }).click();
+  await page.getByRole("combobox", { name: "For", exact: true })
+    .selectOption(created.id);
+  await expect(page.locator('.section-note[role="status"]')).toContainText(
+    "Saving this gift will also add Rory new"
+  );
+  await page.getByLabel("Gift name", { exact: true }).fill("Tea set");
+  await page.getByLabel("Price (₽)").fill("850");
+  await page.getByRole("button", { name: "Save gift", exact: true }).click();
+
+  const saved = await readData(page);
+  const occasion = saved.events.find((e) => e.id === "e1");
+  expect(occasion.people).toContain(created.id);
+  expect(Object.hasOwn(occasion.budgets, created.id)).toBe(false);
+  expect(saved.gifts.find((g) => g.name === "Tea set")).toMatchObject({
+    eventId: "e1",
+    personId: created.id,
+    status: "to_buy",
+  });
+  await page.reload();
+  expect((await readData(page)).events.find((e) => e.id === "e1").people)
+    .toContain(created.id);
 });
