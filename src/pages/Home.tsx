@@ -139,10 +139,7 @@ export function Home() {
       <section className="section">
         <Link className="compact-budget budget-link" to="/events?mode=planning">
           <div className="budget-head">
-            <strong>
-              {new Date().toLocaleDateString("en-US", { month: "long" })} gift
-              plans
-            </strong>
+            <strong>Gift plans</strong>
             <span className="budget-value">
               {currency(month.committed)}{" "}
               <span className="muted">/ {currency(month.budget)}</span>
