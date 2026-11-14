@@ -422,7 +422,7 @@ export function EditorSheet() {
                   <p className="section-note" role="status">
                     Saving this gift will also add{" "}
                     {data.people.find((p) => p.id === personId)?.name} to{" "}
-                    {selectedOccasion.name}. Their budget will remain unset.
+                    {selectedOccasion?.name}. Their budget will remain unset.
                   </p>
                 )}
                 {!eventId && (
