@@ -42,6 +42,14 @@ export function Components() {
           </Button>
           <Button disabled>Disabled action</Button>
         </div>
+        <div className="contrast-test-surface">
+          <div className="overline" style={{ marginBottom: 9 }}>On page gray</div>
+          <div className="layout-stack">
+            <Button variant="secondary">Secondary on gray</Button>
+            <Button variant="outline">Outlined on gray</Button>
+            <Button disabled>Disabled on gray</Button>
+          </div>
+        </div>
       </section>
       <section className="data-card">
         <h2>Compact fields</h2>
