@@ -1,59 +1,143 @@
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import {
   House,
   CalendarDays,
   UsersRound,
-  Sparkles,
+  Lightbulb,
   Settings,
+  ChevronLeft,
   ChevronRight,
   Plus,
+  Gift as GiftIcon,
+  Cake,
+  Clock,
+  Check,
+  X,
 } from "lucide-react";
-import type { ReactNode } from "react";
-import type { Event, Gift, Person } from "../domain/models";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import type { Event, Gift, Idea, Person } from "../domain/models";
 import { useApp } from "../state/AppState";
-import { currency, fmtDate, parseDate } from "../utils/format";
-import { giftsFor } from "../domain/selectors";
+import { currency, fmtDate } from "../utils/format";
+import { eventBudget } from "../domain/selectors";
+export { Empty } from "./Primitives";
 export function Navigation() {
   return (
-    <div className="bottom">
-      <nav className="nav" aria-label="Primary">
+    <div className="nav-wrap">
+      <nav className="bottom-nav" aria-label="Primary">
         {[
-          ["/", "Home", House],
-          ["/events", "Events", CalendarDays],
-          ["/people", "People", UsersRound],
-          ["/ideas", "Ideas", Sparkles],
-        ].map(([to, label, Icon]) => (
+          { to: "/ideas", name: "Ideas", Icon: Lightbulb },
+          { to: "/people", name: "People", Icon: UsersRound },
+          { to: "/", name: "Home", Icon: House },
+          { to: "/events", name: "Events", Icon: CalendarDays },
+          { to: "/settings", name: "Settings", Icon: Settings },
+        ].map(({ to, name, Icon }) => (
           <NavLink
-            key={String(to)}
-            to={String(to)}
+            key={to}
+            to={to}
             end={to === "/"}
-            className={({ isActive }) => (isActive ? "active" : "")}
+            className={({ isActive }) =>
+              `nav-item ${isActive ? "is-active" : ""}`
+            }
           >
-            <Icon size={21} />
-            {String(label)}
+            <Icon size={20} />
+            <span>{name}</span>
           </NavLink>
         ))}
       </nav>
     </div>
   );
 }
-export function Profile() {
+export function CreateMenu() {
+  const { openEditor, ui } = useApp(),
+    [open, setOpen] = useState(false),
+    location = useLocation(),
+    root = useRef<HTMLDivElement>(null);
+  useEffect(() => setOpen(false), [location.pathname]);
+  useEffect(() => {
+    if (!open) return;
+    const dismiss = (e: PointerEvent) => {
+      if (!root.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("pointerdown", dismiss);
+    return () => document.removeEventListener("pointerdown", dismiss);
+  }, [open]);
   return (
-    <Link className="avatar" to="/settings" aria-label="Settings">
-      <Settings size={22} />
-    </Link>
+    <div
+      ref={root}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
+          setOpen(false);
+          root.current?.querySelector<HTMLButtonElement>(".fab")?.focus();
+        }
+      }}
+    >
+      {open && (
+        <div className="fab-menu" id="create-menu" aria-label="Create options">
+          {[
+            { type: "idea", label: "Add gift idea", Icon: Lightbulb },
+            { type: "gift", label: "Add gift to occasion", Icon: GiftIcon },
+            { type: "event", label: "Add occasion", Icon: CalendarDays },
+            { type: "person", label: "Add person", Icon: UsersRound },
+          ].map(({ type, label, Icon }) => (
+            <button
+              key={type}
+              onClick={() => {
+                setOpen(false);
+                const eventId = location.pathname.startsWith("/events/")
+                  ? location.pathname.split("/")[2]
+                  : location.pathname === "/"
+                    ? ui.selectedEvent
+                    : undefined;
+                openEditor({
+                  type: type as "idea" | "gift" | "event" | "person",
+                  eventId,
+                });
+              }}
+            >
+              <Icon size={20} />
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+      <button
+        className="fab"
+        aria-expanded={open}
+        aria-controls="create-menu"
+        aria-label={open ? "Close create menu" : "Create"}
+        onClick={() => setOpen(!open)}
+      >
+        {open ? <X size={26} /> : <Plus size={26} />}
+      </button>
+    </div>
   );
 }
-export function Title({ name, subtitle }: { name: string; subtitle: string }) {
+export function Title({
+  name,
+  subtitle,
+  back,
+}: {
+  name: string;
+  subtitle?: string;
+  back?: string;
+}) {
   return (
-    <div className="top">
+    <header className="page-heading">
       <div>
-        <div className="smallcaps">GIVVY / YOUR GIFT SPACE</div>
-        <h1 className="page-title">{name}</h1>
-        <div className="sub">{subtitle}</div>
+        <div className="overline">
+          {back ? (
+            <Link className="ghostbutton back-link" to={back}>
+              <ChevronLeft size={15} />
+              Back
+            </Link>
+          ) : (
+            "GIVVY"
+          )}
+        </div>
+        <h1 className="title-xl">{name}</h1>
+        {subtitle && <p className="subheading">{subtitle}</p>}
       </div>
-      <Profile />
-    </div>
+    </header>
   );
 }
 export function Section({
@@ -64,14 +148,176 @@ export function Section({
   children?: ReactNode;
 }) {
   return (
-    <div className="sectionhead">
+    <div className="section-top">
       <h2>{title}</h2>
       {children}
     </div>
   );
 }
-export function Empty({ children }: { children: ReactNode }) {
-  return <div className="empty">{children}</div>;
+const gradients = [
+  "linear-gradient(130deg,#e2eff7,#f4e9ef)",
+  "linear-gradient(145deg,#e8eedf,#f9edd8)",
+  "linear-gradient(135deg,#f7e5ea,#ebe4f5)",
+  "linear-gradient(140deg,#eee5f5,#dfeaf7)",
+  "linear-gradient(120deg,#ffefd7,#f4e8e9)",
+];
+export const gradientFor = (name: string) =>
+  gradients[name.length % gradients.length];
+export function Photo({
+  src,
+  name = "",
+  birthday = false,
+}: {
+  src?: string;
+  name?: string;
+  birthday?: boolean;
+}) {
+  const [failed, setFailed] = useState(false);
+  useEffect(() => setFailed(false), [src]);
+  return src && !failed ? (
+    <img src={src} alt={name} loading="lazy" onError={() => setFailed(true)} />
+  ) : birthday ? (
+    <Cake size={27} />
+  ) : (
+    <GiftIcon size={29} className="ph-icon" />
+  );
+}
+export function StatusTag({ status }: { status: Gift["status"] }) {
+  return (
+    <span className={`status-tag ${status === "bought" ? "bought" : "to-buy"}`}>
+      {status === "bought" ? <Check size={12} /> : <Clock size={12} />}{" "}
+      {status === "bought" ? "Bought" : "To buy"}
+    </span>
+  );
+}
+export function Product({
+  item,
+  person = false,
+  onClick,
+}: {
+  item: Gift | Idea;
+  person?: boolean;
+  onClick?: () => void;
+}) {
+  const { data } = useApp();
+  return (
+    <div className="product-card">
+      <button
+        type="button"
+        className="product-open"
+        aria-label={`Edit ${item.name}`}
+        onClick={onClick}
+      >
+        <span
+          className="product-visual"
+          style={{ background: gradientFor(item.name) }}
+        >
+          <Photo src={item.image} name={item.name} />
+          {"status" in item && <StatusTag status={(item as Gift).status} />}
+        </span>
+        <span className="product-title">{item.name}</span>
+        <span className="product-caption">
+          {person
+            ? `For ${data.people.find((p) => p.id === item.personId)?.name || "Someone"}`
+            : currency(item.price)}
+        </span>
+      </button>
+    </div>
+  );
+}
+export function BudgetBar({
+  bought,
+  committed,
+  budget,
+}: {
+  bought: number;
+  committed: number;
+  budget: number;
+}) {
+  const scale = Math.max(budget, committed, 1);
+  return (
+    <div
+      className="progress"
+      role="img"
+      aria-label={`${currency(bought)} bought, ${currency(Math.max(0, committed - bought))} to buy, ${currency(Math.max(0, budget - committed))} available`}
+    >
+      <span className="spent" style={{ width: `${(bought / scale) * 100}%` }} />
+      <span
+        className={committed > budget ? "reserved over" : "reserved"}
+        style={{ width: `${(Math.max(0, committed - bought) / scale) * 100}%` }}
+      />
+    </div>
+  );
+}
+export function EventRow({ event: e }: { event: Event }) {
+  return (
+    <Link className="event-list-item" to={`/events/${e.id}`}>
+      <span className="item-photo">
+        <Photo src={e.image} birthday={e.kind === "birthday"} />
+      </span>
+      <span className="item-body">
+        <strong>{e.name}</strong>
+        <small>
+          {fmtDate(e.date)} · {e.people.length}{" "}
+          {e.people.length === 1 ? "person" : "people"} ·{" "}
+          {currency(eventBudget(e))}
+        </small>
+      </span>
+      <ChevronRight size={19} className="item-arrow" />
+    </Link>
+  );
+}
+export function PersonRow({
+  person: p,
+  index = 0,
+}: {
+  person: Person;
+  index?: number;
+}) {
+  const { data } = useApp();
+  return (
+    <Link className="person-list-item" to={`/people/${p.id}`}>
+      <span
+        className="item-photo item-avatar"
+        style={{
+          background: ["var(--blue)", "var(--mint)", "var(--rose)"][index % 3],
+        }}
+      >
+        {p.name[0]?.toUpperCase()}
+      </span>
+      <span className="item-body">
+        <strong>{p.name}</strong>
+        <small>
+          {p.birthday
+            ? "Birthday · " + fmtDate(p.birthday)
+            : "Birthday not set"}{" "}
+          · {data.ideas.filter((i) => i.personId === p.id).length} saved ideas
+        </small>
+      </span>
+      <ChevronRight size={19} />
+    </Link>
+  );
+}
+export function IdeaRow({ idea: i }: { idea: Idea }) {
+  const { data, openEditor } = useApp();
+  return (
+    <button
+      className="idea-list-item"
+      onClick={() => openEditor({ type: "idea", id: i.id })}
+    >
+      <span className="item-photo">
+        <Photo src={i.image} />
+      </span>
+      <span className="item-body">
+        <strong>{i.name}</strong>
+        <small>
+          {data.people.find((p) => p.id === i.personId)?.name || "Anyone"} ·{" "}
+          {currency(i.price)} · Saved idea
+        </small>
+      </span>
+      <ChevronRight size={18} />
+    </button>
+  );
 }
 export function AddGift({
   eventId,
@@ -83,83 +329,11 @@ export function AddGift({
   const { openEditor } = useApp();
   return (
     <button
-      className="linkbtn"
+      className="section-link"
       onClick={() => openEditor({ type: "gift", eventId, personId })}
     >
-      <Plus size={13} /> Add gift
+      <Plus size={16} />
+      Add gift
     </button>
-  );
-}
-export function EventRow({ event: e }: { event: Event }) {
-  const { data } = useApp();
-  return (
-    <Link className="eventrow" to={`/events/${e.id}`}>
-      <div className="datebox">
-        <b>{parseDate(e.date).getDate()}</b>
-        <span>
-          {parseDate(e.date).toLocaleDateString("en-US", { month: "short" })}
-        </span>
-      </div>
-      <div className="detail">
-        <b>
-          {e.name} {e.demo && <span className="tag">Demo</span>}
-        </b>
-        <p>
-          {e.people.length} recipients · {giftsFor(data, e.id).length} gifts ·{" "}
-          {currency(Object.values(e.budgets).reduce((n, v) => n + v, 0))} budget
-        </p>
-      </div>
-      <ChevronRight size={17} />
-    </Link>
-  );
-}
-export function PersonRow({ person: p }: { person: Person }) {
-  const { data } = useApp();
-  return (
-    <Link className="friend" to={`/people/${p.id}`}>
-      <div className="face">{p.name[0]}</div>
-      <div className="fbody">
-        <b>{p.name}</b>
-        <p>
-          {p.birthday ? fmtDate(p.birthday) : "Birthday not set"} ·{" "}
-          {giftsFor(data, undefined, p.id).length} ideas
-        </p>
-      </div>
-      <ChevronRight size={17} />
-    </Link>
-  );
-}
-export function GiftRow({ gift: g }: { gift: Gift }) {
-  const { data, openEditor } = useApp();
-  return (
-    <button
-      className="gift"
-      onClick={() => openEditor({ type: "gift", id: g.id })}
-    >
-      <div className="giftpic">
-        {g.image ? <img src={g.image} alt="" /> : "🎁"}
-      </div>
-      <div className="giftinfo">
-        <b>{g.name}</b>
-        <p>
-          {data.people.find((p) => p.id === g.personId)?.name || "No person"} ·{" "}
-          {data.events.find((e) => e.id === g.eventId)?.name || "No event"} ·{" "}
-          {g.status}
-        </p>
-      </div>
-      <span className="giftprice">{currency(g.price)}</span>
-      <ChevronRight size={15} />
-    </button>
-  );
-}
-export function GiftList({ gifts }: { gifts: Gift[] }) {
-  return (
-    <div className="card">
-      {gifts.length ? (
-        gifts.map((g) => <GiftRow gift={g} key={g.id} />)
-      ) : (
-        <Empty>No gifts yet. Save your first idea!</Empty>
-      )}
-    </div>
   );
 }

@@ -1,165 +1,167 @@
-import { Link } from "react-router-dom";
-import { ArrowUpRight, Sparkles } from "lucide-react";
-import { Profile, Section } from "../components/UI";
+import { useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowRight, CalendarDays, Plus } from "lucide-react";
+import { Section, Photo, Product, BudgetBar, Empty } from "../components/UI";
 import { useApp } from "../state/AppState";
+import { enabledEvents, giftsFor, monthSummary } from "../domain/selectors";
 import {
-  bought,
-  enabledEvents,
-  eventBudget,
-  giftsFor,
-} from "../domain/selectors";
-import { currency, fmtDate, today } from "../utils/format";
+  countdown,
+  currency,
+  fmtDate,
+  fullDate,
+  monthName,
+  today,
+} from "../utils/format";
 export function Home() {
-  const { data, openEditor } = useApp(),
-    now = today(),
-    upcoming = enabledEvents(data)
-      .filter((e) => e.date >= now)
-      .slice(0, 5),
-    next = upcoming[0];
-  const monthEvents = enabledEvents(data).filter(
-    (e) => e.date.slice(0, 7) === now.slice(0, 7),
-  );
-  const monthGifts = data.gifts.filter(
-    (g) =>
-      data.events.find((e) => e.id === g.eventId)?.date.slice(0, 7) ===
-      now.slice(0, 7),
-  );
-  const prepared = monthGifts.filter((g) =>
-    ["bought", "given"].includes(g.status),
-  ).length;
+  const { data, ui, setUi, openEditor } = useApp(),
+    navigate = useNavigate(),
+    upcoming = enabledEvents(data).filter((e) => e.date >= today()),
+    selected = upcoming.find((e) => e.id === ui.selectedEvent) || upcoming[0],
+    month = monthSummary(data, today().slice(0, 7));
+  useEffect(() => {
+    if (selected && selected.id !== ui.selectedEvent)
+      setUi({ selectedEvent: selected.id });
+  }, [selected?.id]);
   return (
     <>
-      <div className="top">
-        <div>
-          <div className="smallcaps">THE LITTLE THINGS MATTER</div>
-          <h1 className="hello">
-            Hello there <span style={{ fontSize: 26 }}>✳</span>
-          </h1>
-          <p className="sub" style={{ margin: "10px 0 0" }}>
-            Make room for the thoughtful things.
-          </p>
+      <header className="home-heading">
+        <div className="brand-row">
+          <div className="wordmark">Givvy</div>
         </div>
-        <Profile />
-      </div>
-      <Section title="Coming up">
-        <Link className="linkbtn" to="/events">
-          View calendar →
-        </Link>
-      </Section>
-      <div className="chipscroll">
+        <div className="header-hi">Hi, {data.settings.name || "there"}.</div>
+        <h1 className="header-month">{monthName(new Date())}</h1>
+      </header>
+      <section>
+        <Section title="Coming up">
+          <Link className="section-link" to="/events">
+            View calendar
+            <ArrowRight size={16} />
+          </Link>
+        </Section>
         {upcoming.length ? (
-          upcoming.map((e, i) => (
-            <Link
-              className={`datechip ${["pink", "yellow", "violet"][i % 3]}`}
-              to={`/events/${e.id}`}
-              key={e.id}
-            >
-              <div className="d">{fmtDate(e.date)}</div>
-              <div className="t">{e.name}</div>
-              <div className="m">
-                {e.people.length} {e.people.length === 1 ? "person" : "people"}{" "}
-                · {giftsFor(data, e.id).length} ideas
-              </div>
-            </Link>
-          ))
-        ) : (
-          <div className="sub">Add your first occasion to get started.</div>
-        )}
-        <button
-          className="datechip new-event"
-          onClick={() => openEditor({ type: "event" })}
-        >
-          ＋<br />
-          <span className="m">New event</span>
-        </button>
-      </div>
-      <Section title="Next occasion">
-        <Link className="linkbtn" to="/events">
-          All events →
-        </Link>
-      </Section>
-      {next ? (
-        <div className="card hero">
-          <div className="eyebrow">
-            ✦ {fmtDate(next.date)} ·{" "}
-            {next.kind === "birthday" ? "Birthday" : "Celebration"}
-          </div>
-          <h2>{next.name}</h2>
-          <p>
-            {next.people.length}{" "}
-            {next.people.length === 1 ? "person is" : "people are"} on your gift
-            list. {giftsFor(data, next.id).length} gift ideas saved.
-          </p>
-          <div className="herofoot">
-            <span className="pill">{currency(eventBudget(next))} budget</span>
-            <Link className="action" to={`/events/${next.id}`}>
-              Open occasion ↗
-            </Link>
-          </div>
-        </div>
-      ) : (
-        <div className="card">
-          <p className="sub">Your next occasion will show up here.</p>
-          <button
-            className="action"
-            onClick={() => openEditor({ type: "event" })}
-          >
-            Add an occasion
-          </button>
-        </div>
-      )}
-      <Section title="This month">
-        <span className="smallcaps">
-          {new Date().toLocaleDateString("en-US", { month: "long" })}
-        </span>
-      </Section>
-      <div className="split">
-        <div className="card stat blue">
-          <div className="smallcaps">Planned budget</div>
-          <div className="value">
-            {currency(monthEvents.reduce((n, e) => n + eventBudget(e), 0))}
-          </div>
-          <div className="hint">Across {monthEvents.length} occasions</div>
-        </div>
-        <div className="card stat mint">
-          <div className="smallcaps">Already bought</div>
-          <div className="value">{currency(bought(monthGifts))}</div>
-          <div className="hint">
-            {prepared} of {monthGifts.length} gift ideas
-          </div>
-        </div>
-      </div>
-      <div className="card" style={{ padding: 17 }}>
-        <div className="minirow">
-          <b>Gift readiness</b>
-          <span className="sub">
-            {prepared} / {monthGifts.length} ready
-          </span>
-        </div>
-        <div className="bar">
           <div
-            className="fill"
-            style={{
-              width: `${monthGifts.length ? (prepared / monthGifts.length) * 100 : 0}%`,
+            className="hscroll upcoming-track"
+            aria-label="Upcoming occasions"
+          >
+            {upcoming.map((e) => (
+              <button
+                key={e.id}
+                className={`occasion-chip ${selected?.id === e.id ? "is-selected" : ""}`}
+                aria-pressed={selected?.id === e.id}
+                onClick={() => setUi({ selectedEvent: e.id })}
+              >
+                <span className="occ-count">{countdown(e.date)}</span>
+                <span
+                  className="occ-thumb"
+                  style={{
+                    background:
+                      e.kind === "birthday" ? "var(--butter)" : "var(--mint)",
+                  }}
+                >
+                  <Photo src={e.image} birthday={e.kind === "birthday"} />
+                </span>
+                <span>
+                  <span className="occ-name">{e.name}</span>
+                  <span className="occ-date">{fmtDate(e.date)}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <Empty>Add your first occasion to start planning.</Empty>
+        )}
+      </section>
+      {selected && (
+        <section style={{ marginTop: 5 }}>
+          <div
+            className="focus-card"
+            role="link"
+            tabIndex={0}
+            aria-label={`Open ${selected.name}`}
+            onClick={() => navigate(`/events/${selected.id}`)}
+            onKeyDown={(e) => {
+              if (
+                e.target === e.currentTarget &&
+                (e.key === "Enter" || e.key === " ")
+              ) {
+                e.preventDefault();
+                navigate(`/events/${selected.id}`);
+              }
             }}
+          >
+            <div className="focus-head">
+              <div className="focus-date">
+                <CalendarDays size={14} />
+                {fullDate(selected.date)}
+              </div>
+              <h2>{selected.name}</h2>
+            </div>
+            <div className="focus-gifts">
+              {giftsFor(data, selected.id).map((g) => (
+                <Product
+                  key={g.id}
+                  item={g}
+                  person={selected.people.length > 1}
+                  onClick={() => navigate(`/events/${selected.id}`)}
+                />
+              ))}
+              <div className="product-add">
+                <button
+                  aria-label={`Add gift to ${selected.name}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openEditor({ type: "gift", eventId: selected.id });
+                  }}
+                >
+                  <Plus size={25} />
+                </button>
+                <span className="product-caption">Add a gift</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+      <section className="section">
+        <Link className="compact-budget budget-link" to="/events?mode=planning">
+          <div className="budget-head">
+            <strong>
+              {new Date().toLocaleDateString("en-US", { month: "long" })} gift
+              plans
+            </strong>
+            <span className="budget-value">
+              {currency(month.committed)}{" "}
+              <span className="muted">/ {currency(month.budget)}</span>
+            </span>
+          </div>
+          <BudgetBar
+            bought={month.bought}
+            committed={month.committed}
+            budget={month.budget}
           />
-        </div>
-        <p className="fineprint" style={{ marginBottom: 0 }}>
-          Idea prices don't count as committed spending until you mark them
-          planned or bought.
-        </p>
-      </div>
-      <Section title="Need inspiration?" />
-      <Link className="card idea-banner" to="/ideas">
-        <div className="idea-bubble">
-          <Sparkles size={30} />
-        </div>
-        <div>
-          <b>Find their kind of magic</b>
-          <p>A little yes-or-no gift explorer, just for fun.</p>
-        </div>
-        <ArrowUpRight className="arrow" />
-      </Link>
+          <div className="budget-sub">
+            <span>
+              {month.events.length}{" "}
+              {month.events.length === 1 ? "occasion" : "occasions"} this month
+            </span>
+            <span className={month.committed > month.budget ? "warning" : ""}>
+              {month.committed > month.budget
+                ? `${currency(month.committed - month.budget)} over budget`
+                : `${currency(month.bought)} bought`}
+            </span>
+          </div>
+        </Link>
+      </section>
+      <section className="section">
+        <Link className="inspiration" to="/ideas">
+          <span>
+            <strong>Need inspiration?</strong>
+            <p>Discover ideas for any occasion.</p>
+          </span>
+          <span className="inspire-icon">
+            <ArrowRight size={20} />
+          </span>
+        </Link>
+      </section>
     </>
   );
 }

@@ -1,141 +1,168 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect } from "react";
+import { useSearchParams, Link } from "react-router-dom";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { Empty, EventRow, Section, Title } from "../components/UI";
 import { useApp } from "../state/AppState";
-import { enabledEvents } from "../domain/selectors";
-import { fmtDate, iso, monthName, parseDate, today } from "../utils/format";
+import { enabledEvents, eventBudget } from "../domain/selectors";
+import {
+  currency,
+  fmtDate,
+  iso,
+  monthName,
+  parseDate,
+  today,
+} from "../utils/format";
 export function Events() {
   const { data, openEditor, ui, setUi } = useApp(),
+    [params] = useSearchParams(),
     { mode, selected } = ui,
-    month = parseDate(ui.month);
-  const setMode = (mode: string) => setUi({ mode });
-  const setSelected = (selected: string) => setUi({ selected });
-  const setMonth = (date: Date) => setUi({ month: iso(date) });
-  const evs = enabledEvents(data),
-    first = new Date(month.getFullYear(), month.getMonth(), 1),
+    month = parseDate(ui.month),
+    evs = enabledEvents(data);
+  useEffect(() => {
+    if (params.get("mode") === "planning") setUi({ mode: "planning" });
+  }, [params]);
+  const first = new Date(month.getFullYear(), month.getMonth(), 1),
     offset = (first.getDay() + 6) % 7,
-    days = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
-  const list =
-    mode === "calendar" ? evs.filter((e) => e.date === selected) : evs;
-  const changeMonth = (n: number) => {
+    days = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate(),
+    list = evs.filter((e) => e.date === selected);
+  const move = (n: number) => {
     const d = new Date(month.getFullYear(), month.getMonth() + n, 1);
-    setMonth(d);
-    setSelected(iso(d));
+    setUi({ month: iso(d), selected: iso(d) });
   };
+  const groups = evs.reduce<Record<string, typeof evs>>((out, e) => {
+    (out[e.date.slice(0, 7)] ??= []).push(e);
+    return out;
+  }, {});
   return (
     <>
       <Title
         name="Events"
-        subtitle="Every reason to celebrate, in one place."
+        subtitle="Occasions, people and plans in one place."
       />
-      <div className="toolbar">
-        <div className="seg">
-          {["calendar", "list"].map((m) => (
+      <div className="layout-row" style={{ marginBottom: 19 }}>
+        <div className="pill-tabs">
+          {["calendar", "planning"].map((m) => (
             <button
               key={m}
-              className={mode === m ? "active" : ""}
-              onClick={() => setMode(m)}
+              className={`pill-tab ${mode === m ? "is-active" : ""}`}
+              onClick={() => setUi({ mode: m })}
             >
-              {m === "calendar" ? "Calendar" : "List"}
+              {m === "calendar" ? "Calendar" : "Planning"}
             </button>
           ))}
         </div>
         <button
-          className="floating"
+          className="iconbutton"
+          aria-label="Add occasion"
           onClick={() => openEditor({ type: "event" })}
         >
-          ＋ Event
+          <Plus size={20} />
         </button>
       </div>
-      {mode === "calendar" && (
-        <div className="card calendar">
-          <div className="calhead">
-            <button
-              className="iconbtn"
-              aria-label="Previous month"
-              onClick={() => changeMonth(-1)}
-            >
-              <ChevronLeft />
-            </button>
-            <strong>{monthName(month)}</strong>
-            <button
-              className="iconbtn"
-              aria-label="Next month"
-              onClick={() => changeMonth(1)}
-            >
-              <ChevronRight />
-            </button>
+      {mode === "calendar" ? (
+        <>
+          <div className="calendar-card">
+            <div className="calendar-top">
+              <button
+                className="cal-arrow"
+                aria-label="Previous month"
+                onClick={() => move(-1)}
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <strong>{monthName(month)}</strong>
+              <button
+                className="cal-arrow"
+                aria-label="Next month"
+                onClick={() => move(1)}
+              >
+                <ChevronRight size={18} />
+              </button>
+            </div>
+            <div className="cal-week">
+              {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
+                <span key={i}>{d}</span>
+              ))}
+            </div>
+            <div className="cal-grid">
+              {Array.from(
+                { length: Math.ceil((offset + days) / 7) * 7 },
+                (_, i) => {
+                  const d = new Date(
+                      month.getFullYear(),
+                      month.getMonth(),
+                      i - offset + 1,
+                    ),
+                    ds = iso(d);
+                  return (
+                    <button
+                      key={ds}
+                      aria-label={ds}
+                      aria-pressed={selected === ds}
+                      className={`cal-day ${d.getMonth() !== month.getMonth() ? "is-out" : ""} ${ds === today() ? "is-today" : ""} ${ds === selected ? "is-selected" : ""}`}
+                      onClick={() => setUi({ selected: ds, month: ds })}
+                    >
+                      {d.getDate()}
+                      <span className="cal-dots">
+                        {evs
+                          .filter((e) => e.date === ds)
+                          .slice(0, 3)
+                          .map((e) => (
+                            <i className="cal-dot" key={e.id} />
+                          ))}
+                      </span>
+                    </button>
+                  );
+                },
+              )}
+            </div>
           </div>
-          <div className="weekgrid">
-            {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
-              <div className="weekday" key={i}>
-                {d}
-              </div>
+          <section className="section">
+            <Section
+              title={selected === today() ? "Today" : fmtDate(selected)}
+            />
+            <div className="info-list">
+              {list.length ? (
+                list.map((e) => <EventRow key={e.id} event={e} />)
+              ) : (
+                <Empty>Nothing planned for this day. That's okay.</Empty>
+              )}
+            </div>
+          </section>
+        </>
+      ) : Object.keys(groups).length ? (
+        Object.entries(groups).map(([key, events]) => (
+          <section className="month-block" key={key}>
+            <Section title={monthName(parseDate(key + "-01"))} />
+            <p className="section-note" style={{ marginBottom: 11 }}>
+              {currency(events.reduce((n, e) => n + eventBudget(e), 0))}{" "}
+              allocated · {events.length} occasions
+            </p>
+            {events.map((e) => (
+              <Link className="plan-event" key={e.id} to={`/events/${e.id}`}>
+                <span className="plan-date">
+                  {parseDate(e.date).getDate()}
+                  <small>
+                    {parseDate(e.date)
+                      .toLocaleDateString("en-US", { month: "short" })
+                      .toUpperCase()}
+                  </small>
+                </span>
+                <span className="item-body">
+                  <strong>{e.name}</strong>
+                  <small>{e.people.length} recipients</small>
+                </span>
+                <strong className="text-sm nowrap">
+                  {currency(eventBudget(e))}
+                </strong>
+                <ChevronRight size={16} />
+              </Link>
             ))}
-          </div>
-          <div className="daysgrid">
-            {Array.from(
-              { length: Math.ceil((offset + days) / 7) * 7 },
-              (_, i) => {
-                const d = new Date(
-                    month.getFullYear(),
-                    month.getMonth(),
-                    i - offset + 1,
-                  ),
-                  ds = iso(d),
-                  hits = evs.filter((e) => e.date === ds);
-                return (
-                  <button
-                    key={ds}
-                    aria-label={ds}
-                    aria-pressed={selected === ds}
-                    className={`day ${d.getMonth() !== month.getMonth() ? "dim" : ""} ${ds === today() ? "today" : ""} ${ds === selected ? "selected" : ""}`}
-                    onClick={() => {
-                      setSelected(ds);
-                      setMonth(d);
-                    }}
-                  >
-                    {d.getDate()}
-                    <span className="dots">
-                      {hits.slice(0, 3).map((e, k) => (
-                        <span
-                          key={e.id}
-                          className={`dot ${["p", "v", "y"][k]}`}
-                        />
-                      ))}
-                    </span>
-                  </button>
-                );
-              },
-            )}
-          </div>
-        </div>
+          </section>
+        ))
+      ) : (
+        <Empty>Add your first occasion to start planning.</Empty>
       )}
-      <Section
-        title={
-          mode === "calendar"
-            ? selected === today()
-              ? "Today"
-              : fmtDate(selected)
-            : "All occasions"
-        }
-      >
-        <span className="sub">{list.length} events</span>
-      </Section>
-      <div className="card">
-        {list.length ? (
-          list.map((e) => <EventRow key={e.id} event={e} />)
-        ) : (
-          <Empty>
-            {mode === "calendar"
-              ? "Nothing planned for this day. A little breathing room."
-              : "No occasions yet. Add your first celebration."}
-          </Empty>
-        )}
-      </div>
-      <p className="fineprint">
-        Tap a date to see its occasions. The calendar also displays birthdays
-        and celebrations you add yourself.
-      </p>
     </>
   );
 }

@@ -1,104 +1,78 @@
 import { useRef } from "react";
-import { Heart, X } from "lucide-react";
-import { AddGift, GiftList, Section, Title } from "../components/UI";
+import { Check, Plus, X } from "lucide-react";
+import { Empty, IdeaRow, Section, Title } from "../components/UI";
+import { Button } from "../components/Primitives";
 import { useApp } from "../state/AppState";
 import { uid } from "../utils/format";
+const base = import.meta.env.BASE_URL;
 const suggestions = [
-  [
-    "📚",
-    "A book they’d actually love",
-    "A novel, an art book or a beautiful special edition.",
-  ],
-  [
-    "🕯️",
-    "A cosy little ritual",
-    "A candle, tea set or something for slow evenings.",
-  ],
-  ["🎟️", "An experience together", "A show, a workshop or a small adventure."],
-  [
-    "🧩",
-    "Something fun to play with",
-    "A playful desk gadget, puzzle or fidget.",
-  ],
-  [
-    "🪴",
-    "A little green friend",
-    "A cute plant or a lovely pot for their space.",
-  ],
-  ["🎨", "A creative afternoon", "Something for their favorite hobby."],
-  [
-    "💌",
-    "Something personal",
-    "An illustrated photo, a letter or a handmade gift.",
-  ],
+  {
+    name: "A beautiful art book",
+    detail: "A thoughtful edition for someone who loves visual stories.",
+    image: base + "discovery/artbook.jpg",
+    price: 1800,
+  },
+  {
+    name: "Something cozy",
+    detail: "A soft everyday comfort, chosen with care.",
+    image: base + "discovery/blanket.jpg",
+    price: 2100,
+  },
+  {
+    name: "Coffee ritual",
+    detail: "A little object to make mornings more enjoyable.",
+    image: base + "discovery/mug.jpg",
+    price: 1200,
+  },
+  {
+    name: "A quiet evening",
+    detail: "Something atmospheric for their favorite space.",
+    image: base + "discovery/candle.jpg",
+    price: 900,
+  },
 ];
 export function Ideas() {
-  const { data, commit, notify, ui, setUi } = useApp(),
+  const { data, commit, notify, ui, setUi, openEditor } = useApp(),
     index = ui.suggestionIndex,
     personId = ui.filterPerson,
     start = useRef<number | null>(null),
-    [emoji, name, description] = suggestions[index % suggestions.length];
-  const skip = () => setUi({ suggestionIndex: index + 1 });
-  const save = () => {
-    if (personId === "all") {
-      notify("Choose a person first.");
-      return;
-    }
-    const events = data.events
-      .filter((e) => e.people.includes(personId))
-      .sort((a, b) => a.date.localeCompare(b.date));
-    if (!events.length) {
-      notify("Add this person to an occasion first.");
-      return;
-    }
-    if (
-      commit({
-        ...data,
-        gifts: [
-          ...data.gifts,
-          {
-            id: uid(),
-            personId,
-            eventId: events[0].id,
-            name,
-            price: 0,
-            status: "idea",
-            note: description,
-            image: "",
-          },
-        ],
-      })
-    ) {
-      skip();
-      notify("Added to gift ideas ♡");
-    }
-  };
+    item = suggestions[index % suggestions.length];
+  const skip = () => setUi({ suggestionIndex: index + 1 }),
+    save = () => {
+      if (
+        commit({
+          ...data,
+          ideas: [
+            ...data.ideas,
+            {
+              id: uid(),
+              name: item.name,
+              price: item.price,
+              image: item.image,
+              note: item.detail,
+              link: "",
+              personId: personId === "all" ? "" : personId,
+            },
+          ],
+        })
+      ) {
+        skip();
+        notify("Saved to ideas ✓");
+      }
+    };
+  const ideas = data.ideas.filter(
+    (i) => personId === "all" || i.personId === personId,
+  );
   return (
     <>
-      <Title name="Gift ideas" subtitle="Find the one that feels just right." />
-      <div className="card">
-        <div className="smallcaps">
-          GIFT EXPLORER · {(index % suggestions.length) + 1} /{" "}
-          {suggestions.length}
-        </div>
-        <div className="field">
-          <label htmlFor="suggest-person">Finding ideas for</label>
-          <select
-            id="suggest-person"
-            value={personId}
-            onChange={(e) => setUi({ filterPerson: e.target.value })}
-          >
-            <option value="all">Pick a person…</option>
-            {data.people.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-        </div>
+      <Title
+        name="Gift ideas"
+        subtitle="Save inspiration now. Decide on an occasion later."
+      />
+      <section>
+        <Section title="Discover" />
         <div
-          className="suggest"
-          style={{ touchAction: "pan-y" }}
+          className="idea-spotlight"
           onTouchStart={(e) => {
             start.current = e.touches[0].clientX;
           }}
@@ -112,31 +86,66 @@ export function Ideas() {
           onTouchCancel={() => {
             start.current = null;
           }}
+          style={{ touchAction: "pan-y" }}
         >
-          <div className="suggest-emoji">{emoji}</div>
-          <h3>{name}</h3>
-          <p>{description}</p>
+          <p className="overline">
+            A little inspiration · {(index % suggestions.length) + 1} /{" "}
+            {suggestions.length}
+          </p>
+          <img className="spot-product" src={item.image} alt={item.name} />
+          <h3>{item.name}</h3>
+          <p>{item.detail}</p>
+          <div className="idea-actions">
+            <button
+              className="round-action"
+              aria-label="Skip idea"
+              onClick={skip}
+            >
+              <X size={20} />
+            </button>
+            <button
+              className="round-action main"
+              aria-label="Save idea"
+              onClick={save}
+            >
+              <Check size={21} />
+            </button>
+          </div>
         </div>
-        <div className="suggestactions">
-          <button className="roundaction" aria-label="Skip idea" onClick={skip}>
-            <X />
-          </button>
-          <button
-            className="roundaction yes"
-            aria-label="Save idea"
-            onClick={save}
-          >
-            <Heart />
-          </button>
+      </section>
+      <section className="section">
+        <Section title="Saved ideas" />
+        <div className="filter-row" aria-label="Filter ideas by person">
+          {[{ id: "all", name: "All" }, ...data.people].map((p) => (
+            <button
+              key={p.id}
+              className={`filter-pill ${personId === p.id ? "active" : ""}`}
+              aria-pressed={personId === p.id}
+              onClick={() => setUi({ filterPerson: p.id })}
+            >
+              {p.name}
+            </button>
+          ))}
         </div>
-        <p className="fineprint" style={{ textAlign: "center" }}>
-          Swipe left to skip or right to save. You can also use the buttons.
-        </p>
-      </div>
-      <Section title="Saved ideas">
-        <AddGift />
-      </Section>
-      <GiftList gifts={data.gifts} />
+        <div className="info-list">
+          {ideas.length ? (
+            ideas.map((i) => <IdeaRow key={i.id} idea={i} />)
+          ) : (
+            <Empty>
+              Save inspiration for later, without assigning an occasion.
+            </Empty>
+          )}
+        </div>
+        <Button
+          variant="secondary"
+          className="button-full"
+          style={{ marginTop: 14 }}
+          onClick={() => openEditor({ type: "idea" })}
+        >
+          <Plus size={16} />
+          Add your own idea
+        </Button>
+      </section>
     </>
   );
 }
