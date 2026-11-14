@@ -67,6 +67,11 @@ test("FAB actions; gift photo/status, membership validation and independent idea
   await expect(page.getByLabel("Product link")).toHaveValue(
     "https://example.com",
   );
+  // An idea saved for Anyone requires an explicit occasion and recipient.
+  await page.getByRole("combobox", { name: "Occasion", exact: true })
+    .selectOption("e1");
+  await page.getByRole("combobox", { name: "For", exact: true })
+    .selectOption("p1");
   await page.getByRole("button", { name: "Save gift", exact: true }).click();
   const data = await readData(page);
   expect(data.ideas.some((i) => i.name === "A photo idea")).toBe(true);
@@ -439,7 +444,7 @@ test("gift editor can explicitly add a person to an occasion without inventing a
   await page.getByRole("button", { name: "Add gift", exact: true }).click();
   await page.getByRole("combobox", { name: "For", exact: true })
     .selectOption(created.id);
-  await expect(page.getByRole("status")).toContainText(
+  await expect(page.locator('.section-note[role="status"]')).toContainText(
     "Saving this gift will also add Rory new"
   );
   await page.getByLabel("Gift name", { exact: true }).fill("Tea set");
