@@ -29,6 +29,10 @@ Source of truth in `styles.css` `:root`:
 - Buttons may include leading or trailing icons, but no forced icon requirement. One dominant action per form.
 - Add/edit actions open a **bottom sheet** with a grab handle, title, appropriate controls and primary Save CTA.
 - Button and text contrast must meet WCAG AA where applicable; keyboard focus visible. `prefers-reduced-motion` respected.
+- **v1.1 contrast update:** Secondary and Outline control borders use `--control-border #82909c` (3.05:1 vs page gray, 3.27:1 vs white); inputs, radios, and checkboxes use visible non-text borders; placeholders use `--control-placeholder #66717d` (4.81:1 on field background). Disabled controls use explicit ink/fill/border instead of global transparency.
+- Bottom idle navigation labels use `--nav-muted #5e6874` (5.66:1 on white), with min 10px at narrow widths; calendar adjacent-month dates use #697580, markers expand from 4px to 6px with stronger color, and selected markers become white. Inactive segmented labels are darker.
+- Thin progress segments use `--progress-bought #52705a` and `--progress-planned #7463a0` (4.80:1 and 4.55:1 vs track). These are **data-indicator colors**, not a new purple brand identity.
+- The component library now includes a contrast check on a gray background. Continue manual verification on mobile, gradients and user-uploaded images; ratios cover flat CSS colors only.
 
 ## Navigation structure
 
