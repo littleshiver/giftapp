@@ -6,7 +6,13 @@
   --ink: #22252a;
   --ink-strong: #171a1e;
   --muted: #636975;
-  --muted-soft: #79818c;
+  --muted-soft: #64717d;
+  --control-border: #82909c;
+  --control-placeholder: #66717d;
+  --nav-muted: #5e6874;
+  --progress-bought: #52705a;
+  --progress-planned: #7463a0;
+  --progress-over: #a64150;
   --line: #e9edf0;
   --black: #23262b;
   --shadow:
