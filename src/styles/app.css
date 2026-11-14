@@ -1635,3 +1635,7 @@ svg {
 .button-secondary:not(:disabled):active,.button-outline:not(:disabled):active {background:#d8e1e8;}
 .nav-item:not(.is-active):hover,.nav-item:not(.is-active):focus-visible {background:#e8edf2;}
 .pill-tab:not(.is-active):hover {background:#dce3e9;}
+
+/* Gray-surface control comparison in the development-only component gallery. */
+.contrast-test-surface {background:var(--bg);padding:14px;border-radius:18px;margin-top:12px;}
+.contrast-test-surface .layout-stack {gap:9px;}
