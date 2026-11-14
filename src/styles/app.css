@@ -1675,8 +1675,8 @@ button, input, select, textarea { font-family: inherit; }
 .home-heading {
   isolation: isolate;
   position: relative;
-  padding: 16px 0 9px;
-  margin-bottom: 25px;
+  padding: 8px 0 9px;
+  margin-bottom: 15px;
 }
 .home-heading::before {
   content: "";
@@ -1722,7 +1722,7 @@ button, input, select, textarea { font-family: inherit; }
   margin-top: -3px;
   margin-bottom: -5px;
   padding-top: 16px;
-  padding-bottom: 32px;
+  padding-bottom: 16px;
 }
 .occasion-chip {
   flex: 0 0 250px;
@@ -1798,7 +1798,7 @@ button, input, select, textarea { font-family: inherit; }
   position: relative;
   isolation: isolate;
   overflow: visible;
-  margin-top: 30px;
+  margin-top: 10px;
   border-radius: 28px 28px 30px 30px;
   background: transparent;
   box-shadow: none;
@@ -1828,7 +1828,7 @@ button, input, select, textarea { font-family: inherit; }
 .focus-head {
   position: relative;
   z-index: 1;
-  padding: 50px 22px 8px;
+  padding: 42px 22px 8px;
 }
 .focus-head .focus-date {
   color: #545f64;
@@ -1849,7 +1849,7 @@ button, input, select, textarea { font-family: inherit; }
 .focus-gifts {
   position: relative;
   z-index: 1;
-  padding: 17px 22px 20px;
+  padding: 12px 22px 15px;
   gap: 12px;
 }
 .focus-gifts .product-card,
