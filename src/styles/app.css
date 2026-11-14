@@ -1891,6 +1891,7 @@ button, input, select, textarea { font-family: inherit; }
   background: #fff;
   box-shadow: var(--shadow);
 }
+.compact-budget .budget-head { justify-content: flex-start; gap: 10px; }
 .budget-head strong { font-size: 13px; font-weight: 850; }
 .budget-head .budget-value { font-weight: 800; }
 .budget-sub { font-size: 12px; }
