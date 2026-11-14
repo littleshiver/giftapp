@@ -20,7 +20,7 @@ test("new users start empty; onboarding creates explicit plans with zero budgets
   await page.getByLabel("Birthday budget").fill("0");
   await page.getByRole("button", { name: "Finish setup" }).click();
   await expect(
-    page.getByRole("heading", { name: "November 2026" }),
+    page.getByRole("heading", { name: /Hi, there/i }),
   ).toBeVisible();
   const d = await readData(page);
   expect(d.people).toHaveLength(1);
