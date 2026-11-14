@@ -25,11 +25,14 @@ export function Home() {
   return (
     <>
       <header className="home-heading">
-        <div className="brand-row">
-          <div className="wordmark">Givvy</div>
-        </div>
-        <div className="header-hi">Hi, {data.settings.name || "there"}.</div>
-        <h1 className="header-month">{monthName(new Date())}</h1>
+        <p className="header-month">
+          <CalendarDays size={15} aria-hidden="true" />
+          {monthName(new Date())}
+        </p>
+        <h1 className="home-greeting">
+          Hi, {data.settings.name?.trim() || "there"}
+          <span className="greeting-wave" role="img" aria-label="waving hand">👋</span>
+        </h1>
       </header>
       <section>
         <Section title="Coming up">
@@ -89,6 +92,19 @@ export function Home() {
               }
             }}
           >
+            <svg className="focus-wave" viewBox="0 0 400 185" preserveAspectRatio="none" aria-hidden="true">
+              <defs>
+                <linearGradient id="givvy-focus-wave" x1="0" y1="0" x2="1" y2="0.45">
+                  <stop offset="0" stopColor="#FFF3E6" />
+                  <stop offset=".54" stopColor="#FBF8F1" />
+                  <stop offset="1" stopColor="#EAF3EA" />
+                </linearGradient>
+              </defs>
+              <path
+                d="M0 49 Q0 26 24 20 C97 -6 141 10 209 34 C276 57 332 4 377 23 Q400 31 400 55 L400 185 L0 185 Z"
+                fill="url(#givvy-focus-wave)"
+              />
+            </svg>
             <div className="focus-head">
               <div className="focus-date">
                 <CalendarDays size={14} />
