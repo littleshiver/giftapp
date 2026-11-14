@@ -111,9 +111,7 @@ export function EventDetail() {
         )}
       </section>
       <section className="section">
-        <Section title="Gifts">
-          <AddGift eventId={e.id} />
-        </Section>
+        <Section title="Gifts" />
         {gs.length ? (
           <div className="detail-gifts">
             {gs.map((g) => (
@@ -162,6 +160,15 @@ export function EventDetail() {
         ) : (
           <Empty>No gifts selected yet. Add your first gift.</Empty>
         )}
+        <Button
+          variant="secondary"
+          className="button-full"
+          style={{ marginTop: 16 }}
+          onClick={() => openEditor({ type: "gift", eventId: e.id })}
+        >
+          <Plus size={16} />
+          Add gift
+        </Button>
       </section>
     </>
   );

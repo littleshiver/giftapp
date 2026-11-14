@@ -77,6 +77,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const openEditor = (e: Editor) => {
     if (
       e.type === "gift" &&
+      !e.id &&
       !data.events.some((event) =>
         event.people.some((id) => data.people.some((p) => p.id === id)),
       )

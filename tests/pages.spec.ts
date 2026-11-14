@@ -99,6 +99,13 @@ test("Pages production assets, hash routes, editing and reload on mobile", async
         () => document.documentElement.scrollWidth <= innerWidth,
       ),
     ).toBe(true);
+    await page.goto("http://127.0.0.1:4174/giftapp/#/components");
+    await expect(
+      page.getByRole("heading", { name: "Component library" }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole("heading", { name: "November 2026" }),
+    ).toBeVisible();
     expect(errors).toEqual([]);
     expect(failedAssets).toEqual([]);
   } finally {

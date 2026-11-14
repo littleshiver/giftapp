@@ -4,17 +4,17 @@ The supplied November 2026 HTML/CSS/JS reference is the visual and interaction a
 
 ## Differences and decisions
 
-| Area | Current production | Approved target |
-| --- | --- | --- |
-| Shell | Four tabs, profile Settings | Ideas / People / Home / Events / Settings; 58px create menu FAB |
-| Home | Large greeting, navigation chips, hero CTA and stats | Compact brand/month, selection-only upcoming cards, whole-panel detail link, photo-first square gift track, tiny month budget strip |
-| Events | Calendar and flat list | Calendar and Planning grouped by occasion month |
-| Gifts | idea / planned / bought / given in one collection | Independent Ideas; assigned gifts To buy / Bought only |
-| Forms | Bottom sheets, large fields, no association check | Shared accessible sheets, compact fields, validate recipient membership before saving |
-| People | Birthday, notes, gifts | Add preferences, independent ideas, maintain linked occasions |
-| Settings | Budgets, holidays, backup | Add name, onboarding preview; component reference is development-only; preserve holiday preferences/backups |
-| First run | Automatic sample people and events | Empty data, Welcome → holidays → person/birthday → birthday budget → finish |
-| Images | Inline data URLs | Preserve existing photos; validate and downsize new uploads; user photos remain primary |
+| Area      | Current production                                   | Approved target                                                                                                                     |
+| --------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Shell     | Four tabs, profile Settings                          | Ideas / People / Home / Events / Settings; 58px create menu FAB                                                                     |
+| Home      | Large greeting, navigation chips, hero CTA and stats | Compact brand/month, selection-only upcoming cards, whole-panel detail link, photo-first square gift track, tiny month budget strip |
+| Events    | Calendar and flat list                               | Calendar and Planning grouped by occasion month                                                                                     |
+| Gifts     | idea / planned / bought / given in one collection    | Independent Ideas; assigned gifts To buy / Bought only                                                                              |
+| Forms     | Bottom sheets, large fields, no association check    | Shared accessible sheets, compact fields, validate recipient membership before saving                                               |
+| People    | Birthday, notes, gifts                               | Add preferences, independent ideas, maintain linked occasions                                                                       |
+| Settings  | Budgets, holidays, backup                            | Add name, onboarding preview; component reference is development-only; preserve holiday preferences/backups                         |
+| First run | Automatic sample people and events                   | Empty data, Welcome → holidays → person/birthday → birthday budget → finish                                                         |
+| Images    | Inline data URLs                                     | Preserve existing photos; validate and downsize new uploads; user photos remain primary                                             |
 
 Production records must not be replaced by handoff demo records. Only the approved static discovery deck uses bundled sample thumbnails. In automated screenshots the fixture is isolated from real browser storage. No new backend, recurrence engine, dark mode, auth or dependencies are included.
 

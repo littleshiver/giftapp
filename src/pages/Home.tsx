@@ -19,8 +19,8 @@ export function Home() {
     selected = upcoming.find((e) => e.id === ui.selectedEvent) || upcoming[0],
     month = monthSummary(data, today().slice(0, 7));
   useEffect(() => {
-    if (selected && selected.id !== ui.selectedEvent)
-      setUi({ selectedEvent: selected.id });
+    if ((selected?.id || "") !== ui.selectedEvent)
+      setUi({ selectedEvent: selected?.id || "" });
   }, [selected?.id]);
   return (
     <>
@@ -102,7 +102,6 @@ export function Home() {
                   key={g.id}
                   item={g}
                   person={selected.people.length > 1}
-                  onClick={() => navigate(`/events/${selected.id}`)}
                 />
               ))}
               <div className="product-add">

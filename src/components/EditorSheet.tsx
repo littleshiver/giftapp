@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Check,
@@ -21,6 +21,7 @@ export function EditorSheet() {
     p = data.people.find((p) => p.id === editor?.id),
     event = data.events.find((e) => e.id === editor?.id);
   const prefill = editor?.prefill;
+  const formRef = useRef<HTMLFormElement>(null);
   const [eventId, setEventId] = useState(
       g?.eventId ||
         editor?.eventId ||
@@ -224,6 +225,7 @@ export function EditorSheet() {
   return (
     <Sheet title={heading} busy={busy} onClose={closeEditor}>
       <form
+        ref={formRef}
         onSubmit={(ev) => {
           ev.preventDefault();
           void save(ev.currentTarget);
@@ -478,21 +480,38 @@ export function EditorSheet() {
                 variant="secondary"
                 className="button-full"
                 disabled={busy}
-                onClick={() => {
-                  const fd = new FormData(
-                    document.querySelector<HTMLFormElement>(".sheet form")!,
-                  );
-                  openEditor({
-                    type: "gift",
-                    personId: idea.personId,
-                    prefill: {
-                      ...idea,
-                      name: String(fd.get("name") || idea.name),
-                      note: String(fd.get("note") || ""),
-                      link: String(fd.get("link") || ""),
-                      price: Number(fd.get("price")) || 0,
-                    },
-                  });
+                onClick={async () => {
+                  if (!formRef.current) return;
+                  const fd = new FormData(formRef.current),
+                    price = Number(fd.get("price"));
+                  if (!Number.isFinite(price) || price < 0) {
+                    notify("Enter a valid non-negative amount.");
+                    return;
+                  }
+                  setBusy(true);
+                  try {
+                    let image = idea.image;
+                    const file = fd.get("imageFile");
+                    if (file instanceof File && file.size)
+                      image = await readImage(file);
+                    openEditor({
+                      type: "gift",
+                      personId: String(fd.get("personId") || ""),
+                      prefill: {
+                        ...idea,
+                        name: String(fd.get("name") || idea.name),
+                        note: String(fd.get("note") || ""),
+                        link: String(fd.get("link") || ""),
+                        personId: String(fd.get("personId") || ""),
+                        price,
+                        image,
+                      },
+                    });
+                  } catch (error) {
+                    notify((error as Error).message);
+                  } finally {
+                    setBusy(false);
+                  }
                 }}
               >
                 <GiftIcon size={16} />

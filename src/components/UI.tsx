@@ -200,31 +200,41 @@ export function Product({
   onClick?: () => void;
 }) {
   const { data } = useApp();
+  const content = (
+    <>
+      <span
+        className="product-visual"
+        style={{ background: gradientFor(item.name) }}
+      >
+        <Photo src={item.image} name={item.name} />
+        {"status" in item && <StatusTag status={(item as Gift).status} />}
+      </span>
+      <span className="product-title">{item.name}</span>
+      <span className="product-caption">
+        {person
+          ? `For ${data.people.find((p) => p.id === item.personId)?.name || "Someone"}`
+          : currency(item.price)}
+      </span>
+    </>
+  );
   return (
     <div className="product-card">
-      <button
-        type="button"
-        className="product-open"
-        aria-label={`Edit ${item.name}`}
-        onClick={onClick}
-      >
-        <span
-          className="product-visual"
-          style={{ background: gradientFor(item.name) }}
+      {onClick ? (
+        <button
+          type="button"
+          className="product-open"
+          aria-label={`Edit ${item.name}`}
+          onClick={onClick}
         >
-          <Photo src={item.image} name={item.name} />
-          {"status" in item && <StatusTag status={(item as Gift).status} />}
-        </span>
-        <span className="product-title">{item.name}</span>
-        <span className="product-caption">
-          {person
-            ? `For ${data.people.find((p) => p.id === item.personId)?.name || "Someone"}`
-            : currency(item.price)}
-        </span>
-      </button>
+          {content}
+        </button>
+      ) : (
+        <div className="product-open">{content}</div>
+      )}
     </div>
   );
 }
+
 export function BudgetBar({
   bought,
   committed,

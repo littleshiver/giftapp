@@ -84,10 +84,6 @@ export function Sheet({
         if (e.target === e.currentTarget && !busy) onClose();
       }}
       onKeyDown={(e) => {
-        if (e.key === "Escape" && !busy) {
-          e.stopPropagation();
-          onClose();
-        }
         if (e.key === "Tab") {
           const nodes = ref.current?.querySelectorAll<HTMLElement>(
             "button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled),a[href]",

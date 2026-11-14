@@ -4,30 +4,34 @@ import { Empty, IdeaRow, Section, Title } from "../components/UI";
 import { Button } from "../components/Primitives";
 import { useApp } from "../state/AppState";
 import { uid } from "../utils/format";
-const base = import.meta.env.BASE_URL;
+// Inline the approved thumbnails so saved discovery photos survive origin changes/backups.
+import artbook from "../assets/discovery/artbook.jpg?inline";
+import blanket from "../assets/discovery/blanket.jpg?inline";
+import mug from "../assets/discovery/mug.jpg?inline";
+import candle from "../assets/discovery/candle.jpg?inline";
 const suggestions = [
   {
     name: "A beautiful art book",
     detail: "A thoughtful edition for someone who loves visual stories.",
-    image: base + "discovery/artbook.jpg",
+    image: artbook,
     price: 1800,
   },
   {
     name: "Something cozy",
     detail: "A soft everyday comfort, chosen with care.",
-    image: base + "discovery/blanket.jpg",
+    image: blanket,
     price: 2100,
   },
   {
     name: "Coffee ritual",
     detail: "A little object to make mornings more enjoyable.",
-    image: base + "discovery/mug.jpg",
+    image: mug,
     price: 1200,
   },
   {
     name: "A quiet evening",
     detail: "Something atmospheric for their favorite space.",
-    image: base + "discovery/candle.jpg",
+    image: candle,
     price: 900,
   },
 ];

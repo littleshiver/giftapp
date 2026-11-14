@@ -27,7 +27,11 @@ export function nextOccurrence(monthDay: string, from = today()) {
   throw Error("Please choose a valid date.");
 }
 // Explicitly additive: existing people, plans and recipient budgets are retained.
-export function applySetup(data: AppData, draft: SetupDraft): AppData {
+export function applySetup(
+  data: AppData,
+  draft: SetupDraft,
+  from = today(),
+): AppData {
   if (!Number.isFinite(draft.budget) || draft.budget < 0)
     throw Error("Enter a valid birthday budget.");
   const next: AppData = {
@@ -64,7 +68,7 @@ export function applySetup(data: AppData, draft: SetupDraft): AppData {
         iso(parseDate(draft.birthday)) !== draft.birthday
       )
         throw Error("Please choose a valid birthday.");
-      const date = nextOccurrence(draft.birthday.slice(5));
+      const date = nextOccurrence(draft.birthday.slice(5), from);
       if (
         !next.events.some(
           (e) =>
@@ -97,7 +101,7 @@ export function applySetup(data: AppData, draft: SetupDraft): AppData {
       next.events.push({
         id: uid(),
         name: holiday,
-        date: nextOccurrence(dates[holiday]),
+        date: nextOccurrence(dates[holiday], from),
         kind: "holiday",
         people: [],
         budgets: {},

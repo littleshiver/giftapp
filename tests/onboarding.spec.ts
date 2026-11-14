@@ -93,12 +93,16 @@ test("annual initial dates handle passed birthdays and leap days; setup is addit
   expect(nextOccurrence("11-01", "2026-11-15")).toBe("2027-11-01");
   expect(nextOccurrence("02-29", "2026-11-15")).toBe("2028-02-29");
   const d = fixture();
-  const next = applySetup(d, {
-    name: "Anna",
-    birthday: "1997-11-28",
-    holidays: ["New Year"],
-    budget: 0,
-  });
+  const next = applySetup(
+    d,
+    {
+      name: "Anna",
+      birthday: "1997-11-28",
+      holidays: ["New Year"],
+      budget: 0,
+    },
+    "2026-11-15",
+  );
   expect(next.people).toEqual(d.people);
   expect(next.events).toEqual(d.events);
   expect(next.gifts).toEqual(d.gifts);

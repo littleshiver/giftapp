@@ -5,7 +5,7 @@ export const image = (name: string) =>
   readFileSync(
     ["birthday", "newyear", "flowers"].includes(name)
       ? `tests/fixtures/${name}.jpg`
-      : `public/discovery/${name}.jpg`,
+      : `src/assets/discovery/${name}.jpg`,
   ).toString("base64");
 export function fixture() {
   return {

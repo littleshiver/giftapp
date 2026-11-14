@@ -39,7 +39,7 @@ Bottom bar order: **Ideas | People | Home | Events | Settings**. Home is the vis
 1. Compact brand `Givvy`, brief personal greeting and actual month + year (`November 2026`). **No `N ideas` or `M bought` statistic tiles in the header.** No needless slogan.
 2. `Coming up`: horizontally scrollable **compact occasion cards**, displaying a small square cover/image, occasion name, date and a **countdown pill at the top-right**. Partial next card signals scrollability. Sorted chronological, nearest by default selected. Selecting a card updates the focus panel, **does not navigate**.
 3. **Focus panel** for selected event: date above title, subtly asymmetric/organic pale top edge, horizontally scrollable **square gift product cards** with uploaded photo or pastel fallback. Each product image has a single top overlay tag: `To buy` or `Bought`, and product name below. A small final `+` tile invokes Add gift with selected event prefilled. **The entire outer focus card opens the occasion details.** Avoid duplicate CTA (`Open gift plan`, arrow button) and generic instructions (`Tap to manage`). In multi-person events, show recipient name near gift name.
-4. **Tiny monthly financial strip**, grouped by **occasion date month**. Shows *selected gift costs / allocated event budgets*, and distinguishes bought vs yet to buy via a quiet two-segment progress bar. `Ideas` not assigned to events do not count. A budget of zero is valid and should not cause division by zero. Over-budget amount is a warning, not a blocker.
+4. **Tiny monthly financial strip**, grouped by **occasion date month**. Shows _selected gift costs / allocated event budgets_, and distinguishes bought vs yet to buy via a quiet two-segment progress bar. `Ideas` not assigned to events do not count. A budget of zero is valid and should not cause division by zero. Over-budget amount is a warning, not a blocker.
 5. `Need inspiration?` banner remains an understated CTA into Ideas.
 
 ### Events (`/events`)
@@ -101,7 +101,7 @@ Budget `EventRecipientBudget` must remain `eventId + personId + amount`. The eve
 
 ## Proposed QA acceptance checklist
 
-1. No horizontal **page** overflow at 320/375/390/430. Horizontal scroll is allowed *only* inside clearly intended tracks.
+1. No horizontal **page** overflow at 320/375/390/430. Horizontal scroll is allowed _only_ inside clearly intended tracks.
 2. No cropped shadows on upper occasion cards, selected focus panel or nav. No overlapping navigation and content at bottom; safe area respected.
 3. Coming up horizontally scrolls, nearest event selected by default, tapping a chip updates focus only, tapping focus opens event.
 4. No stats chips in Home header, no duplicate action labels/links in focus card.

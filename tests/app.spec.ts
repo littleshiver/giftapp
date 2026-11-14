@@ -43,13 +43,11 @@ test("FAB actions; gift photo/status, membership validation and independent idea
   await page.getByLabel("Estimated price").fill("800");
   await page.getByLabel("Notes", { exact: true }).fill("Important note");
   await page.getByLabel("Product link").fill("https://example.com");
-  await page
-    .getByLabel("Idea photo")
-    .setInputFiles({
-      name: "mug.jpg",
-      mimeType: "image/jpeg",
-      buffer: Buffer.from(image("mug").split(",")[1], "base64"),
-    });
+  await page.getByLabel("Idea photo").setInputFiles({
+    name: "mug.jpg",
+    mimeType: "image/jpeg",
+    buffer: Buffer.from(image("mug").split(",")[1], "base64"),
+  });
   await page.getByRole("button", { name: "Save idea", exact: true }).click();
   const saved = (await readData(page)).ideas.find(
     (i) => i.name === "A photo idea",
@@ -167,6 +165,9 @@ test("suggestions save without a person or occasion and filters persist across t
   await page.goto("/#/ideas");
   await page.getByRole("button", { name: "Save idea", exact: true }).click();
   expect((await readData(page)).ideas.at(-1).personId).toBe("");
+  expect((await readData(page)).ideas.at(-1).image).toMatch(
+    /^data:image\/jpeg/,
+  );
   await page.getByRole("button", { name: "Skip idea", exact: true }).click();
   await expect(page.locator(".idea-spotlight h3")).toHaveText("Coffee ritual");
   await page.getByRole("button", { name: "Anna", exact: true }).click();
@@ -242,24 +243,20 @@ test("legacy migration notice, original data exports, v3 restore and invalid bac
       JSON.parse(localStorage.getItem("givvy_dashboard_v1")!),
     ),
   ).toEqual(legacy);
-  await page
-    .getByLabel("Import backup")
-    .setInputFiles({
-      name: "bad.json",
-      mimeType: "application/json",
-      buffer: Buffer.from('{"version":99}'),
-    });
+  await page.getByLabel("Import backup").setInputFiles({
+    name: "bad.json",
+    mimeType: "application/json",
+    buffer: Buffer.from('{"version":99}'),
+  });
   await expect(page.getByRole("status")).toContainText(
     "Unsupported backup version",
   );
   page.once("dialog", (d) => d.accept());
-  await page
-    .getByLabel("Import backup")
-    .setInputFiles({
-      name: "restore.json",
-      mimeType: "application/json",
-      buffer: Buffer.from(JSON.stringify({ version: 3, data: fixture() })),
-    });
+  await page.getByLabel("Import backup").setInputFiles({
+    name: "restore.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify({ version: 3, data: fixture() })),
+  });
   await expect(page.getByRole("status")).toContainText("Backup imported");
   expect((await readData(page)).settings.name).toBe("Polina");
 });
@@ -288,13 +285,11 @@ test("invalid image keeps editor contents and no status duplicates", async ({
   await page
     .getByRole("button", { name: "Edit Scented candle", exact: true })
     .click();
-  await page
-    .getByLabel("Gift photo")
-    .setInputFiles({
-      name: "invalid.jpg",
-      mimeType: "image/jpeg",
-      buffer: Buffer.from("invalid image data"),
-    });
+  await page.getByLabel("Gift photo").setInputFiles({
+    name: "invalid.jpg",
+    mimeType: "image/jpeg",
+    buffer: Buffer.from("invalid image data"),
+  });
   await page.getByRole("button", { name: "Save gift", exact: true }).click();
   await expect(page.getByRole("status")).toContainText(
     "Image could not be loaded",
@@ -305,4 +300,55 @@ test("invalid image keeps editor contents and no status duplicates", async ({
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(page.locator(".status-tag")).toHaveCount(3);
+});
+
+test("occasion/gift CRUD and explicit cascade deletion retain independent ideas", async ({
+  page,
+}) => {
+  await seed(page);
+  await page.goto("/#/events");
+  await page.getByRole("button", { name: "Add occasion", exact: true }).click();
+  await page.getByLabel("Occasion name").fill("Dinner");
+  await page.getByLabel("Type", { exact: true }).selectOption("other");
+  await page.getByLabel("Include Anna").check();
+  await page.getByLabel("Budget for Anna").fill("0");
+  await page.getByRole("button", { name: "Save event", exact: true }).click();
+  const event = (await readData(page)).events.find((e) => e.name === "Dinner");
+  await page.goto("/#/events/" + event.id);
+  await page.getByRole("button", { name: "Create", exact: true }).click();
+  await page.getByRole("button", { name: "Add gift to occasion" }).click();
+  await page.getByLabel("Gift name", { exact: true }).fill("Flowers");
+  await page.getByLabel("Price (₽)").fill("100");
+  await page.getByRole("button", { name: "Save gift", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Edit Flowers", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Edit Flowers", exact: true }).click();
+  page.once("dialog", (d) => d.accept());
+  await page.getByRole("button", { name: "Delete gift", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Edit Flowers", exact: true }),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: "Edit", exact: true }).click();
+  page.once("dialog", (d) => d.accept());
+  await page.getByRole("button", { name: "Delete event", exact: true }).click();
+  expect((await readData(page)).events.some((e) => e.id === event.id)).toBe(
+    false,
+  );
+  await page.goto("/#/people/p1");
+  await page.getByRole("button", { name: "Edit person" }).click();
+  page.once("dialog", (d) => d.accept());
+  await page
+    .getByRole("button", { name: "Delete person", exact: true })
+    .click();
+  const result = await readData(page);
+  expect(result.people.some((p) => p.id === "p1")).toBe(false);
+  expect(result.ideas[0].name).toBe("Ceramic mug");
+  expect(result.ideas[0].personId).toBe("");
+  expect(result.gifts.every((g) => g.personId !== "p1")).toBe(true);
+  expect(
+    result.events.every(
+      (e) => !e.people.includes("p1") && !Object.hasOwn(e.budgets, "p1"),
+    ),
+  ).toBe(true);
 });
