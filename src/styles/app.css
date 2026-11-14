@@ -19,7 +19,7 @@ button {
   cursor: pointer;
 }
 button:disabled {
-  opacity: 0.48;
+  opacity: 1;
   cursor: not-allowed;
 }
 button,
@@ -392,12 +392,12 @@ svg {
   gap: 4px;
   box-shadow: 0 2px 8px #0000000a;
 }
-.status-tag.bought {
-  background: #e6f4e9ef;
+ .status-tag.bought {
+  background: #e6f4e9;
   color: #23563e;
 }
-.status-tag.to-buy {
-  background: #fff2d7ee;
+ .status-tag.to-buy {
+  background: #fff2d7;
   color: #5b492a;
 }
 .product-add {
@@ -411,7 +411,7 @@ svg {
   aspect-ratio: 1;
   display: grid;
   place-items: center;
-  border: 1.5px dashed #cdd2d8;
+  border: 1.5px dashed var(--control-border);
   border-radius: 18px;
   background: #f9fafb;
   color: var(--muted);
@@ -461,7 +461,7 @@ svg {
 }
 .progress {
   width: 100%;
-  height: 7px;
+  height: 8px;
   display: flex;
   gap: 2px;
   overflow: hidden;
@@ -470,13 +470,13 @@ svg {
   margin-top: 12px;
 }
 .progress .spent {
-  background: #a5b9a4;
+  background: var(--progress-bought);
 }
 .progress .reserved {
-  background: #d7c6e5;
+  background: var(--progress-planned);
 }
 .progress .over {
-  background: #dc9b9a;
+  background: var(--progress-over);
 }
 .inspiration {
   background: linear-gradient(110deg, #fbfaf6, #ecf3ea);
@@ -551,9 +551,9 @@ svg {
   border-radius: 17px;
   background: transparent;
   border: 0;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 680;
-  color: #727986;
+  color: var(--nav-muted);
 }
 .nav-item svg {
   width: 20px;
@@ -614,14 +614,14 @@ svg {
   border-radius: 16px;
   width: fit-content;
 }
-.pill-tab {
+ .pill-tab {
   border: 0;
   border-radius: 12px;
   background: transparent;
   padding: 10px 15px;
   font-weight: 720;
   font-size: 12px;
-  color: #68717d;
+  color: #52606d;
 }
 .pill-tab.is-active {
   background: #fff;
@@ -660,9 +660,9 @@ svg {
   text-align: center;
 }
 .cal-week {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 750;
-  color: #7b838b;
+  color: #646e79;
   margin-bottom: 7px;
 }
 .cal-week span {
@@ -684,7 +684,10 @@ svg {
   font-weight: 700;
 }
 .cal-day.is-out {
-  opacity: 0.32;
+  color: #697580;
+}
+.cal-day.is-out.is-selected {
+  color: #fff;
 }
 .cal-day.is-today:not(.is-selected) {
   outline: 1px solid #c9d0d5;
@@ -701,10 +704,13 @@ svg {
   min-height: 4px;
 }
 .cal-dot {
-  width: 4px;
-  height: 4px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: #b1b7db;
+  background: #7463a0;
+}
+.cal-day.is-selected .cal-dot {
+  background: #fff;
 }
 .info-list {
   display: flex;
@@ -1010,11 +1016,12 @@ svg {
   color: white;
 }
 .button-secondary {
-  background: #f0f2f3;
+  background: #e7ecf0;
+  border: 1px solid var(--control-border);
   color: var(--ink);
 }
 .button-outline {
-  border: 1px solid #e3e6e9;
+  border: 1px solid var(--control-border);
   color: var(--ink);
   background: white;
 }
@@ -1143,14 +1150,14 @@ svg {
   min-height: 43px;
   border-radius: 13px;
   padding: 10px 12px;
-  border: 1px solid #dfe4e8;
+  border: 1px solid var(--control-border);
   background: #fbfbfc;
   color: var(--ink);
   font-size: 13px;
   line-height: 1.3;
 }
 .control::placeholder {
-  color: #9299a2;
+  color: var(--control-placeholder);
 }
 .control:focus {
   border-color: #777f8a;
@@ -1183,7 +1190,7 @@ svg {
   flex: 0 0 auto;
   height: 17px;
   width: 17px;
-  border: 1.5px solid #aeb7be;
+  border: 1.5px solid #788694;
   background: white;
   display: grid;
   place-items: center;
@@ -1230,7 +1237,7 @@ svg {
   min-height: 36px;
 }
 .upload-box {
-  border: 1px dashed #bfc7cd;
+  border: 1.5px dashed var(--control-border);
   border-radius: 15px;
   min-height: 82px;
   padding: 12px;
@@ -1378,7 +1385,7 @@ svg {
     flex-basis: 122px;
   }
   .nav-item {
-    font-size: 9px;
+    font-size: 10px;
   }
   .nav-item svg {
     width: 19px;
@@ -1612,3 +1619,19 @@ svg {
 .budget-sub .warning {
   padding: 0;
 }
+
+/* Contrast review v1.1: legible controls on white and cool-gray surfaces. */
+.button-primary:disabled,.button-secondary:disabled,.button-outline:disabled {
+  background: #e3e8ed;
+  color: #5e6874;
+  border: 1px solid #9aa6b1;
+  box-shadow: none;
+}
+.button-secondary:focus-visible,.button-outline:focus-visible,.control:focus-visible,
+.checkline input:focus-visible,.pill-tab:focus-visible,.cal-day:focus-visible,.nav-item:focus-visible {
+  outline: 3px solid #517baf;
+  outline-offset: 2px;
+}
+.button-secondary:not(:disabled):active,.button-outline:not(:disabled):active {background:#d8e1e8;}
+.nav-item:not(.is-active):hover,.nav-item:not(.is-active):focus-visible {background:#e8edf2;}
+.pill-tab:not(.is-active):hover {background:#dce3e9;}
