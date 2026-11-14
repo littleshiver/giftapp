@@ -115,3 +115,22 @@ Budget `EventRecipientBudget` must remain `eventId + personId + amount`. The eve
 8. Event calendar, planning view, people profiles, idea suggestions, settings, onboarding and bottom sheets all work.
 9. Test localStorage upgrade paths and backup restoration against existing React/Stage 1 production data.
 10. Run build/typecheck/Playwright on **the React app**, not just this design reference. Submit changes via a PR rather than overwriting `main` unreviewed.
+
+
+## Visual Fidelity Pass — approved mobile direction (15 Nov 2026)
+
+**Non-negotiable UX:** The 5 tabs (Ideas, People, Home, Events, Settings), FAB, Coming up horizontal scroll, one focused selected occasion, budget strip *after* focused occasion, and Inspiration stay in their existing order. **Never** insert budget under the month or add total Ideas/Bought counters to the Home greeting. No invented dashboard metrics or decorative action buttons.
+
+**Header:** The useful month/year is a quiet 12px dateline; the personalized `Hi, {name} 👋` greeting is the principal 29–34px, weight 900 element. We removed the unapproved bare Givvy logo placeholder; brand mark can be designed later. Ambient gradients are used only as subtle background lighting.
+
+**Type:** Load open-source Nunito (400/500/600/700/800/900) as a real web font with ui-rounded/system fallbacks. Supports multilingual screens; no downloaded font files are included in the handoff. Check font loading on device, including under unreliable connections.
+
+**Occasion cards:** 250px horizontal cards at standard mobile sizes, 232px under 360px. Artwork is 57px, content beside it, countdown tucked in the upper corner. Selected surface is pale cream/sage and uses a quiet neutral outline (not purple-primary). Photos are controlled by user data.
+
+**Focused event:** The top silhouette uses an actual, scalable SVG Bézier wave. The cream-to-sage banner sits behind a large event name, not as a bitmap. Gift thumbnails are square (146px; 133px under 360), horizontally scrollable, with solid Bought / To buy pills and consistent image cropping. The large surface remains one navigable event, and the embedded Add gift is a separate action.
+
+**Palette and depth:** Keep the canvas cold-neutral (#f7f8fa), paper white cards, graphitic controls. Colors are accents and event placeholders only: peach, sage, cream, cloud-blue, rose. Raised cards use soft shadows with sufficient scroll gutter. Preserve v1.1 contrast rules; do not revert to 4px calendar markers, faint input borders or pale secondary buttons.
+
+**All pages:** Reuse Nunito, the same soft surface shadows and radii on calendar, event/person lists, detail headers, idea panel, controls and bottom sheets. This is a styling pass, **not** a data model or navigation refactor. Existing gift states remain only `to_buy` and `bought`.
+
+**Acceptance:** Validate build, Playwright, and real 320/375/390/430px screenshots for Home, Calendar, Event, People, Ideas and Settings; inspect overflow, shadow clipping, cross-browser type fallback, contrast over user photos and reduced-motion behavior. Screenshots from the older handoff are historical references and may not match this pass.
