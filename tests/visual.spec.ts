@@ -9,7 +9,9 @@ for (const width of [320, 375, 390, 430])
       failed: string[] = [];
     page.on("pageerror", (e) => errors.push(e.message));
     page.on("response", (r) => {
-      if (r.status() >= 400) failed.push(r.url());
+      // Optional web font CDN must not mask regressions in our own assets.
+      if (r.url().startsWith("http://127.0.0.1:5173") && r.status() >= 400)
+        failed.push(r.url());
     });
     await page.setViewportSize({ width, height: 844 });
     await seed(page);
@@ -32,6 +34,18 @@ for (const width of [320, 375, 390, 430])
     for (const [name, route] of shots) {
       await page.goto("/#" + route);
       await expect(page.locator("main")).toBeVisible();
+      if (name === "home") {
+        // Visual regression anchors: these are approved UX constraints.
+        await expect(page.locator(".home-greeting")).toContainText("Hi, Polina");
+        await expect(page.locator(".focus-wave")).toBeVisible();
+        await expect(page.locator(".home-heading .compact-budget")).toHaveCount(0);
+        const positions = await page.evaluate(() => {
+          const card = document.querySelector(".focus-card")?.getBoundingClientRect();
+          const budget = document.querySelector(".compact-budget")?.getBoundingClientRect();
+          return { cardBottom: card?.bottom ?? 0, budgetTop: budget?.top ?? 0 };
+        });
+        expect(positions.budgetTop).toBeGreaterThan(positions.cardBottom);
+      }
       await page
         .locator("img")
         .evaluateAll((images) =>

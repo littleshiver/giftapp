@@ -1,7 +1,7 @@
 /* GIVVY — Design prototype tokens. Future dark mode: override semantic tokens. */
 :root {
   color-scheme: light;
-  --bg: #f6f7f8;
+  --bg: #f7f8fa;
   --surface: #ffffff;
   --ink: #22252a;
   --ink-strong: #171a1e;
@@ -16,9 +16,9 @@
   --line: #e9edf0;
   --black: #23262b;
   --shadow:
-    0 10px 30px rgba(28, 34, 46, 0.065), 0 2px 8px rgba(28, 34, 46, 0.025);
+    0 12px 29px rgba(35, 38, 43, 0.075), 0 3px 9px rgba(35, 38, 43, 0.028);
   --shadow-raised:
-    0 16px 38px rgba(28, 34, 46, 0.095), 0 3px 12px rgba(28, 34, 46, 0.025);
+    0 18px 36px rgba(35, 38, 43, 0.10), 0 4px 13px rgba(35, 38, 43, 0.025);
   --blue: #dfeaf7;
   --lavender: #eee7f5;
   --mint: #e5f0e8;
@@ -31,9 +31,9 @@
   --r-control: 13px;
   --space: 20px;
   font-family:
+    "Nunito",
     ui-rounded,
     "Avenir Next",
-    "Nunito Sans",
     "SF Pro Rounded",
     -apple-system,
     BlinkMacSystemFont,

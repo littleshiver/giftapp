@@ -58,13 +58,19 @@ test("Pages production assets, hash routes, editing and reload on mobile", async
         );
     }, fixture());
     page.on("pageerror", (error) => errors.push(error.message));
+    // External font CDN is optional; only same-origin assets can break this app.
+    const ownOrigin = "http://127.0.0.1:4174";
     page.on("response", (response) => {
-      if (response.status() >= 400) failedAssets.push(response.url());
+      if (response.url().startsWith(ownOrigin) && response.status() >= 400)
+        failedAssets.push(response.url());
     });
-    page.on("requestfailed", (request) => failedAssets.push(request.url()));
+    page.on("requestfailed", (request) => {
+      if (request.url().startsWith(ownOrigin))
+        failedAssets.push(request.url());
+    });
     await page.goto("http://127.0.0.1:4174/giftapp/");
     await expect(
-      page.getByRole("heading", { name: "November 2026" }),
+      page.getByRole("heading", { name: /Hi, Polina/i }),
     ).toBeVisible();
     const assets = await page
       .locator('script[src],link[rel="stylesheet"]')
@@ -72,9 +78,9 @@ test("Pages production assets, hash routes, editing and reload on mobile", async
         elements.map((el) => el.getAttribute("src") || el.getAttribute("href")),
       );
     expect(assets.length).toBeGreaterThanOrEqual(2);
-    expect(assets.every((path) => path?.startsWith("/giftapp/assets/"))).toBe(
-      true,
-    );
+    expect(assets.filter((path) => path?.startsWith("/")).every((path) =>
+      path?.startsWith("/giftapp/assets/")
+    )).toBe(true);
     for (const name of ["Events", "People", "Ideas", "Home"]) {
       await page
         .getByRole("navigation")
@@ -104,7 +110,7 @@ test("Pages production assets, hash routes, editing and reload on mobile", async
       page.getByRole("heading", { name: "Component library" }),
     ).toHaveCount(0);
     await expect(
-      page.getByRole("heading", { name: "November 2026" }),
+      page.getByRole("heading", { name: /Hi, Polina/i }),
     ).toBeVisible();
     expect(errors).toEqual([]);
     expect(failedAssets).toEqual([]);
