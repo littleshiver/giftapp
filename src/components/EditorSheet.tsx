@@ -370,6 +370,12 @@ export function EditorSheet() {
                       );
                     }}
                   >
+                    <option value="">Choose occasion</option>
+                    {eventId && !data.events.some((e) => e.id === eventId) && (
+                      <option value={eventId}>
+                        Missing occasion — choose another
+                      </option>
+                    )}
                     {data.events.map((e) => (
                       <option key={e.id} value={e.id}>
                         {e.name}

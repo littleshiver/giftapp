@@ -3,7 +3,7 @@
 ## Checks
 
 - Production build and strict source TypeScript check pass (`npm run build`).
-- 22 Playwright checks cover the actual React implementation, including three pure migration checks. No zero-test substitutes.
+- 23 Playwright checks cover the actual React implementation, including three pure migration checks. No zero-test substitutes.
 - Browser checks exercise Home selection without navigation, the whole focus-panel detail action, five-tab order, FAB prefill, idea-to-gift copying, image validation/compression, two-status toggling, recipient membership, zero/absent/over budgets, month accounting, calendar/planning, person preferences/notes, explicit cascade deletion, legacy preservation, backups, quota failures, onboarding, empty states and production hash routes/assets.
 - Every screen and editor is checked for page/sheet horizontal overflow at 320/375/390/430 px. The fixture clock is fixed to November 15, 2026. Intended product/occasion tracks scroll horizontally; page-level overflow is forbidden.
 - Fourteen screenshots include Home at all four widths and calendar, planning, event/person detail, People, Ideas, Settings, onboarding, development components and a gift editor at 390 px.

@@ -49,6 +49,7 @@ test("FAB actions; gift photo/status, membership validation and independent idea
     buffer: Buffer.from(image("mug").split(",")[1], "base64"),
   });
   await page.getByRole("button", { name: "Save idea", exact: true }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   const saved = (await readData(page)).ideas.find(
     (i) => i.name === "A photo idea",
   );
@@ -351,4 +352,30 @@ test("occasion/gift CRUD and explicit cascade deletion retain independent ideas"
       (e) => !e.people.includes("p1") && !Object.hasOwn(e.budgets, "p1"),
     ),
   ).toBe(true);
+});
+
+test("an imported gift with a missing occasion stays visible and can be repaired", async ({
+  page,
+}) => {
+  const data = fixture();
+  data.gifts[0].eventId = "missing-occasion";
+  await seed(page, data);
+  await page.goto("/#/people/p1");
+  await page
+    .getByRole("button", { name: "Edit Scented candle", exact: true })
+    .click();
+  await expect(
+    page.getByRole("combobox", { name: "Occasion", exact: true }),
+  ).toHaveValue("missing-occasion");
+  await expect(page.getByLabel("Notes", { exact: true })).toHaveValue(
+    "Keep the original note",
+  );
+  await page
+    .getByRole("combobox", { name: "Occasion", exact: true })
+    .selectOption("e1");
+  await page.getByRole("button", { name: "Save gift", exact: true }).click();
+  const repaired = (await readData(page)).gifts.find((g) => g.id === "g1");
+  expect(repaired.eventId).toBe("e1");
+  expect(repaired.note).toBe("Keep the original note");
+  expect(repaired.image).toBe(data.gifts[0].image);
 });
