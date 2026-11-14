@@ -1,31 +1,33 @@
+import { Plus } from "lucide-react";
 import { Empty, PersonRow, Title } from "../components/UI";
 import { useApp } from "../state/AppState";
+import { Button } from "../components/Primitives";
 export function People() {
   const { data, openEditor } = useApp();
   return (
     <>
       <Title
         name="Your people"
-        subtitle="Little details make a big difference."
+        subtitle="Birthdays, little details and thoughtful ideas."
       />
-      <div className="toolbar">
-        <span className="smallcaps">{data.people.length} recipients</span>
-        <button
-          className="floating"
-          onClick={() => openEditor({ type: "person" })}
-        >
-          ＋ Person
-        </button>
-      </div>
-      <div className="card">
+      <div className="info-list">
         {data.people.length ? (
-          data.people.map((p) => <PersonRow key={p.id} person={p} />)
+          data.people.map((p, index) => (
+            <PersonRow key={p.id} person={p} index={index} />
+          ))
         ) : (
-          <Empty>
-            Add your first person to start planning thoughtful gifts.
-          </Empty>
+          <Empty>Add people you love giving gifts to.</Empty>
         )}
       </div>
+      <Button
+        variant="secondary"
+        className="button-full"
+        style={{ marginTop: 16 }}
+        onClick={() => openEditor({ type: "person" })}
+      >
+        <Plus size={16} />
+        Add person
+      </Button>
     </>
   );
 }

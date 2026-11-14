@@ -1,112 +1,176 @@
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { Download, Upload, Sparkles, Info } from "lucide-react";
+import { Title } from "../components/UI";
+import { Button, Field } from "../components/Primitives";
 import { useApp } from "../state/AppState";
-import { decode, exportBackup } from "../persistence/storage";
+import { decode, downloadJson, exportBackup } from "../persistence/storage";
 export function Settings() {
   const { data, commit, notify } = useApp(),
     [budget, setBudget] = useState(data.settings.birthdayBudget),
     file = useRef<HTMLInputElement>(null);
   return (
     <>
-      <Link className="back" to="/">
-        ‹ Dashboard
-      </Link>
-      <h1 className="page-title" style={{ margin: "24px 0" }}>
-        Settings
-      </h1>
-      <div className="card">
-        <div className="sectionhead" style={{ margin: "0 0 8px" }}>
-          <h2>Occasions</h2>
-        </div>
-        {(["christmas", "hanukkah"] as const).map((key) => (
-          <label className="checkrow" key={key}>
-            <span>
-              {key === "christmas" ? "🎄 Christmas (Dec 25)" : "🕎 Hanukkah"}
-            </span>
-            <input
-              type="checkbox"
-              checked={data.settings[key] ?? false}
-              onChange={(e) =>
-                commit({
-                  ...data,
-                  settings: { ...data.settings, [key]: e.target.checked },
-                })
-              }
-            />
-          </label>
-        ))}
-        <p className="fineprint">
-          Hanukkah dates vary each year. When enabled, add an occasion with the
-          date you observe.
-        </p>
+      <Title name="Settings" subtitle="Make Givvy yours." />
+      <section className="data-card">
+        <h2>Preferences</h2>
         <form
           onSubmit={(e) => {
             e.preventDefault();
+            const fd = new FormData(e.currentTarget);
             if (
               commit({
                 ...data,
-                settings: { ...data.settings, birthdayBudget: budget },
+                settings: {
+                  ...data.settings,
+                  name: String(fd.get("name") || "").trim(),
+                  birthdayBudget: budget,
+                },
               })
             )
-              notify("Preferences saved ✓");
+              notify("Preferences saved");
           }}
         >
-          <div className="field">
-            <label htmlFor="birthday-default">
-              Default birthday budget (RUB)
-            </label>
+          <Field label="Your name">
             <input
-              id="birthday-default"
+              className="control"
+              name="name"
+              defaultValue={data.settings.name || ""}
+              maxLength={70}
+            />
+          </Field>
+          <Field label="Default birthday budget (₽)">
+            <input
+              className="control"
               type="number"
               min="0"
               required
               value={budget}
               onChange={(e) => setBudget(Number(e.target.value))}
             />
-          </div>
-          <button className="action alt">Save preferences</button>
+          </Field>
+          <Button className="button-full">Save preferences</Button>
         </form>
-      </div>
-      <div className="card">
-        <h2 style={{ fontSize: 17 }}>Your data</h2>
-        <p className="sub">
-          Saved locally in this browser. Export a backup before switching
-          browsers or devices.
+      </section>
+      <section className="data-card">
+        <h2>Design & first-run flows</h2>
+        <p>
+          Explore the onboarding
+          {import.meta.env.DEV
+            ? " and the reusable UI component library."
+            : ". Preview adds preferences only when you finish."}
         </p>
-        <div className="backup-actions">
-          <button className="action alt" onClick={() => exportBackup(data)}>
+        <Link
+          className="button-secondary button-full"
+          style={{ marginTop: 14 }}
+          to="/onboarding?preview=1"
+        >
+          <Sparkles size={16} />
+          Preview onboarding
+        </Link>
+        {import.meta.env.DEV && (
+          <Link
+            className="button-outline button-full"
+            style={{ marginTop: 10 }}
+            to="/components"
+          >
+            <Info size={16} />
+            Component library
+          </Link>
+        )}
+      </section>
+      <section className="data-card">
+        <h2>Local data</h2>
+        <p>
+          Your data stays in this browser. Export before changing browsers or
+          devices. Photos count toward browser storage limits.
+        </p>
+        <div className="button-row" style={{ marginTop: 14 }}>
+          <Button variant="secondary" onClick={() => exportBackup(data)}>
+            <Download size={16} />
             Export JSON
-          </button>
-          <button className="action alt" onClick={() => file.current?.click()}>
+          </Button>
+          <Button variant="secondary" onClick={() => file.current?.click()}>
+            <Upload size={16} />
             Import JSON
-          </button>
-          <input
-            ref={file}
-            aria-label="Import backup"
-            type="file"
-            accept="application/json"
-            hidden
-            onChange={async (e) => {
-              const input = e.currentTarget,
-                f = input.files?.[0];
-              if (!f) return;
-              try {
-                const next = decode(await f.text());
-                if (!confirm("Replace current data with this backup?")) return;
-                if (commit(next, true)) {
-                  setBudget(next.settings.birthdayBudget);
-                  notify("Backup imported ✓");
-                }
-              } catch (err) {
-                notify("Could not import backup: " + (err as Error).message);
-              } finally {
-                input.value = "";
-              }
-            }}
-          />
+          </Button>
         </div>
-      </div>
-      <p className="fineprint">Givvy · Stage 1 · English UI · Light theme.</p>
+        <input
+          ref={file}
+          hidden
+          type="file"
+          accept="application/json"
+          aria-label="Import backup"
+          onChange={async (e) => {
+            const input = e.currentTarget,
+              f = input.files?.[0];
+            if (!f) return;
+            try {
+              const next = decode(await f.text());
+              if (
+                !confirm(
+                  "Replace current data with this backup? Export a backup first if needed.",
+                )
+              )
+                return;
+              if (commit(next, true)) {
+                setBudget(next.settings.birthdayBudget);
+                notify("Backup imported ✓");
+              }
+            } catch (err) {
+              notify("Could not import backup: " + (err as Error).message);
+            } finally {
+              input.value = "";
+            }
+          }}
+        />
+        {data.migration && (
+          <>
+            <p style={{ marginTop: 14 }}>
+              This backup includes the original pre-upgrade snapshot and
+              per-item history. Previous browser storage keys remain untouched.
+            </p>
+            <Button
+              variant="outline"
+              style={{ marginTop: 10 }}
+              onClick={() =>
+                downloadJson(
+                  JSON.stringify(data.migration!.original, null, 2),
+                  "givvy-original-backup.json",
+                )
+              }
+            >
+              Export original data
+            </Button>
+          </>
+        )}
+      </section>
+      <section className="data-card">
+        <h2>Holiday preferences</h2>
+        <div style={{ marginTop: 14 }}>
+          {(["christmas", "hanukkah"] as const).map((key) => (
+            <label key={key} className="checkline">
+              <input
+                type="checkbox"
+                checked={data.settings[key] ?? false}
+                onChange={(e) =>
+                  commit({
+                    ...data,
+                    settings: { ...data.settings, [key]: e.target.checked },
+                  })
+                }
+              />
+              <span>
+                {key === "christmas" ? "Christmas (Dec 25)" : "Hanukkah"}
+              </span>
+            </label>
+          ))}
+          <p className="section-note">
+            Holiday preferences are retained. Add specific dates and recipients
+            in Events; annual recurrence is not automatic.
+          </p>
+        </div>
+      </section>
     </>
   );
 }

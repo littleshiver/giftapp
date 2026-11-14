@@ -1,25 +1,46 @@
+/* GIVVY — Design prototype tokens. Future dark mode: override semantic tokens. */
 :root {
-  --bg: #f5f7fa;
-  --action: #20232b;
-  --paper: #fff;
-  --ink: #17191f;
-  --muted: #858b97;
-  --line: #edf0f4;
-  --blue: #b8d5ff;
-  --violet: #dfd4fa;
-  --mint: #c5eddb;
-  --pink: #ffdce3;
-  --yellow: #ffebaf;
+  color-scheme: light;
+  --bg: #f6f7f8;
+  --surface: #ffffff;
+  --ink: #22252a;
+  --ink-strong: #171a1e;
+  --muted: #636975;
+  --muted-soft: #64717d;
+  --control-border: #82909c;
+  --control-placeholder: #66717d;
+  --nav-muted: #5e6874;
+  --progress-bought: #52705a;
+  --progress-planned: #7463a0;
+  --progress-over: #a64150;
+  --line: #e9edf0;
+  --black: #23262b;
   --shadow:
-    0 12px 35px rgba(31, 42, 65, 0.075), 0 3px 9px rgba(31, 42, 65, 0.025);
-  --r: 25px;
+    0 10px 30px rgba(28, 34, 46, 0.065), 0 2px 8px rgba(28, 34, 46, 0.025);
+  --shadow-raised:
+    0 16px 38px rgba(28, 34, 46, 0.095), 0 3px 12px rgba(28, 34, 46, 0.025);
+  --blue: #dfeaf7;
+  --lavender: #eee7f5;
+  --mint: #e5f0e8;
+  --butter: #fff0d7;
+  --rose: #f7e7e9;
+  --sage-deep: #466a57;
+  --error: #a64150;
+  --r-card: 26px;
+  --r-tile: 18px;
+  --r-control: 13px;
+  --space: 20px;
   font-family:
-    Inter,
-    ui-sans-serif,
+    ui-rounded,
+    "Avenir Next",
+    "Nunito Sans",
+    "SF Pro Rounded",
     -apple-system,
     BlinkMacSystemFont,
     "Segoe UI",
-    Arial,
+    system-ui,
     sans-serif;
+  font-synthesis: none;
   color: var(--ink);
+  background: var(--bg);
 }

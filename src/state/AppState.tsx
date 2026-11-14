@@ -9,6 +9,7 @@ import type { AppData, Editor } from "../domain/models";
 import { today } from "../utils/format";
 import { load, write } from "../persistence/storage";
 interface UiState {
+  selectedEvent: string;
   mode: string;
   selected: string;
   month: string;
@@ -16,6 +17,7 @@ interface UiState {
   filterPerson: string;
 }
 interface State {
+  upgradeNotice: boolean;
   ui: UiState;
   setUi: (patch: Partial<UiState>) => void;
   data: AppData;
@@ -29,6 +31,7 @@ interface State {
 const Context = createContext<State | null>(null);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [ui, updateUi] = useState<UiState>(() => ({
+    selectedEvent: "",
     mode: "calendar",
     selected: today(),
     month: today(),
@@ -39,6 +42,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     updateUi((current) => ({ ...current, ...patch }));
   const [loaded] = useState(load),
     [data, setData] = useState(loaded.data),
+    [upgradeNotice, setUpgradeNotice] = useState(loaded.upgraded),
     [blocked, setBlocked] = useState(loaded.blocked),
     [warning, setWarning] = useState(loaded.warning);
   const [editor, setEditor] = useState<Editor | null>(null),
@@ -59,6 +63,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     try {
       write(next);
       setData(next);
+      setUpgradeNotice(false);
       setBlocked(false);
       setWarning("");
       return true;
@@ -70,8 +75,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
   const openEditor = (e: Editor) => {
-    if (e.type === "gift" && (!data.people.length || !data.events.length)) {
-      notify("Add at least one person and occasion first.");
+    if (
+      e.type === "gift" &&
+      !e.id &&
+      !data.events.some((event) =>
+        event.people.some((id) => data.people.some((p) => p.id === id)),
+      )
+    ) {
+      notify("Add a person to an occasion first.");
       return;
     }
     setEditor(e);
@@ -79,6 +90,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   return (
     <Context.Provider
       value={{
+        upgradeNotice,
         ui,
         setUi,
         data,
