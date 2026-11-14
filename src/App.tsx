@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Navigation, CreateMenu } from "./components/UI";
 import { EditorSheet } from "./components/EditorSheet";
+import { Onboarding } from "./pages/Onboarding";
+import { Components } from "./pages/Components";
 import { Home } from "./pages/Home";
 import { Events } from "./pages/Events";
 import { People } from "./pages/People";
@@ -10,7 +12,7 @@ import { Settings } from "./pages/Settings";
 import { EventDetail, PersonDetail } from "./pages/Details";
 import { useApp } from "./state/AppState";
 export function App() {
-  const { editor, warning, upgradeNotice, closeEditor } = useApp(),
+  const { data, editor, warning, upgradeNotice, closeEditor } = useApp(),
     location = useLocation();
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -38,18 +40,40 @@ export function App() {
             </details>
           )}
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route
+              path="/"
+              element={
+                !warning &&
+                !data.settings.onboardingComplete &&
+                !data.people.length &&
+                !data.events.length &&
+                !data.gifts.length &&
+                !data.ideas.length ? (
+                  <Navigate to="/onboarding" replace />
+                ) : (
+                  <Home />
+                )
+              }
+            />
             <Route path="/events" element={<Events />} />
             <Route path="/events/:id" element={<EventDetail />} />
             <Route path="/people" element={<People />} />
             <Route path="/people/:id" element={<PersonDetail />} />
             <Route path="/ideas" element={<Ideas />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/onboarding" element={<Onboarding />} />
+            {import.meta.env.DEV && (
+              <Route path="/components" element={<Components />} />
+            )}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
-        <Navigation />
-        <CreateMenu />
+        {location.pathname !== "/onboarding" && (
+          <>
+            <Navigation />
+            <CreateMenu />
+          </>
+        )}
       </div>
       {editor && (
         <EditorSheet
