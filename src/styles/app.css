@@ -2294,3 +2294,141 @@ button, input, select, textarea { font-family: inherit; }
   .focus-gifts > .product-card,.focus-gifts > .product-add {flex-basis:130px;}
   .header-month {font-size:14px;}
 }
+
+/* ---------------------------------------------------------------------------
+   OCCASION PALETTE + ILLUSTRATION PASS v1
+   Palette rotates by occasion index. The countdown is positioned independently
+   of card text. White icon substrate stays visible on every pastel background.
+   --------------------------------------------------------------------------- */
+.hscroll.upcoming-track .occasion-chip {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  grid-template-rows: 1fr;
+  gap: 12px;
+  align-items: center;
+  min-height: 119px;
+  flex: 0 0 248px;
+  padding: 14px;
+  border: 1px solid transparent;
+  background: var(--event-chip);
+  overflow: visible;
+  transition:
+    border-color 220ms ease,
+    box-shadow 260ms ease,
+    transform 260ms cubic-bezier(.2,.7,.25,1);
+}
+.hscroll.upcoming-track .occasion-chip::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(115deg, var(--event-surface), var(--event-chip) 88%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 280ms ease;
+  z-index: 0;
+}
+.hscroll.upcoming-track .occasion-chip.is-selected {
+  background: var(--event-chip);
+  border-color: var(--event-edge);
+  box-shadow: 0 12px 23px rgba(35,43,47,.105), 0 2px 5px rgba(35,43,47,.035);
+}
+.hscroll.upcoming-track .occasion-chip.is-selected::before {
+  opacity: 1;
+}
+.hscroll.upcoming-track .occasion-chip .occ-count {
+  position: absolute;
+  grid-column: auto;
+  grid-row: auto;
+  top: 9px;
+  right: 11px;
+  margin: 0;
+  z-index: 2;
+  white-space: nowrap;
+  background: #fff;
+  border: 1px solid rgba(56,66,74,.16);
+  box-shadow: 0 2px 6px rgba(28,36,46,.04);
+  padding: 4px 8px;
+  line-height: 1.3;
+}
+.hscroll.upcoming-track .occasion-chip .occ-thumb {
+  position: relative;
+  grid-column: 1;
+  grid-row: 1;
+  align-self: center;
+  justify-self: start;
+  z-index: 1;
+  width: 58px;
+  height: 58px;
+  border-radius: 17px;
+  background: #fff;
+  border: 1px solid rgba(74,82,86,.11);
+  box-shadow: 0 4px 12px rgba(34,39,47,.09);
+  overflow: hidden;
+}
+.hscroll.upcoming-track .occasion-chip .occ-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.occ-illustration {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background-repeat: no-repeat;
+  background-size: 700% 400%;
+  image-rendering: auto;
+}
+.hscroll.upcoming-track .occasion-chip > span:last-child {
+  position: relative;
+  display: block;
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+  min-width: 0;
+  margin: 0;
+  padding: 22px 0 0;
+  z-index: 1;
+}
+.hscroll.upcoming-track .occ-name {
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+  line-height: 1.17;
+  min-height: 0;
+  font-weight: 850;
+}
+.hscroll.upcoming-track .occ-date {
+  margin-top: 5px;
+  font-size: 12px;
+}
+.focus-card {
+  animation: givvy-featured-change 330ms cubic-bezier(.2,.7,.25,1) both;
+}
+@keyframes givvy-featured-change {
+  from { opacity: .65; transform: translateY(7px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (max-width: 360px) {
+  .hscroll.upcoming-track .occasion-chip {
+    flex-basis: 232px;
+    grid-template-columns: 54px minmax(0, 1fr);
+    gap: 10px;
+    padding: 13px;
+  }
+  .hscroll.upcoming-track .occasion-chip .occ-thumb {
+    width: 54px;
+    height: 54px;
+  }
+  .hscroll.upcoming-track .occasion-chip > span:last-child {
+    padding-top: 22px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .focus-card { animation: none; }
+  .hscroll.upcoming-track .occasion-chip,
+  .hscroll.upcoming-track .occasion-chip::before { transition: none; }
+}
