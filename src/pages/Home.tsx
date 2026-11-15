@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, CalendarDays, Plus } from "lucide-react";
 import { Section, Photo, Product, BudgetBar, Empty } from "../components/UI";
 import { useApp } from "../state/AppState";
-import type { Event } from "../domain/models";
+import { OccasionArt } from "../components/OccasionArt";
 import { enabledEvents, giftsFor, monthSummary } from "../domain/selectors";
 import {
   countdown,
@@ -24,35 +24,30 @@ type EventTone = {
 };
 const eventTones: Record<string, EventTone> = {
   peach: {
-    chip: "#FFF1E7", surface: "#FCE2D2",
-    start: "#FFC9B2", middle: "#FFE0CA", end: "#FFF9F3",
-    edge: "#D9A68D", thumb: "#FFE3CD", count: "#FFF5EC",
-  },
-  rose: {
-    chip: "#FFF0F4", surface: "#F8DBE6",
-    start: "#F6C7D7", middle: "#FCE1E9", end: "#FFFAFC",
-    edge: "#D6A3B5", thumb: "#F9DFE9", count: "#FFF3F8",
+    chip: "#FFF0E6", surface: "#FFDAC5",
+    start: "#FFD0B5", middle: "#FFE3D1", end: "#FFF9F4",
+    edge: "#D7A78C", thumb: "#FFFFFF", count: "#FFFFFF",
   },
   mint: {
-    chip: "#EDF8F2", surface: "#D9F2E7",
-    start: "#BDE5D3", middle: "#E0F4E7", end: "#FBFEFC",
-    edge: "#9ACAB5", thumb: "#D5F0E1", count: "#F0FAF5",
+    chip: "#EDF9F1", surface: "#D2F0E0",
+    start: "#BFE9D2", middle: "#DFF5E8", end: "#FBFEFC",
+    edge: "#9BCDB4", thumb: "#FFFFFF", count: "#FFFFFF",
   },
-  butter: {
-    chip: "#FFF7E7", surface: "#FFEBC8",
-    start: "#F8D9A6", middle: "#FFEDCD", end: "#FFFDF7",
-    edge: "#DDBD81", thumb: "#FFF0CF", count: "#FFFAEB",
+  rose: {
+    chip: "#FFF0F5", surface: "#F9D9E5",
+    start: "#F5CBDD", middle: "#FBE2EA", end: "#FFF9FC",
+    edge: "#D9A9BF", thumb: "#FFFFFF", count: "#FFFFFF",
   },
   sky: {
-    chip: "#F0F5FE", surface: "#DEEBFC",
-    start: "#C5DBF8", middle: "#E4EEFD", end: "#FBFDFF",
-    edge: "#ADC6E5", thumb: "#E1EDFA", count: "#F3F8FF",
+    chip: "#EFF5FF", surface: "#D9E8FF",
+    start: "#C6DCFA", middle: "#E2EFFF", end: "#FAFCFF",
+    edge: "#A9C3E7", thumb: "#FFFFFF", count: "#FFFFFF",
   },
 };
-function toneFor(event: Event, index: number): EventTone {
-  if (event.kind === "birthday") return eventTones[index % 2 ? "rose" : "peach"];
-  if (event.kind === "holiday") return eventTones[index % 2 ? "mint" : "sky"];
-  return eventTones[index % 2 ? "butter" : "rose"];
+const paletteOrder = ["peach", "mint", "rose", "sky"] as const;
+/** Palette repeats by the card's chronological position, never by occasion type. */
+function toneFor(index: number): EventTone {
+  return eventTones[paletteOrder[((index % 4) + 4) % 4]];
 }
 function toneStyle(t: EventTone): CSSProperties {
   return {
@@ -71,7 +66,7 @@ export function Home() {
     navigate = useNavigate(),
     upcoming = enabledEvents(data).filter((e) => e.date >= today()),
     selected = upcoming.find((e) => e.id === ui.selectedEvent) || upcoming[0],
-    selectedTone = selected ? toneFor(selected, upcoming.indexOf(selected)) : eventTones.peach,
+    selectedTone = selected ? toneFor(upcoming.indexOf(selected)) : eventTones.peach,
     month = monthSummary(data, today().slice(0, 7));
   useEffect(() => {
     if ((selected?.id || "") !== ui.selectedEvent)
@@ -107,16 +102,17 @@ export function Home() {
               <button
                 key={e.id}
                 className={`occasion-chip ${selected?.id === e.id ? "is-selected" : ""}`}
-                style={toneStyle(toneFor(e, index))}
+                style={toneStyle(toneFor(index))}
                 aria-pressed={selected?.id === e.id}
                 onClick={() => setUi({ selectedEvent: e.id })}
               >
                 <span className="occ-count">{countdown(e.date)}</span>
-                <span
-                  className="occ-thumb"
-                  style={{ background: "var(--event-thumb)" }}
-                >
-                  <Photo src={e.image} birthday={e.kind === "birthday"} />
+                <span className="occ-thumb">
+                  {e.image ? (
+                    <Photo src={e.image} name={e.name} />
+                  ) : (
+                    <OccasionArt event={e} paletteIndex={index} />
+                  )}
                 </span>
                 <span>
                   <span className="occ-name">{e.name}</span>
@@ -132,6 +128,7 @@ export function Home() {
       {selected && (
         <section style={{ marginTop: 5 }}>
           <div
+            key={selected.id}
             className="focus-card"
             style={toneStyle(selectedTone)}
             role="link"

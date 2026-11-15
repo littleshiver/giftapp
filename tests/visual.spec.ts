@@ -99,6 +99,29 @@ test("preview empty and filled mobile screenshots", async ({ page }, testInfo) =
   await page.getByRole("button", { name: "Filled", exact: true }).click();
   await page.goto("/#/");
   await expect(page.locator(".demo-product-sprite").first()).toBeVisible();
+  const occasionChips = page.locator(".upcoming-track .occasion-chip");
+  await expect(occasionChips).toHaveCount(4);
+  const uiChecks = await occasionChips.evaluateAll((elements) =>
+    elements.map((element) => {
+      const bg = getComputedStyle(element).getPropertyValue("--event-start").trim();
+      const icon = element.querySelector(".occ-illustration") as HTMLElement | null;
+      const base = element.querySelector(".occ-thumb") as HTMLElement;
+      const timer = element.querySelector(".occ-count")!.getBoundingClientRect();
+      const name = element.querySelector(".occ-name")!.getBoundingClientRect();
+      return {
+        bg,
+        iconPresent: !!icon,
+        iconUrl: icon ? getComputedStyle(icon).backgroundImage : "",
+        iconBase: getComputedStyle(base).backgroundColor,
+        overlap: timer.bottom > name.top + 1 && timer.left < name.right && timer.right > name.left,
+      };
+    }),
+  );
+  expect(new Set(uiChecks.map((item) => item.bg)).size).toBe(4);
+  expect(uiChecks.every((item) =>
+    item.iconPresent && item.iconUrl.includes("illustrations-4x7") &&
+    item.iconBase === "rgb(255, 255, 255)" && !item.overlap,
+  )).toBe(true);
   await expect(page.locator(".home-heading")).not.toContainText("Today");
   await expect(page.locator(".focus-gifts .status-tag")).toHaveCount(0);
   await expect(page.locator(".focus-gifts .bought-corner").first()).toBeVisible();
@@ -149,4 +172,32 @@ test("preview empty and filled mobile screenshots", async ({ page }, testInfo) =
     path: `${directory}/preview-settings-390.png`,
     fullPage: true, animations: "disabled",
   });
+});
+
+test("occasion illustration gallery contains all seven types in four palettes", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await seed(page);
+  await page.goto("/#/components");
+  await expect(page.locator(".illustration-palette-row")).toHaveCount(4);
+  await expect(page.locator(".illustration-sample .occ-illustration")).toHaveCount(28);
+  const icon = page.locator(".illustration-sample .occ-illustration").first();
+  const src = await icon.evaluate((el) => getComputedStyle(el).backgroundImage);
+  expect(src).toContain("illustrations-4x7");
+});
+
+test("selected occasion animates unless reduced motion is requested", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await seed(page);
+  await page.goto("/#/settings");
+  await page.getByRole("button", { name: "Filled", exact: true }).click();
+  await page.goto("/#/");
+  await page.getByRole("button", { name: /New Year/ }).click();
+  await expect(page.locator(".focus-head h2")).toHaveText("New Year");
+  const animated = await page.locator(".focus-card")
+    .evaluate((el) => getComputedStyle(el).animationName);
+  expect(animated).toContain("givvy-featured-change");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const reduced = await page.locator(".focus-card")
+    .evaluate((el) => getComputedStyle(el).animationName);
+  expect(reduced).toBe("none");
 });

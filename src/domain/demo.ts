@@ -59,6 +59,12 @@ export function filledDemo(): AppData {
       date: "2027-01-17", enabled: true,
       people: ["demo-denis"], budgets: { "demo-denis": 7000 }, demo: true,
     },
+    {
+      id: "demo-march8", name: "March 8", kind: "holiday" as const,
+      date: "2027-03-08", enabled: true,
+      people: ["demo-mira", "demo-sasha"],
+      budgets: { "demo-mira": 2200, "demo-sasha": 1800 }, demo: true,
+    },
   ];
   const specs = [
     ["Wireless headphones", "demo-newyear", "demo-denis", 6900, "to_buy"],
