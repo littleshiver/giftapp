@@ -2017,3 +2017,43 @@ button, input, select, textarea { font-family: inherit; }
 /* Context-safe, visible product statuses on photographic thumbnails. */
 .product-visual .status-tag {top: 10px;left: 10px;display:inline-flex;position:absolute;}
 @media (max-width: 360px) { .header-month {font-size: 12.5px;} }
+
+/* User-safe visual QA: the main controls remain monochrome. */
+.preview-mode-options {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:7px;
+  margin-top:14px;
+  padding:5px;
+  border-radius:17px;
+  background:#e9edf0;
+}
+.preview-mode-button {
+  min-height:44px;
+  border:0;
+  border-radius:13px;
+  background:transparent;
+  color:#38434d;
+  font-size:12.5px;
+  font-weight:850;
+  cursor:pointer;
+}
+.preview-mode-button.is-active {
+  background:#23262b;
+  color:#fff;
+  box-shadow:0 3px 8px rgba(29,35,39,.16);
+}
+.preview-mode-button:focus-visible {
+  outline:3px solid #517baf;
+  outline-offset:2px;
+}
+.demo-product-sprite {
+  display:block;
+  width:100%;
+  height:100%;
+  min-height:100%;
+  flex:1;
+  background-repeat:no-repeat;
+  background-position: center;
+  border-radius:inherit;
+}
