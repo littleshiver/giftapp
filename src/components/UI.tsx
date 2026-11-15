@@ -17,7 +17,7 @@ import {
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Event, Gift, Idea, Person } from "../domain/models";
 import { useApp } from "../state/AppState";
-import demoPhotoSheet from "../assets/demo/catalog.webp";
+import demoPhotoSheet from "../assets/demo/catalog-hifi.avif";
 
 /** A single 5x2 sprite of the ten user-supplied gift photos.
  * Loaded only in the design fixture; personal photos use original image data.
@@ -216,10 +216,12 @@ export function StatusTag({ status }: { status: Gift["status"] }) {
 export function Product({
   item,
   person = false,
+  home = false,
   onClick,
 }: {
   item: Gift | Idea;
   person?: boolean;
+  home?: boolean;
   onClick?: () => void;
 }) {
   const { data } = useApp();
@@ -230,7 +232,14 @@ export function Product({
         style={{ background: gradientFor(item.name) }}
       >
         <Photo src={item.image} name={item.name} />
-        {"status" in item && <StatusTag status={(item as Gift).status} />}
+        {"status" in item &&
+          (home
+            ? (item.status === "bought" && (
+                <span className="bought-corner" role="img" aria-label="Purchased">
+                  <Check size={17} strokeWidth={3} />
+                </span>
+              ))
+            : <StatusTag status={(item as Gift).status} />)}
       </span>
       <span className="product-title">{item.name}</span>
       <span className="product-caption">

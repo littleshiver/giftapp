@@ -99,8 +99,39 @@ test("preview empty and filled mobile screenshots", async ({ page }, testInfo) =
   await page.getByRole("button", { name: "Filled", exact: true }).click();
   await page.goto("/#/");
   await expect(page.locator(".demo-product-sprite").first()).toBeVisible();
+  await expect(page.locator(".home-heading")).not.toContainText("Today");
+  await expect(page.locator(".focus-gifts .status-tag")).toHaveCount(0);
+  await expect(page.locator(".focus-gifts .bought-corner").first()).toBeVisible();
+  // The headline and product rail share one inset; never float out of alignment.
+  const layout = await page.evaluate(() => {
+    const left = (selector: string) =>
+      document.querySelector(selector)?.getBoundingClientRect().left ?? -1;
+    return {
+      chip: left(".upcoming-track .occasion-chip"),
+      focus: left(".focus-card"),
+      title: left(".focus-head h2"),
+      product: left(".focus-gifts .product-card"),
+    };
+  });
+  expect(Math.abs(layout.chip - layout.focus)).toBeLessThan(3);
+  expect(Math.abs(layout.title - layout.product)).toBeLessThan(3);
+  const firstTone = await page.locator(".focus-card")
+    .evaluate((el) => getComputedStyle(el).getPropertyValue("--event-start").trim());
   await page.screenshot({
     path: `${directory}/home-filled-390.png`,
+    fullPage: true, animations: "disabled",
+  });
+  await page.getByRole("button", { name: /New Year/ }).click();
+  await expect(page.locator(".focus-head h2")).toHaveText("New Year");
+  const selectedTone = await page.locator(".occasion-chip.is-selected")
+    .evaluate((el) => getComputedStyle(el).getPropertyValue("--event-start").trim());
+  const focusTone = await page.locator(".focus-card")
+    .evaluate((el) => getComputedStyle(el).getPropertyValue("--event-start").trim());
+  expect(focusTone).toBe(selectedTone);
+  expect(focusTone).not.toBe(firstTone);
+  await expect(page.locator(".focus-gifts .status-tag")).toHaveCount(0);
+  await page.screenshot({
+    path: `${directory}/home-filled-newyear-390.png`,
     fullPage: true, animations: "disabled",
   });
 

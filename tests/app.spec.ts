@@ -487,7 +487,7 @@ test("empty and filled previews never overwrite personal storage or photo data",
     try { await img.decode(); } catch { return { loaded: false, width: 0, height: 0 }; }
     return { loaded: true, width: img.naturalWidth, height: img.naturalHeight };
   });
-  expect(decoded).toEqual({ loaded: true, width: 640, height: 256 });
+  expect(decoded).toEqual({ loaded: true, width: 1920, height: 768 });
 
   await page.goto("/#/settings");
   await page.getByRole("button", { name: "Empty", exact: true }).click();
