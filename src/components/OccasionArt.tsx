@@ -39,7 +39,7 @@ export function OccasionArt({ event }: { event: Event }) {
       aria-hidden="true"
       draggable={false}
       decoding="async"
-      loading="lazy"
+      loading="eager"
       data-art-kind={kind}
     />
   );
