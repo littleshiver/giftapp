@@ -1,18 +1,14 @@
 import type { AppData } from "./models";
 import { initialData } from "./initial";
-import candlePhoto from "../assets/discovery/candle.jpg";
-import mugPhoto from "../assets/discovery/mug.jpg";
 import blanketPhoto from "../assets/discovery/blanket.jpg";
 import artbookPhoto from "../assets/discovery/artbook.jpg";
 
 /**
  * Visual-QA-only records, never merged into personal saved data.
  *
- * The 10 catalog names correspond to image-gen-1..10 from the neighboring
- * Gifts App conversation. The original image bytes are not part of this
- * repository yet. Only the existing matching product photographs are used
- * below; other tiles intentionally exercise no-photo fallback design.
- * Never silently substitute an unrelated photo.
+ * These are the exact ten product images from the neighbor Gifts App project
+ * conversation, compressed to a tiny 5x2 WebP sheet for visual testing.
+ * Demo image references are never written to persistent personal data.
  */
 export const demoPhotoManifest = [
   { file: "image-gen-1.png", name: "Wireless headphones" },
@@ -65,23 +61,28 @@ export function filledDemo(): AppData {
     },
   ];
   const specs = [
-    ["Wireless headphones", "demo-newyear", "demo-denis", 6900, "to_buy", ""],
-    ["Espresso machine", "demo-anniversary", "demo-denis", 8900, "to_buy", ""],
-    ["Portable pink blender", "demo-birthday", "demo-mira", 2400, "bought", ""],
-    ["Beige trainers", "demo-birthday", "demo-mira", 4300, "to_buy", ""],
-    ["Christmas cat ornament", "demo-newyear", "demo-sasha", 850, "bought", ""],
-    ["Ceramic brush rest", "demo-newyear", "demo-sasha", 1600, "to_buy", ""],
-    ["Handmade pink mug", "demo-birthday", "demo-mira", 1450, "bought", mugPhoto],
-    ["Scented candle", "demo-newyear", "demo-mira", 1700, "to_buy", candlePhoto],
-    ["Custom keyboard", "demo-newyear", "demo-alex", 4900, "to_buy", ""],
-    ["Pink skincare serum", "demo-newyear", "demo-mira", 1200, "bought", ""],
+    ["Wireless headphones", "demo-newyear", "demo-denis", 6900, "to_buy"],
+    ["Espresso machine", "demo-anniversary", "demo-denis", 8900, "to_buy"],
+    ["Portable pink blender", "demo-birthday", "demo-mira", 2400, "bought"],
+    ["Beige trainers", "demo-birthday", "demo-mira", 4300, "to_buy"],
+    ["Christmas cat ornament", "demo-newyear", "demo-sasha", 850, "bought"],
+    ["Ceramic brush rest", "demo-newyear", "demo-sasha", 1600, "to_buy"],
+    ["Handmade pink mug", "demo-birthday", "demo-mira", 1450, "bought"],
+    ["Scented candle", "demo-newyear", "demo-mira", 1700, "to_buy"],
+    ["Custom keyboard", "demo-newyear", "demo-alex", 4900, "to_buy"],
+    ["Pink skincare serum", "demo-newyear", "demo-mira", 1200, "bought"],
   ] as const;
-  const gifts = specs.map(([name, eventId, personId, price, status, image], i) => ({
-    id: `demo-gift-${i + 1}`,
-    name, eventId, personId, price, status,
-    image, note: "", link: "",
-    demoPhotoReference: demoPhotoManifest[i].file,
-  }));
+  const gifts = [
+    ...specs.map(([name, eventId, personId, price, status], i) => ({
+      id: `demo-gift-${i + 1}`,
+      name, eventId, personId, price, status,
+      image: `demo-photo:${i}`, note: "", link: "",
+      demoPhotoReference: demoPhotoManifest[i].file,
+    })),
+    { id: "demo-no-image", name: "A gift without a photo", eventId: "demo-newyear",
+      personId: "demo-alex", price: 500, status: "to_buy" as const,
+      image: "", note: "Check the empty photo fallback", link: "" },
+  ];
   // Include a few additional existing legitimate product photographs to
   // exercise visual density without pretending they are the 10 source photos.
   const ideas = [
