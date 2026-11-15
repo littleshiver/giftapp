@@ -480,7 +480,7 @@ test("empty and filled previews never overwrite personal storage or photo data",
   const sprite = page.locator(".demo-product-sprite").first();
   const decoded = await sprite.evaluate(async (el) => {
     const value = getComputedStyle(el).backgroundImage;
-    const url = value.match(/url\\(["']?(.*?)["']?\\)/)?.[1]?.replace(/^["']|["']$/g, "");
+    const url = value.startsWith("url(") ? value.slice(4, -1).replace(/["']/g, "") : "";
     if (!url) return { loaded: false, width: 0, height: 0 };
     const img = new Image();
     img.src = url;
