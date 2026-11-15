@@ -101,26 +101,44 @@ test("preview empty and filled mobile screenshots", async ({ page }, testInfo) =
   await expect(page.locator(".demo-product-sprite").first()).toBeVisible();
   const occasionChips = page.locator(".upcoming-track .occasion-chip");
   await expect(occasionChips).toHaveCount(4);
+  // Exact standalone assets, not an atlas. Every image has the same square
+  // source bounds and occupies exactly the white tile's content box.
+  await occasionChips.locator("img.occ-illustration").evaluateAll((images) =>
+    Promise.all(images.map((img) => (img as HTMLImageElement).decode())),
+  );
   const uiChecks = await occasionChips.evaluateAll((elements) =>
     elements.map((element) => {
       const bg = getComputedStyle(element).getPropertyValue("--event-start").trim();
-      const icon = element.querySelector(".occ-illustration") as HTMLElement | null;
+      const icon = element.querySelector("img.occ-illustration") as HTMLImageElement | null;
       const base = element.querySelector(".occ-thumb") as HTMLElement;
+      const iconRect = icon?.getBoundingClientRect();
+      const baseRect = base.getBoundingClientRect();
       const timer = element.querySelector(".occ-count")!.getBoundingClientRect();
       const name = element.querySelector(".occ-name")!.getBoundingClientRect();
       return {
         bg,
-        iconPresent: !!icon,
-        iconUrl: icon ? getComputedStyle(icon).backgroundImage : "",
+        iconSrc: icon?.currentSrc ?? "",
+        iconKind: icon?.dataset.artKind ?? "",
+        naturalWidth: icon?.naturalWidth ?? 0,
+        naturalHeight: icon?.naturalHeight ?? 0,
         iconBase: getComputedStyle(base).backgroundColor,
+        centered: !!iconRect &&
+          Math.abs(iconRect.left - baseRect.left) <= 1 &&
+          Math.abs(iconRect.top - baseRect.top) <= 1 &&
+          Math.abs(iconRect.width - baseRect.width) <= 1 &&
+          Math.abs(iconRect.height - baseRect.height) <= 1,
         overlap: timer.bottom > name.top + 1 && timer.left < name.right && timer.right > name.left,
       };
     }),
   );
   expect(new Set(uiChecks.map((item) => item.bg)).size).toBe(4);
+  expect(uiChecks.map((item) => item.iconKind))
+    .toEqual(["birthday", "new-year", "romantic", "celebration"]);
   expect(uiChecks.every((item) =>
-    item.iconPresent && item.iconUrl.includes("illustrations-4x7") &&
-    item.iconBase === "rgb(255, 255, 255)" && !item.overlap,
+    item.iconSrc.includes(".webp") &&
+    item.naturalWidth === 540 && item.naturalHeight === 540 &&
+    item.centered && item.iconBase === "rgb(255, 255, 255)" &&
+    !item.overlap,
   )).toBe(true);
   await expect(page.locator(".home-heading")).not.toContainText("Today");
   await expect(page.locator(".focus-gifts .status-tag")).toHaveCount(0);
@@ -174,15 +192,34 @@ test("preview empty and filled mobile screenshots", async ({ page }, testInfo) =
   });
 });
 
-test("occasion illustration gallery contains all seven types in four palettes", async ({ page }) => {
+test("gallery shows four sharp independent centered occasion illustrations", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await seed(page);
   await page.goto("/#/components");
-  await expect(page.locator(".illustration-palette-row")).toHaveCount(4);
-  await expect(page.locator(".illustration-sample .occ-illustration")).toHaveCount(28);
-  const icon = page.locator(".illustration-sample .occ-illustration").first();
-  const src = await icon.evaluate((el) => getComputedStyle(el).backgroundImage);
-  expect(src).toContain("illustrations-4x7");
+  const icons = page.locator(".illustration-sample img.occ-illustration");
+  await expect(icons).toHaveCount(4);
+  await icons.evaluateAll((images) => Promise.all(
+    images.map((img) => (img as HTMLImageElement).decode())
+  ));
+  const images = await icons.evaluateAll((elements) => elements.map((el) => {
+    const image = el as HTMLImageElement;
+    const wrapper = image.parentElement!.getBoundingClientRect();
+    const rect = image.getBoundingClientRect();
+    return {
+      src: image.currentSrc,
+      kind: image.dataset.artKind,
+      width: image.naturalWidth,
+      height: image.naturalHeight,
+      centered: Math.abs(rect.left - wrapper.left) <= 1 &&
+        Math.abs(rect.top - wrapper.top) <= 1 &&
+        Math.abs(rect.width - wrapper.width) <= 1 &&
+        Math.abs(rect.height - wrapper.height) <= 1,
+    };
+  }));
+  expect(images.map((x) => x.kind))
+    .toEqual(["birthday", "romantic", "new-year", "celebration"]);
+  expect(images.every((x) => x.src.includes(".webp") &&
+    x.width === 540 && x.height === 540 && x.centered)).toBe(true);
 });
 
 test("selected occasion animates unless reduced motion is requested", async ({ page }) => {

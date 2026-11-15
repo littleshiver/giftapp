@@ -2373,14 +2373,17 @@ button, input, select, textarea { font-family: inherit; }
   height: 100%;
   object-fit: cover;
 }
+/* Four separately cropped 540px lossless assets, never atlas positions. */
 .occ-illustration {
   display: block;
   width: 100%;
   height: 100%;
+  min-width: 0;
+  object-fit: cover;
+  object-position: center center;
   border-radius: inherit;
-  background-repeat: no-repeat;
-  background-size: 700% 400%;
   image-rendering: auto;
+  pointer-events: none;
 }
 .hscroll.upcoming-track .occasion-chip > span:last-child {
   position: relative;
@@ -2460,4 +2463,20 @@ button, input, select, textarea { font-family: inherit; }
   font-size: 10.5px;
   color: #53606c;
   line-height: 1.2;
+}
+
+/* The rounded white tile is baked into the approved artwork.
+   Avoid an extra border or a second shadow that could clip its edge. */
+.hscroll.upcoming-track .occasion-chip .occ-thumb,
+.illustration-sample-tile {
+  background: #fff;
+  border: 0;
+  box-shadow: none;
+}
+.hscroll.upcoming-track .occasion-chip .occ-thumb img,
+.illustration-sample-tile > img.occ-illustration {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 50%;
 }

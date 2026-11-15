@@ -111,7 +111,7 @@ export function Home() {
                   {e.image ? (
                     <Photo src={e.image} name={e.name} />
                   ) : (
-                    <OccasionArt event={e} paletteIndex={index} />
+                    <OccasionArt event={e} />
                   )}
                 </span>
                 <span>

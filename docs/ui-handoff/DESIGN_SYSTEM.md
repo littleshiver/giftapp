@@ -155,11 +155,15 @@ Budget `EventRecipientBudget` must remain `eventId + personId + amount`. The eve
 - **Acceptance gate:** verify Home at 320/375/390/430px, compare captured Birthday and New Year layouts side by side, ensure no gradient seam, no clipping of prominent shadows, correct checkmark location, AVIF decode and unaffected personal-data persistence. The last step is actual screenshot review, not just green build tests.
 
 
-## Occasion illustrations and switching — November 2026
+## Occasion illustrations and switching — final four approved assets (15 November 2026)
 
-- The Upcoming cards alternate fixed palette order **peach → mint green → rose pink → sky blue**, then repeat by their chronological position. Palette does **not** depend on holiday type or selected state. The selected large event inherits the exact same theme as its Coming up card.
-- The countdown chip is **absolutely positioned in the upper-right**, independent of the title/date grid. Its width changes must never reflow or move the text.
-- Every event without a user-supplied cover shows a **white rounded icon tile** with one of seven approved glossy mini-illustrations: Birthday cake, Wedding anniversary rings, New Year party popper, Hanukkah menorah, Christmas tree, Thanksgiving pumpkin, March 8 flowers. Real user-supplied event images continue to override illustrations.
-- Approved asset at `src/assets/occasions/illustrations-4x7.webp`: seven **columns** in that type order and four **rows** in palette order. Each cropped tile is 144 × 144 px, the full atlas 1008 × 576. This compact atlas includes **all 28 combinations** from the approved generated boards and is not recreated at runtime. `OccasionArt` contains the name/type classification logic. The Component Library lists all 28 for visual QA.
-- Selection changes cross-fade the large featured card with a gentle 330ms lift/fade. The selected Coming up card uses an opacity-interpolated tonal layer and a smoother border/shadow transition. Respect `prefers-reduced-motion` and disable effects when requested.
-- No dashboard architecture, date hierarchy, user data, gift-status semantics, navigation order, or budget placement changes in this pass. The Filled QA fixture adds a fourth event (March 8) to demonstrate the blue palette and the empty gift state. Production data is unchanged.
+- **One illustration per meaning, no tinting:** Birthday → orange cupcake; romantic/anniversary/wedding/Valentine's → coral heart; New Year → green tree with yellow star; **every other occasion or holiday** → teal striped party hat with yellow details. Recognition supports English and Russian labels. User-uploaded event photos still take precedence over the default icon.
+- The four artworks are physically **separate lossless WebP images**, cropped from the single final approved illustration at source resolution with zero recoloring, retouching or resampling. Each is **540×540 px**, with the original white rounded tile and its subtle shadow retained:
+  - `src/assets/occasions/birthday-cupcake.webp`
+  - `src/assets/occasions/romantic-heart.webp`
+  - `src/assets/occasions/celebration-hat.webp`
+  - `src/assets/occasions/new-year-tree.webp`
+- There is **no sprite sheet or background-position math**. `OccasionArt` renders a normal square `img` at 100% width and height of its tile with `object-fit:cover;object-position:center`. A fixed square crop avoids content from neighboring illustrations and keeps all four precisely centered. No secondary border/shadow over the artwork's built-in tile. The component library shows four icons at their actual small-display size.
+- **Colors still rotate on event cards only**: peach → mint green → rose pink → sky blue, repeating in chronological order, never changing the colors of the artwork. Selected large event matches the current card's palette.
+- The countdown remains anchored top-right without changing title position; selection has the previously approved 330ms lift/fade and respects `prefers-reduced-motion`.
+- QA: verify natural image dimensions 540×540 and successful decode for all four, image rectangles exactly fill their parent tiles, no clipping or bleed at mobile widths 320/375/390/430, and correct mapping for birthday, romantic, New Year and generic occasions. No navigation, data model, budget, photo upload or status behavior changes.

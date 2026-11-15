@@ -4,16 +4,13 @@ import { Title, StatusTag } from "../components/UI";
 import { Button, Field, Sheet } from "../components/Primitives";
 import { OccasionArt } from "../components/OccasionArt";
 import type { Event } from "../domain/models";
+
 const occasionExamples = [
   { name: "Birthday", kind: "birthday" },
-  { name: "Wedding anniversary", kind: "other" },
+  { name: "Anniversary", kind: "other" },
   { name: "New Year", kind: "holiday" },
-  { name: "Hanukkah", kind: "holiday" },
-  { name: "Christmas", kind: "holiday" },
-  { name: "Thanksgiving", kind: "holiday" },
-  { name: "March 8", kind: "holiday" },
+  { name: "Any other occasion", kind: "holiday" },
 ] as const;
-const paletteNames = ["Peach", "Mint", "Rose", "Sky"] as const;
 export function Components() {
   const [open, setOpen] = useState(false);
   return (
@@ -41,34 +38,28 @@ export function Components() {
         </div>
       </section>
       <section className="data-card">
-        <h2>Occasion illustrations · 4 palettes × 7 event types</h2>
-        <p>Approved glossy illustrations on white tiles. Each colorway is reused across all seven types.</p>
-        {paletteNames.map((palette, paletteIndex) => (
-          <div className="illustration-palette-row" key={palette}>
-            <h3>{palette}</h3>
-            <div className="illustration-palette-track">
-              {occasionExamples.map(({ name, kind }) => (
-                <div className="illustration-sample" key={name}>
-                  <span className="illustration-sample-tile">
-                    <OccasionArt
-                      event={{
-                        id: `example-${name}`,
-                        name,
-                        kind: kind as Event["kind"],
-                        date: "2026-12-31",
-                        people: [],
-                        budgets: {},
-                        enabled: true,
-                      }}
-                      paletteIndex={paletteIndex}
-                    />
-                  </span>
-                  <small>{name}</small>
-                </div>
-              ))}
+        <h2>Occasion illustrations · 4 fixed artworks</h2>
+        <p>Four individually cropped, lossless illustrations. Only the surrounding occasion cards alternate colors.</p>
+        <div className="illustration-palette-track">
+          {occasionExamples.map(({ name, kind }) => (
+            <div className="illustration-sample" key={name}>
+              <span className="illustration-sample-tile">
+                <OccasionArt
+                  event={{
+                    id: `example-${name}`,
+                    name,
+                    kind: kind as Event["kind"],
+                    date: "2026-12-31",
+                    people: [],
+                    budgets: {},
+                    enabled: true,
+                  }}
+                />
+              </span>
+              <small>{name}</small>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </section>
       <section className="data-card">
         <h2>Buttons · 43px min height</h2>
