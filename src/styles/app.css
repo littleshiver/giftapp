@@ -2057,3 +2057,240 @@ button, input, select, textarea { font-family: inherit; }
   background-position: center;
   border-radius:inherit;
 }
+
+
+/* HOME COMPOSITION REPAIR v1.5
+   One event palette drives the horizontal tab and selected event. Avoid
+   disconnected purple/orange defaults. Data model, routes and tabs unchanged. */
+.home-heading {
+  padding: 12px 0 16px;
+  margin-bottom: 15px;
+}
+.home-heading::before {
+  inset: -20px calc(-1 * var(--space)) -24px;
+  background:
+    radial-gradient(ellipse 78% 82% at 0% 0%, rgba(255,236,222,.6), transparent 77%),
+    radial-gradient(ellipse 60% 78% at 100% 0%, rgba(239,243,248,.65), transparent 82%);
+}
+.home-greeting {
+  font-weight: 900;
+  line-height: 1.18;
+  letter-spacing: -.75px;
+}
+.header-month {
+  font-size: 15px;
+  font-weight: 760;
+  letter-spacing: -.18px;
+  line-height: 1.35;
+  color: #626A72;
+  margin-top: 8px;
+}
+.hscroll.upcoming-track {
+  gap: 13px;
+  padding-top: 20px;
+  padding-bottom: 30px;
+  margin-top: -8px;
+  margin-bottom: -18px;
+  scroll-padding-inline: var(--space);
+}
+.hscroll.upcoming-track .occasion-chip {
+  position: relative;
+  flex: 0 0 248px;
+  display: grid;
+  grid-template-columns: 56px minmax(0,1fr);
+  grid-template-rows: 27px minmax(0,1fr);
+  column-gap: 13px;
+  row-gap: 1px;
+  align-items: start;
+  min-height: 115px;
+  padding: 14px;
+  border-radius: 23px;
+  border: 1px solid rgba(50,55,57,.07);
+  box-shadow: 0 7px 16px rgba(37,42,46,.065), 0 1px 4px rgba(37,42,46,.02);
+}
+.hscroll.upcoming-track .occasion-chip:not(.is-selected) {
+  background: var(--event-chip);
+}
+.hscroll.upcoming-track .occasion-chip.is-selected {
+  border-color: var(--event-edge);
+  background: linear-gradient(117deg,var(--event-surface) 0%,var(--event-chip) 85%);
+  box-shadow: 0 12px 22px rgba(35,43,47,.10), 0 2px 5px rgba(35,43,47,.04);
+}
+.hscroll.upcoming-track .occasion-chip .occ-count {
+  position: static;
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+  align-self: start;
+  padding: 4px 8px;
+  font-weight: 850;
+  font-size: 10.5px;
+  letter-spacing: -.05px;
+  color: #30363B;
+  background: var(--event-count);
+  border: 1px solid rgba(36,47,48,.12);
+  box-shadow: none;
+  white-space: nowrap;
+}
+.hscroll.upcoming-track .occ-thumb {
+  grid-column: 1;
+  grid-row: 1 / 3;
+  justify-self: start;
+  align-self: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 17px;
+}
+.hscroll.upcoming-track .occasion-chip > span:last-child {
+  grid-column: 2;
+  grid-row: 2;
+  margin: 0;
+  padding: 3px 0 0;
+  min-width: 0;
+  align-self: center;
+}
+.hscroll.upcoming-track .occ-name {
+  font-size: 14px;
+  font-weight: 850;
+  min-height: 0;
+  line-height: 1.15;
+  max-width: none;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.hscroll.upcoming-track .occ-date {
+  font-size: 12px;
+  margin-top: 4px;
+  font-weight: 750;
+  color: #5A6269;
+}
+.focus-card {
+  margin-top: 12px;
+  background: linear-gradient(180deg,
+    var(--event-start) 0%,
+    var(--event-middle) 29%,
+    var(--event-surface) 42%,
+    var(--event-end) 63%,
+    #FFFFFF 86%);
+  border: 1px solid rgba(255,255,255,.66);
+  border-radius: 28px 28px 30px 30px;
+  box-shadow:
+    0 26px 44px rgba(35,40,46,.16),
+    0 5px 11px rgba(35,40,46,.05);
+  filter: none;
+}
+.focus-card::before {
+  background:
+    radial-gradient(ellipse 78% 37% at 94% 12%,rgba(255,255,255,.37),transparent 88%);
+  border-radius: inherit;
+}
+.focus-wave {
+  top: -17px;
+  height: 155px;
+  -webkit-mask-image: linear-gradient(to bottom,#000 0%,#000 43%,transparent 100%);
+  mask-image: linear-gradient(to bottom,#000 0%,#000 43%,transparent 100%);
+}
+.focus-head {
+  padding: 42px 21px 10px;
+}
+.focus-head .focus-date {
+  color: #4E5961;
+  font-size: 12.5px;
+  font-weight: 790;
+}
+.focus-head h2 {
+  font-size: 28px;
+  font-weight: 900;
+  margin-bottom: 2px;
+}
+.focus-gifts {
+  width: 100%;
+  margin: 0;
+  padding: 16px 21px 23px;
+  gap: 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  scroll-padding-inline: 21px;
+  align-items: start;
+}
+.focus-gifts > .product-card,
+.focus-gifts > .product-add {
+  flex: 0 0 142px;
+  min-width: 0;
+}
+.focus-gifts .product-visual,
+.focus-gifts .product-add > button {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 19px;
+}
+.focus-gifts .product-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  line-height: 1.24;
+  font-weight: 850;
+  margin-top: 9px;
+  min-height: 32px;
+}
+.focus-gifts .product-caption {
+  display: block;
+  font-size: 12px;
+  line-height: 1.35;
+  color: #667078;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.focus-gifts .demo-product-sprite {
+  background-position: center;
+  image-rendering: auto;
+}
+/* On Home, only bought gifts have a corner tick. No pill for planned gifts. */
+.focus-gifts .bought-corner {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  z-index: 4;
+  width: 29px;
+  height: 29px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #FFFFFF;
+  background: #23262B;
+  border: 2px solid rgba(255,255,255,.98);
+  box-shadow: 0 4px 10px rgba(26,28,34,.18);
+}
+.compact-budget {
+  background: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(35,40,46,.035);
+  border: 1px solid #E6E9EC;
+}
+.inspiration {
+  background: linear-gradient(116deg, #FFF1DA 0%, #FFE7CF 59%, #FFF6E6 100%);
+  border: 1px solid rgba(223,182,137,.16);
+  box-shadow: 0 10px 22px rgba(73,59,48,.09), 0 2px 6px rgba(73,59,48,.028);
+}
+.inspiration::before {
+  background: linear-gradient(135deg,rgba(255,209,153,.46),rgba(252,223,186,.4));
+}
+.bottom-nav {
+  box-shadow: 0 17px 37px rgba(35,42,50,.16), 0 4px 12px rgba(35,42,50,.06);
+}
+@media (max-width: 360px) {
+  .hscroll.upcoming-track .occasion-chip {flex-basis: 232px;grid-template-columns:52px minmax(0,1fr);padding:13px;}
+  .hscroll.upcoming-track .occ-thumb {width:52px;height:52px;}
+  .focus-head {padding-inline:17px;}
+  .focus-gifts {padding-inline:17px;scroll-padding-inline:17px;}
+  .focus-gifts > .product-card,.focus-gifts > .product-add {flex-basis:130px;}
+  .header-month {font-size:14px;}
+}
