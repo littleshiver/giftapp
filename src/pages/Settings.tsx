@@ -49,6 +49,7 @@ export function Settings() {
       <section className="data-card">
         <h2>Preferences</h2>
         <form
+          key={previewMode}
           onSubmit={(e) => {
             e.preventDefault();
             const fd = new FormData(e.currentTarget);
