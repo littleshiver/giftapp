@@ -2432,3 +2432,32 @@ button, input, select, textarea { font-family: inherit; }
   .hscroll.upcoming-track .occasion-chip,
   .hscroll.upcoming-track .occasion-chip::before { transition: none; }
 }
+
+/* Design-review gallery: 28 illustrations, shown without altering production data. */
+.illustration-palette-row { margin-top: 19px; }
+.illustration-palette-row h3 { font-size: 13px; font-weight: 850; margin-bottom: 5px; }
+.illustration-palette-track {
+  display: flex;
+  overflow-x: auto;
+  gap: 14px;
+  padding: 9px 4px 17px;
+  scrollbar-width: thin;
+}
+.illustration-sample { flex: 0 0 82px; text-align: center; }
+.illustration-sample-tile {
+  display: block;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 7px;
+  border: 1px solid rgba(59,68,72,.09);
+  border-radius: 19px;
+  background: #fff;
+  box-shadow: 0 5px 13px rgba(37,42,46,.07);
+  overflow: hidden;
+}
+.illustration-sample small {
+  display: block;
+  font-size: 10.5px;
+  color: #53606c;
+  line-height: 1.2;
+}
