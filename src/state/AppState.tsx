@@ -8,6 +8,10 @@ import {
 import type { AppData, Editor } from "../domain/models";
 import { today } from "../utils/format";
 import { load, write } from "../persistence/storage";
+import { emptyDemo, filledDemo } from "../domain/demo";
+
+export type PreviewMode = "my" | "empty" | "filled";
+const PREVIEW_KEY = "givvy_preview_mode";
 interface UiState {
   selectedEvent: string;
   mode: string;
@@ -21,6 +25,9 @@ interface State {
   ui: UiState;
   setUi: (patch: Partial<UiState>) => void;
   data: AppData;
+  personalData: AppData;
+  previewMode: PreviewMode;
+  setPreviewMode: (mode: PreviewMode) => void;
   commit: (data: AppData, recovery?: boolean) => boolean;
   editor: Editor | null;
   openEditor: (e: Editor) => void;
@@ -41,10 +48,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const setUi = (patch: Partial<UiState>) =>
     updateUi((current) => ({ ...current, ...patch }));
   const [loaded] = useState(load),
-    [data, setData] = useState(loaded.data),
+    [personalData, setPersonalData] = useState(loaded.data),
     [upgradeNotice, setUpgradeNotice] = useState(loaded.upgraded),
     [blocked, setBlocked] = useState(loaded.blocked),
     [warning, setWarning] = useState(loaded.warning);
+  const [previewMode, changePreviewMode] = useState<PreviewMode>(() => {
+    try {
+      const mode = sessionStorage.getItem(PREVIEW_KEY);
+      return mode === "empty" || mode === "filled" ? mode : "my";
+    } catch {
+      return "my";
+    }
+  });
+  const [previewData, setPreviewData] = useState<AppData>(() =>
+    previewMode === "filled" ? filledDemo() : emptyDemo(),
+  );
+  const data = previewMode === "my" ? personalData : previewData;
+  const setPreviewMode = (mode: PreviewMode) => {
+    if (mode === previewMode) return;
+    setEditor(null);
+    changePreviewMode(mode);
+    setPreviewData(mode === "filled" ? filledDemo() : emptyDemo());
+    updateUi((prev) => ({ ...prev, selectedEvent: "", filterPerson: "all" }));
+    try {
+      if (mode === "my") sessionStorage.removeItem(PREVIEW_KEY);
+      else sessionStorage.setItem(PREVIEW_KEY, mode);
+    } catch { /* Preview still works without session storage. */ }
+  };
   const [editor, setEditor] = useState<Editor | null>(null),
     [toast, setToast] = useState("");
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -54,6 +84,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     timer.current = setTimeout(() => setToast(""), 3700);
   };
   const commit = (next: AppData, recovery = false) => {
+    // Sandbox edits never touch the real browser storage or migration keys.
+    if (previewMode !== "my") {
+      setPreviewData(next);
+      return true;
+    }
     if (blocked && !recovery) {
       notify(
         "Storage needs recovery. Import a valid backup in Settings first.",
@@ -62,7 +97,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
     try {
       write(next);
-      setData(next);
+      setPersonalData(next);
       setUpgradeNotice(false);
       setBlocked(false);
       setWarning("");
@@ -92,6 +127,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ui,
         setUi,
         data,
+        personalData,
+        previewMode,
+        setPreviewMode,
         commit,
         editor,
         openEditor,

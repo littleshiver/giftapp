@@ -464,3 +464,61 @@ test("gift editor can explicitly add a person to an occasion without inventing a
   expect((await readData(page)).events.find((e) => e.id === "e1").people)
     .toContain(created.id);
 });
+
+test("empty and filled previews never overwrite personal storage or photo data", async ({ page }) => {
+  await seed(page);
+  const savedBefore = await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"));
+  await page.goto("/#/settings");
+  await expect(page.getByRole("button", { name: "My data" })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "Filled", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Filled", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await page.goto("/#/");
+  await expect(page.getByText("Mira's birthday", { exact: true }).first()).toBeVisible();
+  await expect(page.locator(".demo-product-sprite").first()).toBeVisible();
+
+  // Real source sheet must decode. The first populated event uses three images.
+  const sprite = page.locator(".demo-product-sprite").first();
+  const decoded = await sprite.evaluate(async (el) => {
+    const value = getComputedStyle(el).backgroundImage;
+    const url = value.startsWith("url(") ? value.slice(4, -1).replace(/["']/g, "") : "";
+    if (!url) return { loaded: false, width: 0, height: 0 };
+    const img = new Image();
+    img.src = url;
+    try { await img.decode(); } catch { return { loaded: false, width: 0, height: 0 }; }
+    return { loaded: true, width: img.naturalWidth, height: img.naturalHeight };
+  });
+  expect(decoded).toEqual({ loaded: true, width: 640, height: 256 });
+
+  await page.goto("/#/settings");
+  await page.getByRole("button", { name: "Empty", exact: true }).click();
+  await page.goto("/#/");
+  await expect(page.getByText("Add your first occasion to start planning.")).toBeVisible();
+  await page.goto("/#/settings");
+  await page.getByRole("button", { name: "My data", exact: true }).click();
+  await page.goto("/#/");
+  await expect(page.getByText("Anna's birthday", { exact: true }).first()).toBeVisible();
+  expect(await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"))).toBe(savedBefore);
+
+  await page.reload();
+  expect(await page.evaluate(() => sessionStorage.getItem("givvy_preview_mode"))).toBeNull();
+  expect(await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"))).toBe(savedBefore);
+});
+
+test("changes in filled preview are temporary and cannot modify the personal backup", async ({ page }) => {
+  await seed(page);
+  const savedBefore = await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"));
+  await page.goto("/#/settings");
+  await page.getByRole("button", { name: "Filled", exact: true }).click();
+  await page.goto("/#/people");
+  await page.getByRole("button", { name: "Add person", exact: true }).click();
+  await page.getByLabel("Name", { exact: true }).fill("Temporary tester");
+  await page.getByRole("button", { name: "Save person", exact: true }).click();
+  await expect(page.getByText("Temporary tester")).toBeVisible();
+
+  await page.goto("/#/settings");
+  await expect(page.getByRole("button", { name: "Import JSON" })).toBeDisabled();
+  await page.getByRole("button", { name: "My data", exact: true }).click();
+  await page.goto("/#/people");
+  await expect(page.getByText("Temporary tester")).toHaveCount(0);
+  expect(await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"))).toBe(savedBefore);
+});

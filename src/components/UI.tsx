@@ -17,6 +17,12 @@ import {
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Event, Gift, Idea, Person } from "../domain/models";
 import { useApp } from "../state/AppState";
+import demoPhotoSheet from "../assets/demo/catalog.webp";
+
+/** A single 5x2 sprite of the ten user-supplied gift photos.
+ * Loaded only in the design fixture; personal photos use original image data.
+ */
+
 import { currency, fmtDate } from "../utils/format";
 import { eventBudget } from "../domain/selectors";
 export { Empty } from "./Primitives";
@@ -174,6 +180,23 @@ export function Photo({
 }) {
   const [failed, setFailed] = useState(false);
   useEffect(() => setFailed(false), [src]);
+  const demoIndex = src?.startsWith("demo-photo:")
+    ? Number(src.slice("demo-photo:".length))
+    : -1;
+  if (Number.isInteger(demoIndex) && demoIndex >= 0 && demoIndex < 10) {
+    return (
+      <span
+        role="img"
+        aria-label={name || "Gift photo"}
+        className="demo-product-sprite"
+        style={{
+          backgroundImage: `url("${demoPhotoSheet}")`,
+          backgroundSize: "500% 200%",
+          backgroundPosition: `${(demoIndex % 5) * 25}% ${demoIndex >= 5 ? 100 : 0}%`,
+        }}
+      />
+    );
+  }
   return src && !failed ? (
     <img src={src} alt={name} loading="lazy" onError={() => setFailed(true)} />
   ) : birthday ? (

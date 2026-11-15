@@ -86,3 +86,36 @@ for (const width of [320, 375, 390, 430])
     expect(errors).toEqual([]);
     expect(failed).toEqual([]);
   });
+
+test("preview empty and filled mobile screenshots", async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await seed(page);
+  const directory = process.env.CAPTURE_SCREENSHOTS
+    ? "docs/ui-handoff/screenshots"
+    : testInfo.outputPath("screenshots");
+  await mkdir(directory, { recursive: true });
+
+  await page.goto("/#/settings");
+  await page.getByRole("button", { name: "Filled", exact: true }).click();
+  await page.goto("/#/");
+  await expect(page.locator(".demo-product-sprite").first()).toBeVisible();
+  await page.screenshot({
+    path: `${directory}/home-filled-390.png`,
+    fullPage: true, animations: "disabled",
+  });
+
+  await page.goto("/#/settings");
+  await page.getByRole("button", { name: "Empty", exact: true }).click();
+  await page.goto("/#/");
+  await expect(page.getByText("Add your first occasion to start planning.")).toBeVisible();
+  await page.screenshot({
+    path: `${directory}/home-empty-390.png`,
+    fullPage: true, animations: "disabled",
+  });
+
+  await page.goto("/#/settings");
+  await page.screenshot({
+    path: `${directory}/preview-settings-390.png`,
+    fullPage: true, animations: "disabled",
+  });
+});
