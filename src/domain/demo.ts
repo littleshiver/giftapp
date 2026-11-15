@@ -1,4 +1,4 @@
-import type { AppData } from "./models";
+import type { AppData, Event } from "./models";
 import { initialData } from "./initial";
 import blanketPhoto from "../assets/discovery/blanket.jpg";
 import artbookPhoto from "../assets/discovery/artbook.jpg";
@@ -41,7 +41,7 @@ export function filledDemo(): AppData {
     { id: "demo-sasha", name: "Sasha", birthday: "1996-06-14", note: "", likes: "Home decor and small thoughtful gifts" },
     { id: "demo-alex", name: "Alex", birthday: "", note: "", likes: "Computers and stationery" },
   ];
-  const events = [
+  const events: Event[] = [
     {
       id: "demo-birthday", name: "Mira's birthday", kind: "birthday" as const,
       date: "2026-11-28", enabled: true,
