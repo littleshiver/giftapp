@@ -140,7 +140,8 @@ export function Home() {
           </div>
         </section>
       )}
-      <section className="section">
+      {month.events.length > 0 && (
+        <section className="section">
         <Link className="compact-budget budget-link" to="/events?mode=planning">
           <div className="budget-head">
             <strong>Gift plans</strong>
@@ -166,7 +167,8 @@ export function Home() {
             </span>
           </div>
         </Link>
-      </section>
+        </section>
+      )}
       <section className="section">
         <Link className="inspiration" to="/ideas">
           <span>
