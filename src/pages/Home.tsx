@@ -9,7 +9,6 @@ import {
   currency,
   fmtDate,
   fullDate,
-  monthName,
   today,
 } from "../utils/format";
 export function Home() {
@@ -25,14 +24,19 @@ export function Home() {
   return (
     <>
       <header className="home-heading">
-        <p className="header-month">
-          <CalendarDays size={15} aria-hidden="true" />
-          {monthName(new Date())}
-        </p>
         <h1 className="home-greeting">
           Hi, {data.settings.name?.trim() || "there"}
           <span className="greeting-wave" role="img" aria-label="waving hand">👋</span>
         </h1>
+        <p className="header-month">
+          <CalendarDays size={16} aria-hidden="true" />
+          <span>Today · {new Date().toLocaleDateString("en-GB", {
+            weekday: "short",
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          })}</span>
+        </p>
       </header>
       <section>
         <Section title="Coming up">
@@ -95,9 +99,9 @@ export function Home() {
             <svg className="focus-wave" viewBox="0 0 400 185" preserveAspectRatio="none" aria-hidden="true">
               <defs>
                 <linearGradient id="givvy-focus-wave" x1="0" y1="0" x2="1" y2="0.45">
-                  <stop offset="0" stopColor="#FFF3E6" />
-                  <stop offset=".54" stopColor="#FBF8F1" />
-                  <stop offset="1" stopColor="#EAF3EA" />
+                  <stop offset="0" stopColor="#FFD5B4" />
+                  <stop offset=".53" stopColor="#FFE2CB" />
+                  <stop offset="1" stopColor="#F8D8CE" />
                 </linearGradient>
               </defs>
               <path
