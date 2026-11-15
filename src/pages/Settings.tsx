@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Download, Upload, Sparkles, Info } from "lucide-react";
 import { Title } from "../components/UI";
@@ -6,12 +6,46 @@ import { Button, Field } from "../components/Primitives";
 import { useApp } from "../state/AppState";
 import { decode, downloadJson, exportBackup } from "../persistence/storage";
 export function Settings() {
-  const { data, commit, notify } = useApp(),
+  const { data, personalData, previewMode, setPreviewMode, commit, notify } = useApp(),
     [budget, setBudget] = useState(data.settings.birthdayBudget),
     file = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    setBudget(data.settings.birthdayBudget);
+  }, [previewMode]);
   return (
     <>
       <Title name="Settings" subtitle="Make Givvy yours." />
+      <section className="data-card">
+        <h2>Preview content</h2>
+        <p>
+          Check the design with no plans or a filled gift list. This is a
+          temporary sandbox: your saved people, gifts and photos stay untouched.
+        </p>
+        <div className="preview-mode-options" role="group" aria-label="Preview content">
+          {([
+            ["my", "My data"],
+            ["empty", "Empty"],
+            ["filled", "Filled"],
+          ] as const).map(([mode, label]) => (
+            <button
+              key={mode}
+              type="button"
+              className={`preview-mode-button ${previewMode === mode ? "is-active" : ""}`}
+              aria-pressed={previewMode === mode}
+              onClick={() => setPreviewMode(mode)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <p className="section-note">
+          {previewMode === "my"
+            ? "You're looking at your own saved content."
+            : previewMode === "empty"
+              ? "Empty preview: no people, events, gifts or ideas. Changes are temporary."
+              : "Filled preview: sample people, celebrations and gifts. Changes are temporary."}
+        </p>
+      </section>
       <section className="data-card">
         <h2>Preferences</h2>
         <form
@@ -28,7 +62,7 @@ export function Settings() {
                 },
               })
             )
-              notify("Preferences saved");
+              notify(previewMode === "my" ? "Preferences saved" : "Preview preferences changed");
           }}
         >
           <Field label="Your name">
@@ -82,15 +116,15 @@ export function Settings() {
       <section className="data-card">
         <h2>Local data</h2>
         <p>
-          Your data stays in this browser. Export before changing browsers or
-          devices. Photos count toward browser storage limits.
+          Your real data stays in this browser. Export before changing browsers
+          or devices. Preview content is never included in your backup.
         </p>
         <div className="button-row" style={{ marginTop: 14 }}>
-          <Button variant="secondary" onClick={() => exportBackup(data)}>
+          <Button variant="secondary" onClick={() => exportBackup(personalData)}>
             <Download size={16} />
             Export JSON
           </Button>
-          <Button variant="secondary" onClick={() => file.current?.click()}>
+          <Button variant="secondary" disabled={previewMode !== "my"} onClick={() => file.current?.click()}>
             <Upload size={16} />
             Import JSON
           </Button>
@@ -124,7 +158,7 @@ export function Settings() {
             }
           }}
         />
-        {data.migration && (
+        {personalData.migration && (
           <>
             <p style={{ marginTop: 14 }}>
               This backup includes the original pre-upgrade snapshot and
@@ -135,7 +169,7 @@ export function Settings() {
               style={{ marginTop: 10 }}
               onClick={() =>
                 downloadJson(
-                  JSON.stringify(data.migration!.original, null, 2),
+                  JSON.stringify(personalData.migration!.original, null, 2),
                   "givvy-original-backup.json",
                 )
               }
