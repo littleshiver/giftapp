@@ -17,16 +17,11 @@ import {
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Event, Gift, Idea, Person } from "../domain/models";
 import { useApp } from "../state/AppState";
-import demoPhotoPart0 from "../assets/demo-parts/part0.txt?raw";
-import demoPhotoPart1 from "../assets/demo-parts/part1.txt?raw";
-import demoPhotoPart2 from "../assets/demo-parts/part2.txt?raw";
+import demoPhotoSheet from "../assets/demo/catalog.webp";
 
 /** A single 5x2 sprite of the ten user-supplied gift photos.
- * Loaded only as a design preview; user photos use the original image path.
+ * Loaded only in the design fixture; personal photos use original image data.
  */
-const demoPhotoSheet =
-  "data:image/webp;base64," +
-  demoPhotoPart0.trim() + demoPhotoPart1.trim() + demoPhotoPart2.trim();
 
 import { currency, fmtDate } from "../utils/format";
 import { eventBudget } from "../domain/selectors";
