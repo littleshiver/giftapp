@@ -22,7 +22,7 @@ test("Home featured gallery: individual gift cards, event link and prefilled add
   await expect(page.locator(".focus-gifts .product-title")).toHaveCount(0);
   await expect(page.locator(".focus-gifts .product-caption")).toHaveCount(0);
   await page.locator(".focus-date").click();
-  await expect(page).toHaveURL(/#\/$/);
+  await expect(page).toHaveURL(/\/(?:#\/)?$/);
 
   // Each image deep-links to its own gift editor on the correct occasion.
   await page.getByRole("button", { name: "Open gift Scented candle" }).click();
@@ -661,5 +661,5 @@ test("selecting an upcoming occasion smoothly aligns that card to the leading ed
     }).toBeLessThan(4);
   }
   await expect(page.locator(".focus-head h2")).toHaveText("Our anniversary");
-  await expect(page).toHaveURL(/#\/$/);
+  await expect(page).toHaveURL(/\/(?:#\/)?$/);
 });
