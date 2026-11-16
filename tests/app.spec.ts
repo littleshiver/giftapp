@@ -313,6 +313,7 @@ test("occasion/gift CRUD and explicit cascade deletion retain independent ideas"
 }) => {
   await seed(page);
   await page.goto("/#/events");
+  await page.getByRole("button", { name: "Create", exact: true }).click();
   await page.getByRole("button", { name: "Add occasion", exact: true }).click();
   await page.getByLabel("Occasion name").fill("Dinner");
   await page.getByLabel("Type", { exact: true }).selectOption("other");
