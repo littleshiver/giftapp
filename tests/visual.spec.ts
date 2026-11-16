@@ -135,7 +135,7 @@ test("preview empty and filled mobile screenshots", async ({ page }, testInfo) =
   expect(uiChecks.map((item) => item.iconKind))
     .toEqual(["birthday", "new-year", "romantic", "celebration"]);
   expect(uiChecks.every((item) =>
-    item.iconSrc.includes(".webp") &&
+    item.iconSrc.includes(".png") &&
     item.naturalWidth === 540 && item.naturalHeight === 540 &&
     item.centered && item.iconBase === "rgb(255, 255, 255)" &&
     !item.overlap,
@@ -218,8 +218,24 @@ test("gallery shows four sharp independent centered occasion illustrations", asy
   }));
   expect(images.map((x) => x.kind))
     .toEqual(["birthday", "romantic", "new-year", "celebration"]);
-  expect(images.every((x) => x.src.includes(".webp") &&
+  expect(images.every((x) => x.src.includes(".png") &&
     x.width === 540 && x.height === 540 && x.centered)).toBe(true);
+  // The PNGs must contain transparency — no baked-in rounded tile.
+  const alpha = await icons.evaluateAll(async (elements) => {
+    return Promise.all(elements.map(async (el) => {
+      const img = el as HTMLImageElement;
+      await img.decode();
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0);
+      const corner = ctx.getImageData(0, 0, 1, 1).data[3];
+      const center = ctx.getImageData(Math.floor(canvas.width / 2), Math.floor(canvas.height / 2), 1, 1).data[3];
+      return {corner, center};
+    }));
+  });
+  expect(alpha.every((a) => a.corner === 0 && a.center > 220)).toBe(true);
 });
 
 test("selected occasion animates unless reduced motion is requested", async ({ page }) => {
@@ -292,4 +308,24 @@ test("calendar QA: four occasions, chosen date and quiet month", async ({ page }
     fullPage: true,
     animations: "disabled",
   });
+});
+
+test("Events screen: date-first cards and equal-width Calendar/Planning switch", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await seed(page);
+  await page.goto("/#/events");
+  const card = page.locator(".calendar-event-card").first();
+  const textOrder = await card.locator(".calendar-event-body").evaluate((body) =>
+    Array.from(body.children).map((el) => el.className || el.tagName.toLowerCase()));
+  expect(textOrder).toEqual(["calendar-event-date", "strong", "calendar-event-status"]);
+  const measure = await page.locator(".events-mode-row").evaluate((row) => {
+    const outer = row.getBoundingClientRect();
+    const tabs = row.querySelector(".pill-tabs")!.getBoundingClientRect();
+    const buttons = Array.from(row.querySelectorAll(".pill-tab")).map((b) => b.getBoundingClientRect());
+    return { container: outer.width, group: tabs.width, buttons: buttons.map((b) => b.width) };
+  });
+  expect(Math.abs(measure.container - measure.group)).toBeLessThan(1);
+  expect(Math.abs(measure.buttons[0] - measure.buttons[1])).toBeLessThan(1);
+  await page.getByRole("button", { name: "Planning", exact: true }).click();
+  await expect(page.locator(".month-block").first()).toBeVisible();
 });
