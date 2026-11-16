@@ -69,6 +69,7 @@ export function Home() {
     selectedTone = selected ? toneFor(upcoming.indexOf(selected)) : eventTones.peach,
     month = monthSummary(data, today().slice(0, 7));
   const upcomingRef = useRef<HTMLDivElement>(null);
+  const giftsRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if ((selected?.id || "") !== ui.selectedEvent)
       setUi({ selectedEvent: selected?.id || "" });
@@ -89,6 +90,11 @@ export function Home() {
         ? "instant"
         : "smooth",
     });
+  }, [selected?.id]);
+  // Every newly selected occasion starts at its first gift. This also avoids
+  // inherited scroll offsets from the previous panel's horizontal rail.
+  useEffect(() => {
+    if (giftsRef.current) giftsRef.current.scrollLeft = 0;
   }, [selected?.id]);
   return (
     <>
@@ -181,7 +187,7 @@ export function Home() {
                 </Link>
               </div>
             </div>
-            <div className="focus-gifts">
+            <div className="focus-gifts" ref={giftsRef}>
               {giftsFor(data, selected.id).map((g) => (
                 <Product
                   key={g.id}
