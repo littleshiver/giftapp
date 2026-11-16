@@ -155,7 +155,7 @@ test("preview empty and filled mobile screenshots", async ({ page }, testInfo) =
     };
   });
   expect(Math.abs(layout.chip - layout.focus)).toBeLessThan(3);
-  expect(Math.abs(layout.title - layout.product)).toBeLessThan(3);
+  expect(Math.abs(layout.title - layout.product), JSON.stringify(layout)).toBeLessThan(3);
   const firstTone = await page.locator(".focus-card")
     .evaluate((el) => getComputedStyle(el).getPropertyValue("--event-start").trim());
   await page.screenshot({
