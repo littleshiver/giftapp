@@ -158,12 +158,12 @@ Budget `EventRecipientBudget` must remain `eventId + personId + amount`. The eve
 ## Occasion illustrations and switching — final four approved assets (15 November 2026)
 
 - **One illustration per meaning, no tinting:** Birthday → orange cupcake; romantic/anniversary/wedding/Valentine's → coral heart; New Year → green tree with yellow star; **every other occasion or holiday** → teal striped party hat with yellow details. Recognition supports English and Russian labels. User-uploaded event photos still take precedence over the default icon.
-- The four artworks are physically **separate lossless WebP images**, cropped from the single final approved illustration at source resolution with zero recoloring, retouching or resampling. Each is **540×540 px**, with the original white rounded tile and its subtle shadow retained:
-  - `src/assets/occasions/birthday-cupcake.webp`
-  - `src/assets/occasions/romantic-heart.webp`
-  - `src/assets/occasions/celebration-hat.webp`
-  - `src/assets/occasions/new-year-tree.webp`
-- There is **no sprite sheet or background-position math**. `OccasionArt` renders a normal square `img` at 100% width and height of its tile with `object-fit:cover;object-position:center`. A fixed square crop avoids content from neighboring illustrations and keeps all four precisely centered. No secondary border/shadow over the artwork's built-in tile. The component library shows four icons at their actual small-display size.
+- The four approved objects are isolated from their baked-in rounded frames and saved as **separate 540×540 px transparent PNGs**. The foreground illustrations retain their original colors and details; only the background/frame is removed:
+  - `src/assets/occasions/birthday-cupcake.png`
+  - `src/assets/occasions/romantic-heart.png`
+  - `src/assets/occasions/celebration-hat.png`
+  - `src/assets/occasions/new-year-tree.png`
+- There is **no sprite sheet or background-position math**. `OccasionArt` renders a normal transparent `img` at 100% of a white tile with `object-fit:contain;object-position:center`. The image itself has no baked-in tile, border or drop shadow; the white background belongs only to the UI container. The component library shows the four final icons at actual display size.
 - **Colors still rotate on event cards only**: peach → mint green → rose pink → sky blue, repeating in chronological order, never changing the colors of the artwork. Selected large event matches the current card's palette.
 - The countdown remains anchored top-right without changing title position; selection has the previously approved 330ms lift/fade and respects `prefers-reduced-motion`.
 - QA: verify natural image dimensions 540×540 and successful decode for all four, image rectangles exactly fill their parent tiles, no clipping or bleed at mobile widths 320/375/390/430, and correct mapping for birthday, romantic, New Year and generic occasions. No navigation, data model, budget, photo upload or status behavior changes.
@@ -179,3 +179,10 @@ Budget `EventRecipientBudget` must remain `eventId + personId + amount`. The eve
 - **Planning remains unchanged**: the existing month-grouped budget view and event routes continue working. No new or migrated persisted schema, gift states, event associations, navigation tabs, onboarding or shared Home visuals changed.
 - **Annual recurrence is a separate future product decision**. Existing events still have a specific ISO date; this pass intentionally does not auto-generate future birthday/holiday occurrences.
 - Verify screenshots: populated 4-event month with all four colors and status states, selected-day filter, month without occasions and 320px width. Test page navigation, persistent personal records, UI errors and accessibility including selected day semantics.
+
+## Events Calendar polish (16 November 2026)
+
+- Card content order is **date → event name → gift status**, with no change to filtering, date semantics, card navigation or gift status calculations.
+- Calendar/Planning segmented control occupies the **entire available page width**, split evenly (50/50) at 320–430px. No unrelated navigation changes.
+- Four approved occasion icons are foreground-only PNGs, isolated from their old white rounded frame. UI draws the plain white background behind them. No double border or baked-in tile. Do not tint the icons or replace them with unrelated illustrations; a user-uploaded event photo still takes precedence.
+- Browser QA checks image decode, transparent corners, correctly centered objects, date/title order, and equal tab widths.

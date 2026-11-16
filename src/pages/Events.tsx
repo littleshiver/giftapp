@@ -59,8 +59,8 @@ function MonthEventCard({
         {event.image ? <Photo src={event.image} name={event.name} /> : <OccasionArt event={event} />}
       </span>
       <span className="calendar-event-body">
-        <strong>{event.name}</strong>
         <span className="calendar-event-date">{fmtDate(event.date)}</span>
+        <strong>{event.name}</strong>
         <span className="calendar-event-status">{giftStatus(data, event)}</span>
       </span>
       <ChevronRight size={18} strokeWidth={1.9} className="calendar-event-chevron" aria-hidden="true" />
