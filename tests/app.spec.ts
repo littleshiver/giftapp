@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { fixture, image, seed, readData } from "./fixtures";
-test("approved Home selection, five tabs, focus navigation and prefilled add tile", async ({
+test("Home featured gallery: individual gift cards, event link and prefilled add sheet", async ({
   page,
 }) => {
   const errors: string[] = [];
@@ -16,19 +16,34 @@ test("approved Home selection, five tabs, focus navigation and prefilled add til
   await expect(page.locator(".occasion-chip[aria-pressed=true]")).toContainText(
     "Anna's birthday",
   );
-  await page.getByRole("button", { name: /New Year.*Dec 31/ }).click();
-  await expect(page).toHaveURL(/\/$/);
-  await expect(page.locator(".focus-head h2")).toHaveText("New Year");
-  await page
-    .getByRole("button", { name: "Add gift to New Year", exact: true })
-    .click();
-  await expect(
-    page.getByRole("combobox", { name: "Occasion", exact: true }),
-  ).toHaveValue("e2");
+
+  // The featured panel is no longer a giant click target.
+  await expect(page.locator(".focus-card")).not.toHaveAttribute("role", "link");
+  await expect(page.locator(".focus-gifts .product-title")).toHaveCount(0);
+  await expect(page.locator(".focus-gifts .product-caption")).toHaveCount(0);
+  await page.locator(".focus-date").click();
+  await expect(page).toHaveURL(/\/(?:#\/)?$/);
+
+  // Each image deep-links to its own gift editor on the correct occasion.
+  await page.getByRole("button", { name: "Open gift Scented candle" }).click();
+  await expect(page).toHaveURL(/#\/events\/e1\?gift=g1$/);
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await expect(page.getByLabel("Gift name", { exact: true })).toHaveValue("Scented candle");
   await page.getByRole("button", { name: "Close", exact: true }).click();
-  await page.getByRole("link", { name: "Open New Year", exact: true }).focus();
-  await page.keyboard.press("Enter");
-  await expect(page).toHaveURL(/#\/events\/e2$/);
+
+  await page.goto("/#/");
+  await page.getByRole("link", { name: "Open Anna's birthday occasion" }).click();
+  await expect(page).toHaveURL(/#\/events\/e1$/);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+
+  await page.goto("/#/");
+  await page.getByRole("button", { name: /New Year.*Dec 31/ }).click();
+  await expect(page.locator(".focus-head h2")).toHaveText("New Year");
+  await page.getByRole("button", { name: "Add gift to New Year", exact: true }).click();
+  await expect(page).toHaveURL(/#\/events\/e2\?addGift=1$/);
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await expect(page.getByRole("combobox", { name: "Occasion", exact: true })).toHaveValue("e2");
+  await page.getByRole("button", { name: "Close", exact: true }).click();
   expect(errors).toEqual([]);
 });
 test("FAB actions; gift photo/status, membership validation and independent idea conversion", async ({
@@ -607,4 +622,44 @@ test("empty calendar is navigable without adding duplicate create buttons", asyn
   await expect(page.locator(".calendar-top strong")).toHaveText("December 2026");
   await expect(page.getByRole("button", { name: "Add occasion", exact: true })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Create", exact: true })).toBeVisible();
+});
+
+test("featured gallery uses near-full width and a clean green bought tick", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await seed(page);
+  const card = page.locator(".focus-card");
+  const box = await card.boundingBox();
+  expect(box).not.toBeNull();
+  expect(box!.width).toBeGreaterThanOrEqual(374);
+  expect(box!.x).toBeGreaterThanOrEqual(0);
+  expect(box!.x + box!.width).toBeLessThanOrEqual(390);
+  const marker = page.locator(".focus-gifts .bought-corner");
+  await expect(marker).toHaveCount(1);
+  const style = await marker.evaluate((el) => {
+    const c = getComputedStyle(el);
+    return { color: c.color, border: c.borderTopWidth, shadow: c.boxShadow, bg: c.backgroundColor };
+  });
+  expect(style).toEqual({
+    color: "rgb(20, 133, 79)", border: "0px", shadow: "none",
+    bg: "rgba(0, 0, 0, 0)",
+  });
+});
+
+test("selecting an upcoming occasion smoothly aligns that card to the leading edge", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await seed(page);
+  const track = page.locator(".upcoming-track");
+  for (const name of [/New Year.*Dec 31/, /Our anniversary/]) {
+    await page.getByRole("button", { name }).click();
+    await expect.poll(async () => {
+      return track.evaluate((el) => {
+        const active = el.querySelector(".occasion-chip.is-selected")!;
+        const inset = Number.parseFloat(getComputedStyle(el).paddingLeft) || 0;
+        return Math.abs(active.getBoundingClientRect().left -
+          el.getBoundingClientRect().left - inset);
+      });
+    }).toBeLessThan(4);
+  }
+  await expect(page.locator(".focus-head h2")).toHaveText("Our anniversary");
+  await expect(page).toHaveURL(/\/(?:#\/)?$/);
 });

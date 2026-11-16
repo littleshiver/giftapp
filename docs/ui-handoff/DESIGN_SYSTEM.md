@@ -186,3 +186,14 @@ Budget `EventRecipientBudget` must remain `eventId + personId + amount`. The eve
 - Calendar/Planning segmented control occupies the **entire available page width**, split evenly (50/50) at 320–430px. No unrelated navigation changes.
 - Four approved occasion icons are foreground-only PNGs, isolated from their old white rounded frame. UI draws the plain white background behind them. No double border or baked-in tile. Do not tint the icons or replace them with unrelated illustrations; a user-uploaded event photo still takes precedence.
 - Browser QA checks image decode, transparent corners, correctly centered objects, date/title order, and equal tab widths.
+
+## Featured Home occasion: image-first gift gallery (16 November 2026)
+
+- The selected occasion becomes a **near full-bleed panel** with a small 6px shadow-safe edge gutter. Do not turn the panel into a link. A dedicated accessible arrow next to the occasion title opens its normal event details. All other background areas of the panel are inert.
+- Gift thumbnails on **Home only** are square image-only cards. Hide gift names, price amounts and recipient captions, without removing the fields from stored data, the event details or gift editing.
+- A purchased gift uses **only a simple green check**, no dark circular badge, border, drop shadow or extra frame. Unpurchased gifts remain unmarked.
+- Each photograph is its own interactive target: Home gift → `/events/:eventId?gift=:giftId` → existing event detail with that gift's editor sheet open. The action can be deep-linked and reloaded. The entire card is not clickable.
+- The square Add tile is accessible but has no extra text below it: Home Add gift → `/events/:eventId?addGift=1` → event detail + prefilled Add gift sheet.
+- Spacing: header 20px inset, gallery 20px inset (17px on ≤360px), consistent 12px between square gift photos, 25px lower inset; remaining page elements and budgets are unchanged.
+- Selecting a Coming up item **smoothly scrolls that horizontal carousel so the selected card's leading edge aligns with its left content inset**, including the final item. A trailing flex spacer makes final alignment possible. Respect `prefers-reduced-motion`; do not scroll the entire page.
+- Existing routes, storage, backup and other screen design remain intact. Test desktop and 320/375/390/430 mobile widths, check no clipped shadows or page overflow, verify keyboard-accessible links/buttons, and check routing to existing and new gifts.

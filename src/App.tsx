@@ -12,12 +12,23 @@ import { Settings } from "./pages/Settings";
 import { EventDetail, PersonDetail } from "./pages/Details";
 import { useApp } from "./state/AppState";
 export function App() {
-  const { data, editor, warning, upgradeNotice, closeEditor } = useApp(),
+  const { data, editor, warning, upgradeNotice, closeEditor, openEditor } = useApp(),
     location = useLocation();
   useEffect(() => {
     window.scrollTo(0, 0);
     closeEditor();
-  }, [location.pathname]);
+    // Deep-linked Home gift actions land on the real occasion page first,
+    // then open its existing editor sheet. This also works on reload/back.
+    const occasionId = location.pathname.match(/^\/events\/([^/]+)$/)?.[1];
+    if (!occasionId || !data.events.some((e) => e.id === occasionId)) return;
+    const query = new URLSearchParams(location.search);
+    const giftId = query.get("gift");
+    if (giftId && data.gifts.some((g) => g.id === giftId && g.eventId === occasionId)) {
+      openEditor({ type: "gift", id: giftId });
+    } else if (query.get("addGift") === "1") {
+      openEditor({ type: "gift", eventId: occasionId });
+    }
+  }, [location.pathname, location.search]);
   return (
     <div className="app-shell">
       <div inert={!!editor} aria-hidden={editor ? true : undefined}>

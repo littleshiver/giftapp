@@ -2783,3 +2783,112 @@ button, input, select, textarea { font-family: inherit; }
   object-fit: contain;
   object-position: center;
 }
+
+/* HOME FEATURED GALLERY POLISH NOV2026
+   The container itself is never a navigation target. Individual gift photos,
+   Add gift tile and the small event arrow are the only interactive elements. */
+.focus-card {
+  width: calc(100% + 2 * var(--space) - 12px);
+  margin-inline: calc(6px - var(--space));
+  box-sizing: border-box;
+  cursor: default;
+}
+.focus-head {
+  padding: 41px 20px 7px;
+}
+.focus-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+.focus-title-row h2 {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+.focus-event-link {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: rgba(255,255,255,.77);
+  color: #293139;
+  text-decoration: none;
+  transition: background-color 180ms ease;
+}
+.focus-event-link:hover { background: rgba(255,255,255,.95); }
+.focus-event-link:focus-visible,
+.focus-gifts .product-open:focus-visible,
+.focus-gifts .product-add > button:focus-visible {
+  outline: 3px solid #6898C2;
+  outline-offset: 3px;
+}
+.focus-gifts {
+  padding: 13px 20px 25px;
+  gap: 12px;
+  align-items: stretch;
+  scroll-padding-inline: 20px;
+}
+.focus-gifts > .home-product,
+.focus-gifts > .product-add {
+  flex: 0 0 148px;
+  min-width: 0;
+}
+.focus-gifts .home-product .product-open {
+  height: 100%;
+  cursor: pointer;
+}
+.focus-gifts .home-product .product-visual,
+.focus-gifts .product-add > button {
+  width: 100%;
+  aspect-ratio: 1;
+  height: auto;
+  border-radius: 20px;
+}
+.focus-gifts .product-add {
+  gap: 0;
+  align-self: stretch;
+}
+.focus-gifts .product-add > button { cursor: pointer; }
+/* Only an unframed green check denotes a purchased gift. */
+.focus-gifts .bought-corner {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  color: #14854F;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  filter: none;
+  pointer-events: none;
+}
+/* Allow even the final upcoming event to glide to the leading edge of the
+   carousel, with the same inset as the first event. */
+.hscroll.upcoming-track::after {
+  content: "";
+  flex: 0 0 max(0px, calc(100% - 248px + 16px));
+  align-self: stretch;
+  pointer-events: none;
+}
+@media (max-width: 360px) {
+  .focus-head { padding-inline: 17px; }
+  .focus-gifts { padding-inline: 17px; scroll-padding-inline: 17px; }
+  .focus-gifts > .home-product,
+  .focus-gifts > .product-add { flex-basis: 134px; }
+  .hscroll.upcoming-track::after {
+    flex-basis: max(0px, calc(100% - 232px + 16px));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .focus-event-link { transition: none; }
+}

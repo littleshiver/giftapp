@@ -154,8 +154,12 @@ test("preview empty and filled mobile screenshots", async ({ page }, testInfo) =
       product: left(".focus-gifts .product-card"),
     };
   });
-  expect(Math.abs(layout.chip - layout.focus)).toBeLessThan(3);
-  expect(Math.abs(layout.title - layout.product)).toBeLessThan(3);
+  // The selected occasion is intentionally wider than the Coming up chips:
+  // its 6px outer shadow gutter replaces the ordinary 20px page inset.
+  expect(layout.chip - layout.focus).toBeGreaterThan(10);
+  expect(layout.chip - layout.focus).toBeLessThan(20);
+  // Heading and image strip should still share the same inner content inset.
+  expect(Math.abs(layout.title - layout.product), JSON.stringify(layout)).toBeLessThan(3);
   const firstTone = await page.locator(".focus-card")
     .evaluate((el) => getComputedStyle(el).getPropertyValue("--event-start").trim());
   await page.screenshot({

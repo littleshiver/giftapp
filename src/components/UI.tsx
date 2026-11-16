@@ -236,26 +236,30 @@ export function Product({
           (home
             ? (item.status === "bought" && (
                 <span className="bought-corner" role="img" aria-label="Purchased">
-                  <Check size={17} strokeWidth={3} />
+                  <Check size={26} strokeWidth={3.4} />
                 </span>
               ))
             : <StatusTag status={(item as Gift).status} />)}
       </span>
-      <span className="product-title">{item.name}</span>
-      <span className="product-caption">
-        {person
-          ? `For ${data.people.find((p) => p.id === item.personId)?.name || "Someone"}`
-          : currency(item.price)}
-      </span>
+      {!home && (
+        <>
+          <span className="product-title">{item.name}</span>
+          <span className="product-caption">
+            {person
+              ? `For ${data.people.find((p) => p.id === item.personId)?.name || "Someone"}`
+              : currency(item.price)}
+          </span>
+        </>
+      )}
     </>
   );
   return (
-    <div className="product-card">
+    <div className={`product-card ${home ? "home-product" : ""}`}>
       {onClick ? (
         <button
           type="button"
           className="product-open"
-          aria-label={`Edit ${item.name}`}
+          aria-label={`${home ? "Open gift" : "Edit"} ${item.name}`}
           onClick={onClick}
         >
           {content}
