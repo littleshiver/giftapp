@@ -2876,7 +2876,7 @@ button, input, select, textarea { font-family: inherit; }
    carousel, with the same inset as the first event. */
 .hscroll.upcoming-track::after {
   content: "";
-  flex: 0 0 max(0px, calc(100% - 248px - var(--space)));
+  flex: 0 0 max(0px, calc(100% - 248px + 16px));
   align-self: stretch;
   pointer-events: none;
 }
@@ -2886,7 +2886,7 @@ button, input, select, textarea { font-family: inherit; }
   .focus-gifts > .home-product,
   .focus-gifts > .product-add { flex-basis: 134px; }
   .hscroll.upcoming-track::after {
-    flex-basis: max(0px, calc(100% - 232px - var(--space)));
+    flex-basis: max(0px, calc(100% - 232px + 16px));
   }
 }
 @media (prefers-reduced-motion: reduce) {
