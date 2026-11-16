@@ -46,11 +46,13 @@ for (const width of [320, 375, 390, 430])
         });
         expect(positions.budgetTop).toBeGreaterThan(positions.cardBottom);
       }
-      await page
-        .locator("img")
-        .evaluateAll((images) =>
-          Promise.all(images.map((img) => img.decode().catch(() => {}))),
-        );
+      // Images outside the clipped horizontal carousels are lazy-loaded.
+      // Decoding an image that hasn't started loading can hang indefinitely.
+      await page.locator("img").evaluateAll((images) =>
+        Promise.all(images
+          .filter((img) => img.loading !== "lazy" || img.complete)
+          .map((img) => img.decode().catch(() => {}))),
+      );
       const overflowDetails = await page.evaluate(() => {
         const viewport = innerWidth;
         const candidates = Array.from(document.querySelectorAll("*"))
