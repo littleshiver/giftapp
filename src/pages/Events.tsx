@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Empty, Title, Section, Photo } from "../components/UI";
@@ -84,22 +84,20 @@ export function Events() {
     : monthEvents;
 
   // Use the exact same index for a date marker and its corresponding list card.
-  const byDate = useMemo(() => {
-    const result = new Map<string, { event: Event; index: number }[]>();
-    evs.forEach((event) => {
-      const yearMonth = event.date.slice(0, 7);
-      const firstOfMonth = evs.filter((e) => e.date.slice(0, 7) === yearMonth);
-      const index = firstOfMonth.findIndex((e) => e.id === event.id);
-      const existing = result.get(event.date) ?? [];
-      existing.push({ event, index });
-      result.set(event.date, existing);
-    });
-    return result;
-  }, [evs]);
+  const byDate = new Map<string, { event: Event; index: number }[]>();
+  const perMonthIndex = new Map<string, number>();
+  evs.forEach((event) => {
+    const ym = event.date.slice(0, 7);
+    const index = perMonthIndex.get(ym) ?? 0;
+    perMonthIndex.set(ym, index + 1);
+    const existing = byDate.get(event.date) ?? [];
+    existing.push({ event, index });
+    byDate.set(event.date, existing);
+  });
 
   useEffect(() => {
     if (params.get("mode") === "planning") setUi({ mode: "planning" });
-  }, [params, setUi]);
+  }, [params]);
 
   const first = new Date(month.getFullYear(), month.getMonth(), 1);
   const offset = (first.getDay() + 6) % 7;
