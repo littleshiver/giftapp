@@ -51,10 +51,27 @@ for (const width of [320, 375, 390, 430])
         .evaluateAll((images) =>
           Promise.all(images.map((img) => img.decode().catch(() => {}))),
         );
+      const overflowDetails = await page.evaluate(() => {
+        const viewport = innerWidth;
+        const candidates = Array.from(document.querySelectorAll("*"))
+          .map((el) => {
+            const box = el.getBoundingClientRect();
+            return {
+              tag: el.tagName,
+              cls: (el.getAttribute("class") || "").slice(0, 80),
+              left: Math.round(box.left),
+              right: Math.round(box.right),
+              parent: (el.parentElement?.getAttribute("class") || "").slice(0, 50),
+            };
+          })
+          .filter((x) => x.right > viewport + 2 || x.left < -2);
+        return { viewport, scrollWidth: document.documentElement.scrollWidth, candidates: candidates.slice(-45) };
+      });
+      if (overflowDetails.scrollWidth > overflowDetails.viewport) {
+        console.log(name + " width overflow: " + JSON.stringify(overflowDetails));
+      }
       expect(
-        await page.evaluate(
-          () => document.documentElement.scrollWidth <= innerWidth,
-        ),
+        overflowDetails.scrollWidth <= overflowDetails.viewport,
         `${name} has no page overflow at ${width}px`,
       ).toBe(true);
       if (name === "home" || width === 390)
