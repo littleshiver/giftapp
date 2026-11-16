@@ -313,6 +313,7 @@ test("occasion/gift CRUD and explicit cascade deletion retain independent ideas"
 }) => {
   await seed(page);
   await page.goto("/#/events");
+  await page.getByRole("button", { name: "Create", exact: true }).click();
   await page.getByRole("button", { name: "Add occasion", exact: true }).click();
   await page.getByLabel("Occasion name").fill("Dinner");
   await page.getByLabel("Type", { exact: true }).selectOption("other");
@@ -521,4 +522,89 @@ test("changes in filled preview are temporary and cannot modify the personal bac
   await page.goto("/#/people");
   await expect(page.getByText("Temporary tester")).toHaveCount(0);
   expect(await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"))).toBe(savedBefore);
+});
+
+test("calendar shows whole month first, filters by day and restores month view", async ({ page }) => {
+  await seed(page);
+  await page.goto("/#/events");
+  await expect(page.locator(".calendar-top strong")).toHaveText("November 2026");
+  await expect(page.locator(".calendar-agenda-heading h2")).toHaveText("November events");
+  await expect(page.locator(".calendar-event-card")).toHaveCount(1);
+  await expect(page.locator(".calendar-event-card")).toContainText("Anna's birthday");
+  await expect(page.locator(".calendar-event-card")).toContainText("2 gifts to buy");
+  await expect(page.getByRole("button", { name: "Add occasion", exact: true })).toHaveCount(0);
+
+  // The initial date is an outline for Today, but never an active filter.
+  await expect(page.locator(".cal-day.is-selected")).toHaveCount(0);
+  await page.getByRole("button", { name: "2026-11-20", exact: true }).click();
+  await expect(page.locator(".calendar-agenda-heading h2")).toHaveText("Nov 20");
+  await expect(page.locator(".calendar-event-card")).toHaveCount(0);
+  await expect(page.getByText("Nothing planned for this day")).toBeVisible();
+  await page.getByRole("button", { name: "Show all", exact: true }).click();
+  await expect(page.locator(".calendar-event-card")).toHaveCount(1);
+
+  await page.getByRole("button", { name: "2026-11-28", exact: true }).click();
+  await expect(page.locator(".calendar-agenda-heading h2")).toHaveText("Nov 28");
+  await expect(page.locator(".calendar-event-card")).toContainText("Anna's birthday");
+  await page.getByRole("link", { name: /Anna's birthday/ }).last().click();
+  await expect(page).toHaveURL(/#\/events\/e1$/);
+  await page.goBack();
+  await page.getByRole("button", { name: "Next month" }).click();
+  await expect(page.locator(".calendar-top strong")).toHaveText("December 2026");
+  await expect(page.locator(".calendar-agenda-heading h2")).toHaveText("December events");
+  await expect(page.locator(".calendar-event-card")).toContainText("New Year");
+  await expect(page.locator(".calendar-event-card")).toContainText("1 gift to buy");
+  await expect(page.getByRole("button", { name: "Show all" })).toHaveCount(0);
+});
+
+test("calendar marker colors and gift statuses reflect actual enabled events", async ({ page }) => {
+  const data = fixture();
+  data.events.push({
+    ...data.events[0],
+    id: "e4",
+    name: "Tea meetup",
+    date: "2026-11-28",
+    kind: "other",
+    image: "",
+  });
+  data.events.push({
+    ...data.events[0],
+    id: "e5",
+    name: "Little celebration",
+    date: "2026-11-23",
+    kind: "holiday",
+    image: "",
+  });
+  data.events[0].enabled = true;
+  await seed(page, data);
+  await page.goto("/#/events");
+  await expect(page.locator(".calendar-event-card")).toHaveCount(3);
+  await expect(page.locator(".cal-day[aria-label='2026-11-28'] .cal-dot")).toHaveCount(2);
+  const tints = await page.locator(".calendar-event-card").evaluateAll((els) =>
+    els.map((e) => getComputedStyle(e).getPropertyValue("--calendar-event-tint").trim())
+  );
+  expect(new Set(tints).size).toBe(3);
+  await expect(page.getByRole("link", { name: /Tea meetup/ })).toContainText("No gifts planned yet");
+
+  await page.getByRole("button", { name: "2026-11-28" }).click();
+  await expect(page.locator(".calendar-event-card")).toHaveCount(2);
+  await expect(page.getByRole("link", { name: /Little celebration/ })).toHaveCount(0);
+  await page.getByRole("button", { name: "Show all" }).click();
+  await expect(page.locator(".calendar-event-card")).toHaveCount(3);
+  await page.getByRole("button", { name: "Planning", exact: true }).click();
+  await expect(page.locator(".month-block")).toHaveCount(3);
+});
+
+test("empty calendar is navigable without adding duplicate create buttons", async ({ page }) => {
+  await seed(page);
+  await page.goto("/#/settings");
+  await page.getByRole("button", { name: "Empty", exact: true }).click();
+  await page.goto("/#/events");
+  await expect(page.locator(".calendar-card")).toBeVisible();
+  await expect(page.locator(".calendar-event-card")).toHaveCount(0);
+  await expect(page.getByText("No occasions this month")).toBeVisible();
+  await page.getByRole("button", { name: "Next month" }).click();
+  await expect(page.locator(".calendar-top strong")).toHaveText("December 2026");
+  await expect(page.getByRole("button", { name: "Add occasion", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Create", exact: true })).toBeVisible();
 });

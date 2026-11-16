@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
-import { seed } from "./fixtures";
+import { seed, fixture } from "./fixtures";
 for (const width of [320, 375, 390, 430])
   test(`responsive layouts and interactions at ${width}px`, async ({
     page,
@@ -237,4 +237,59 @@ test("selected occasion animates unless reduced motion is requested", async ({ p
   const reduced = await page.locator(".focus-card")
     .evaluate((el) => getComputedStyle(el).animationName);
   expect(reduced).toBe("none");
+});
+
+test("calendar QA: four occasions, chosen date and quiet month", async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const data = fixture();
+  data.events[0].date = "2026-11-28"; // birthday
+  data.events[1].date = "2026-11-08"; // New Year (fixture name, earlier date for QA)
+  data.events[2].date = "2026-11-18"; // anniversary
+  data.events.push({
+    ...data.events[2],
+    id: "e4",
+    date: "2026-11-23",
+    name: "Little celebration",
+    kind: "holiday",
+    image: "",
+  });
+  data.gifts.push({ ...data.gifts[0], id: "g5", eventId: "e3", status: "bought" });
+  await seed(page, data);
+  await page.goto("/#/events");
+  const directory = process.env.CAPTURE_SCREENSHOTS
+    ? "docs/ui-handoff/screenshots"
+    : testInfo.outputPath("screenshots");
+  await mkdir(directory, { recursive: true });
+  await expect(page.locator(".calendar-event-card")).toHaveCount(4);
+  await expect(page.locator(".calendar-event-card")).toContainText([
+    "1 gift to buy",
+    "All gifts bought",
+    "No gifts planned yet",
+    "2 gifts to buy",
+  ]);
+  await page.locator(".calendar-event-card img").evaluateAll((images) =>
+    Promise.all(images.map((img) => (img as HTMLImageElement).decode().catch(() => {}))),
+  );
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({
+    path: `${directory}/calendar-populated-390.png`,
+    fullPage: true,
+    animations: "disabled",
+  });
+
+  await page.getByRole("button", { name: "2026-11-28" }).click();
+  await expect(page.locator(".calendar-event-card")).toHaveCount(1);
+  await page.screenshot({
+    path: `${directory}/calendar-filtered-390.png`,
+    fullPage: true,
+    animations: "disabled",
+  });
+
+  await page.getByRole("button", { name: "Next month" }).click();
+  await expect(page.locator(".calendar-event-card")).toHaveCount(0);
+  await page.screenshot({
+    path: `${directory}/calendar-quiet-month-390.png`,
+    fullPage: true,
+    animations: "disabled",
+  });
 });
