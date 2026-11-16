@@ -41,7 +41,7 @@ for (const width of [320, 375, 390, 430])
         await expect(page.locator(".home-heading .compact-budget")).toHaveCount(0);
         const positions = await page.evaluate(() => {
           const card = document.querySelector(".focus-card")?.getBoundingClientRect();
-          const budget = document.querySelector(".compact-budget")?.getBoundingClientRect();
+          const budget = document.querySelector(".home-budget-section")?.getBoundingClientRect();
           return { cardBottom: card?.bottom ?? 0, budgetTop: budget?.top ?? 0 };
         });
         expect(positions.budgetTop).toBeGreaterThan(positions.cardBottom);
@@ -141,6 +141,10 @@ test("preview empty and filled mobile screenshots", async ({ page }, testInfo) =
     !item.overlap,
   )).toBe(true);
   await expect(page.locator(".home-heading")).not.toContainText("Today");
+  await expect(page.locator(".home-heading")).not.toContainText("November");
+  await expect(page.locator(".home-wordmark")).toBeVisible();
+  await expect(page.locator(".home-budget-grid > .home-budget-card")).toHaveCount(2);
+  await expect(page.locator(".home-inspiration")).toBeVisible();
   await expect(page.locator(".focus-gifts .status-tag")).toHaveCount(0);
   await expect(page.locator(".focus-gifts .bought-corner").first()).toBeVisible();
   // The headline and product rail share one inset; never float out of alignment.
