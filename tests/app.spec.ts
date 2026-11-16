@@ -539,7 +539,7 @@ test("calendar shows whole month first, filters by day and restores month view",
   await page.getByRole("button", { name: "2026-11-20", exact: true }).click();
   await expect(page.locator(".calendar-agenda-heading h2")).toHaveText("Nov 20");
   await expect(page.locator(".calendar-event-card")).toHaveCount(0);
-  await expect(page.getByText("Nothing planned on this date")).toBeVisible();
+  await expect(page.getByText("Nothing planned for this day")).toBeVisible();
   await page.getByRole("button", { name: "Show all", exact: true }).click();
   await expect(page.locator(".calendar-event-card")).toHaveCount(1);
 
