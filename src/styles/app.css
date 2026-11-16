@@ -3216,7 +3216,12 @@ button, input, select, textarea { font-family: inherit; }
 }
 .app-main-home .home-featured-section .focus-wave {
   border-radius: 0;
-  filter: drop-shadow(0 14px 20px rgba(47,46,44,.095));
+  /* SVG filter extents caused 3–5px document overflow at narrow widths. */
+  filter: none;
+}
+.app-main-home .home-featured-section {
+  /* Keep a subtle vertical separation without extending the SVG canvas. */
+  box-shadow: 0 16px 23px -25px rgba(47,46,44,.22);
 }
 .app-main-home .focus-head {
   padding-top: 43px;
