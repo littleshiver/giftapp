@@ -140,8 +140,8 @@ export function Home() {
                   )}
                 </span>
                 <span>
-                  <span className="occ-name">{e.name}</span>
                   <span className="occ-date">{fmtDate(e.date)}</span>
+                  <span className="occ-name">{e.name}</span>
                 </span>
               </button>
             ))}
@@ -158,16 +158,17 @@ export function Home() {
             style={toneStyle(selectedTone)}
             aria-label={`Gifts for ${selected.name}`}
           >
-            <svg className="focus-wave" viewBox="0 0 400 185" preserveAspectRatio="none" aria-hidden="true">
+            <svg className="focus-wave" viewBox="0 0 400 500" preserveAspectRatio="none" aria-hidden="true">
               <defs>
-                <linearGradient id="givvy-focus-wave" x1="0" y1="0" x2="1" y2="0.45">
+                <linearGradient id="givvy-focus-wave" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0" stopColor={selectedTone.start} />
-                  <stop offset=".53" stopColor={selectedTone.middle} />
-                  <stop offset="1" stopColor={selectedTone.end} />
+                  <stop offset=".32" stopColor={selectedTone.middle} />
+                  <stop offset=".70" stopColor={selectedTone.end} />
+                  <stop offset="1" stopColor="#FFFFFF" />
                 </linearGradient>
               </defs>
               <path
-                d="M0 49 Q0 26 24 20 C97 -6 141 10 209 34 C276 57 332 4 377 23 Q400 31 400 55 L400 185 L0 185 Z"
+                d="M0 48 Q0 26 24 20 C97 -6 141 10 209 34 C276 57 332 4 377 23 Q400 31 400 55 L400 462 Q400 500 362 500 L37 500 Q0 500 0 463 Z"
                 fill="url(#givvy-focus-wave)"
               />
             </svg>

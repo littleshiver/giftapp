@@ -154,10 +154,11 @@ test("preview empty and filled mobile screenshots", async ({ page }, testInfo) =
       product: left(".focus-gifts .product-card"),
     };
   });
-  // The selected occasion is intentionally wider than the Coming up chips:
-  // its 6px outer shadow gutter replaces the ordinary 20px page inset.
-  expect(layout.chip - layout.focus).toBeGreaterThan(10);
-  expect(layout.chip - layout.focus).toBeLessThan(20);
+  // Feature is truly edge-to-edge, unlike inset Coming up cards.
+  expect(layout.focus).toBeGreaterThanOrEqual(-1);
+  expect(layout.focus).toBeLessThanOrEqual(1);
+  expect(layout.chip - layout.focus).toBeGreaterThan(15);
+  expect(layout.chip - layout.focus).toBeLessThan(25);
   // Heading and image strip should still share the same inner content inset.
   expect(Math.abs(layout.title - layout.product), JSON.stringify(layout)).toBeLessThan(3);
   const firstTone = await page.locator(".focus-card")

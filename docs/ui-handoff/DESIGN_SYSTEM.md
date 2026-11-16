@@ -197,3 +197,14 @@ Budget `EventRecipientBudget` must remain `eventId + personId + amount`. The eve
 - Spacing: header 20px inset, gallery 20px inset (17px on ≤360px), consistent 12px between square gift photos, 25px lower inset; remaining page elements and budgets are unchanged.
 - Selecting a Coming up item **smoothly scrolls that horizontal carousel so the selected card's leading edge aligns with its left content inset**, including the final item. A trailing flex spacer makes final alignment possible. Respect `prefers-reduced-motion`; do not scroll the entire page.
 - Existing routes, storage, backup and other screen design remain intact. Test desktop and 320/375/390/430 mobile widths, check no clipped shadows or page overflow, verify keyboard-accessible links/buttons, and check routing to existing and new gifts.
+
+## Home featured event and gift editor — 16 November 2026
+
+- Home only: remove the 26px app-main top padding, preserving a small inner header inset. The existing Home greeting and month-year remain.
+- Coming up has tighter vertical spacing. Event cards read **date first → occasion title second**, with the independently positioned countdown chip remaining in the top-right corner. Keep chronological order and auto-align the selected card to the scroll viewport's leading inset.
+- The featured event is **truly edge-to-edge**: it spans the full mobile shell width, unlike the normal section content. Padding belongs only inside the heading and horizontally scrolling square gift thumbnails. Gift names and prices remain hidden on Home; they stay available in edit/detail flows.
+- The featured card itself is **not clickable**. Each gift image opens its own gift editor on the event page; the empty Add tile opens the event page and Add gift editor; the small arrow near the title navigates to the event.
+- The purchased marker is a crisp **25px green filled circle with a 16px white check**, top-right of the corresponding photo. No text, stroke border, card-like backplate or shadow; planned gifts have no overlay.
+- The old focus artwork was drawn twice: a short SVG curve on top of a full gradient background, plus a radial pseudo-element. The feature now uses **one tall SVG path with a continuous gradient from the curved top to the white bottom**; there is no CSS underlay or second orange ridge.
+- The gift/idea editor keeps the **existing photo visible** (including demo-sprite previews). Choosing a new file previews it immediately, displays the filename and does not save it until the user presses Save. A visible custom photo selection action replaces the native tiny filename picker. Preview object URLs are revoked when replaced or the sheet is closed.
+- Responsive browser checks cover Home at 320, 375, 390 and 430px, focus geometry, bought markers, navigation to edit/add, existing and newly chosen photo previews, and untouched data when the editor is dismissed. No schema, gift-status or personal-data changes.

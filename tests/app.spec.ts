@@ -37,7 +37,7 @@ test("Home featured gallery: individual gift cards, event link and prefilled add
   await expect(page.getByRole("dialog")).toHaveCount(0);
 
   await page.goto("/#/");
-  await page.getByRole("button", { name: /New Year.*Dec 31/ }).click();
+  await page.getByRole("button", { name: /Dec 31.*New Year/ }).click();
   await expect(page.locator(".focus-head h2")).toHaveText("New Year");
   await page.getByRole("button", { name: "Add gift to New Year", exact: true }).click();
   await expect(page).toHaveURL(/#\/events\/e2\?addGift=1$/);
@@ -630,9 +630,9 @@ test("featured gallery uses near-full width and a clean green bought tick", asyn
   const card = page.locator(".focus-card");
   const box = await card.boundingBox();
   expect(box).not.toBeNull();
-  expect(box!.width).toBeGreaterThanOrEqual(374);
-  expect(box!.x).toBeGreaterThanOrEqual(0);
-  expect(box!.x + box!.width).toBeLessThanOrEqual(390);
+  expect(Math.abs(box!.x)).toBeLessThanOrEqual(1);
+  expect(Math.abs(box!.width - 390)).toBeLessThanOrEqual(1);
+  expect(Math.abs(box!.x + box!.width - 390)).toBeLessThanOrEqual(1);
   const marker = page.locator(".focus-gifts .bought-corner");
   await expect(marker).toHaveCount(1);
   const style = await marker.evaluate((el) => {
@@ -640,16 +640,37 @@ test("featured gallery uses near-full width and a clean green bought tick", asyn
     return { color: c.color, border: c.borderTopWidth, shadow: c.boxShadow, bg: c.backgroundColor };
   });
   expect(style).toEqual({
-    color: "rgb(20, 133, 79)", border: "0px", shadow: "none",
-    bg: "rgba(0, 0, 0, 0)",
+    color: "rgb(255, 255, 255)", border: "0px", shadow: "none",
+    bg: "rgb(34, 149, 100)",
   });
+  const geometry = await page.evaluate(() => {
+    const hero = document.querySelector(".focus-card")!;
+    const wave = document.querySelector(".focus-wave")!;
+    const title = document.querySelector(".focus-title-row h2")!;
+    const gift = document.querySelector(".focus-gifts .home-product")!;
+    const main = document.querySelector("main")!;
+    return {
+      mainPaddingTop: getComputedStyle(main).paddingTop,
+      heroBackground: getComputedStyle(hero).backgroundColor,
+      overlayContent: getComputedStyle(hero, "::before").content,
+      waveHeight: wave.getBoundingClientRect().height,
+      heroHeight: hero.getBoundingClientRect().height,
+      titleLeft: title.getBoundingClientRect().left,
+      giftLeft: gift.getBoundingClientRect().left,
+    };
+  });
+  expect(geometry.mainPaddingTop).toBe("0px");
+  expect(geometry.heroBackground).toBe("rgba(0, 0, 0, 0)");
+  expect(geometry.overlayContent).toBe("none");
+  expect(geometry.waveHeight).toBeGreaterThan(geometry.heroHeight);
+  expect(Math.abs(geometry.titleLeft - geometry.giftLeft)).toBeLessThan(3);
 });
 
 test("selecting an upcoming occasion smoothly aligns that card to the leading edge", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await seed(page);
   const track = page.locator(".upcoming-track");
-  for (const name of [/New Year.*Dec 31/, /Our anniversary/]) {
+  for (const name of [/Dec 31.*New Year/, /Our anniversary/]) {
     await page.getByRole("button", { name }).click();
     await expect.poll(async () => {
       return track.evaluate((el) => {
@@ -662,4 +683,42 @@ test("selecting an upcoming occasion smoothly aligns that card to the leading ed
   }
   await expect(page.locator(".focus-head h2")).toHaveText("Our anniversary");
   await expect(page).toHaveURL(/\/(?:#\/)?$/);
+});
+
+test("gift sheet previews its existing image and the replacement before saving", async ({ page }) => {
+  await seed(page);
+  await page.goto("/#/");
+  await page.getByRole("button", { name: "Open gift Scented candle" }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  const existing = dialog.locator(".photo-upload-preview img");
+  await expect(existing).toBeVisible();
+  await expect.poll(() => existing.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
+  await expect(dialog.getByText("Current photo")).toBeVisible();
+  const saved = await readData(page);
+  await dialog.getByLabel("Gift photo").setInputFiles({
+    name: "replacement.jpg", mimeType: "image/jpeg",
+    buffer: Buffer.from(image("mug").split(",")[1], "base64"),
+  });
+  await expect(dialog.getByText("New photo selected")).toBeVisible();
+  await expect(dialog.getByText("replacement.jpg")).toBeVisible();
+  await expect.poll(() => existing.evaluate((img: HTMLImageElement) => img.currentSrc.startsWith("blob:"))).toBe(true);
+  await expect.poll(() => existing.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
+  expect((await readData(page)).gifts.find((g: {id: string}) => g.id === "g1").image).toBe(
+    saved.gifts.find((g: {id: string}) => g.id === "g1").image
+  );
+  await dialog.getByRole("button", { name: "Close" }).click();
+  await page.goto("/#/");
+  await page.getByRole("button", { name: "Open gift Scented candle" }).click();
+  await expect(page.getByRole("dialog").getByText("Current photo")).toBeVisible();
+  await expect(page.getByRole("dialog").getByText("replacement.jpg")).toHaveCount(0);
+});
+test("demo gift photo appears in the editor rather than a broken image", async ({ page }) => {
+  await seed(page);
+  await page.goto("/#/settings");
+  await page.getByRole("button", { name: "Filled", exact: true }).click();
+  await page.goto("/#/");
+  await page.locator(".focus-gifts .home-product button").first().click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await expect(page.getByRole("dialog").locator(".photo-upload-preview .demo-product-sprite")).toBeVisible();
 });

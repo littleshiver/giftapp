@@ -32,7 +32,7 @@ export function App() {
   return (
     <div className="app-shell">
       <div inert={!!editor} aria-hidden={editor ? true : undefined}>
-        <main className="app-main">
+        <main className={location.pathname === "/" ? "app-main app-main-home" : "app-main"}>
           {warning && (
             <div className="notice" role="alert">
               {warning}

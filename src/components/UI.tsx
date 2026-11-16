@@ -236,7 +236,7 @@ export function Product({
           (home
             ? (item.status === "bought" && (
                 <span className="bought-corner" role="img" aria-label="Purchased">
-                  <Check size={26} strokeWidth={3.4} />
+                  <Check size={16} strokeWidth={3} />
                 </span>
               ))
             : <StatusTag status={(item as Gift).status} />)}
