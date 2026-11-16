@@ -3570,3 +3570,21 @@ button, input, select, textarea { font-family: inherit; }
 @media (prefers-reduced-motion: reduce) {
   .home-inspiration-visual.is-played .home-swipe-card { animation: none; }
 }
+
+/* Mobile composition: clip only at the outer viewport edge, not around cards
+   or their inset shadows. This prevents a few pixels of horizontal page scroll
+   from the full-bleed SVG and scrollable rails. */
+.app-main-home {
+  overflow-x: clip;
+}
+.app-main-home .home-inspiration {
+  grid-template-columns: minmax(0, 1.18fr) minmax(128px, .82fr);
+}
+.app-main-home .home-inspiration-copy h2 { font-size: 20px; }
+@media (max-width: 360px) {
+  .app-main-home .home-inspiration {
+    grid-template-columns: minmax(0, 1.1fr) minmax(121px, .9fr);
+  }
+  .app-main-home .home-inspiration-copy h2 { font-size: 19px; }
+  .app-main-home .home-swipe-card { width: 80px; height: 105px; }
+}
