@@ -1,6 +1,6 @@
-import { useEffect, type CSSProperties } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, CalendarDays, Plus } from "lucide-react";
+import { ArrowRight, ArrowUpRight, CalendarDays, Plus } from "lucide-react";
 import { Section, Photo, Product, BudgetBar, Empty } from "../components/UI";
 import { useApp } from "../state/AppState";
 import { OccasionArt } from "../components/OccasionArt";
@@ -62,15 +62,33 @@ function toneStyle(t: EventTone): CSSProperties {
   } as CSSProperties;
 }
 export function Home() {
-  const { data, ui, setUi, openEditor } = useApp(),
+  const { data, ui, setUi } = useApp(),
     navigate = useNavigate(),
     upcoming = enabledEvents(data).filter((e) => e.date >= today()),
     selected = upcoming.find((e) => e.id === ui.selectedEvent) || upcoming[0],
     selectedTone = selected ? toneFor(upcoming.indexOf(selected)) : eventTones.peach,
     month = monthSummary(data, today().slice(0, 7));
+  const upcomingRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if ((selected?.id || "") !== ui.selectedEvent)
       setUi({ selectedEvent: selected?.id || "" });
+  }, [selected?.id]);
+
+  // When selecting an upcoming occasion, align its leading edge with the
+  // viewport's left inset. Never jump the document scroll position.
+  useEffect(() => {
+    const track = upcomingRef.current;
+    const active = track?.querySelector<HTMLButtonElement>(".occasion-chip.is-selected");
+    if (!track || !active) return;
+    const inset = Number.parseFloat(getComputedStyle(track).paddingLeft) || 0;
+    const offset = active.getBoundingClientRect().left - track.getBoundingClientRect().left - inset;
+    if (Math.abs(offset) < 2) return;
+    track.scrollTo({
+      left: Math.max(0, track.scrollLeft + offset),
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "instant"
+        : "smooth",
+    });
   }, [selected?.id]);
   return (
     <>
@@ -97,6 +115,7 @@ export function Home() {
           <div
             className="hscroll upcoming-track"
             aria-label="Upcoming occasions"
+            ref={upcomingRef}
           >
             {upcoming.map((e, index) => (
               <button
@@ -131,19 +150,7 @@ export function Home() {
             key={selected.id}
             className="focus-card"
             style={toneStyle(selectedTone)}
-            role="link"
-            tabIndex={0}
-            aria-label={`Open ${selected.name}`}
-            onClick={() => navigate(`/events/${selected.id}`)}
-            onKeyDown={(e) => {
-              if (
-                e.target === e.currentTarget &&
-                (e.key === "Enter" || e.key === " ")
-              ) {
-                e.preventDefault();
-                navigate(`/events/${selected.id}`);
-              }
-            }}
+            aria-label={`Gifts for ${selected.name}`}
           >
             <svg className="focus-wave" viewBox="0 0 400 185" preserveAspectRatio="none" aria-hidden="true">
               <defs>
@@ -163,7 +170,16 @@ export function Home() {
                 <CalendarDays size={14} />
                 {fullDate(selected.date)}
               </div>
-              <h2>{selected.name}</h2>
+              <div className="focus-title-row">
+                <h2>{selected.name}</h2>
+                <Link
+                  className="focus-event-link"
+                  to={`/events/${selected.id}`}
+                  aria-label={`Open ${selected.name} occasion`}
+                >
+                  <ArrowUpRight size={19} strokeWidth={2.2} />
+                </Link>
+              </div>
             </div>
             <div className="focus-gifts">
               {giftsFor(data, selected.id).map((g) => (
@@ -172,19 +188,20 @@ export function Home() {
                   item={g}
                   person={selected.people.length > 1}
                   home
+                  onClick={() =>
+                    navigate(`/events/${selected.id}?gift=${encodeURIComponent(g.id)}`)
+                  }
                 />
               ))}
               <div className="product-add">
                 <button
                   aria-label={`Add gift to ${selected.name}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openEditor({ type: "gift", eventId: selected.id });
-                  }}
+                  onClick={() =>
+                    navigate(`/events/${selected.id}?addGift=1`)
+                  }
                 >
                   <Plus size={25} />
                 </button>
-                <span className="product-caption">Add a gift</span>
               </div>
             </div>
           </div>
