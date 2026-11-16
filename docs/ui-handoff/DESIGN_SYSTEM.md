@@ -167,3 +167,15 @@ Budget `EventRecipientBudget` must remain `eventId + personId + amount`. The eve
 - **Colors still rotate on event cards only**: peach → mint green → rose pink → sky blue, repeating in chronological order, never changing the colors of the artwork. Selected large event matches the current card's palette.
 - The countdown remains anchored top-right without changing title position; selection has the previously approved 330ms lift/fade and respects `prefers-reduced-motion`.
 - QA: verify natural image dimensions 540×540 and successful decode for all four, image rectangles exactly fill their parent tiles, no clipping or bleed at mobile widths 320/375/390/430, and correct mapping for birthday, romantic, New Year and generic occasions. No navigation, data model, budget, photo upload or status behavior changes.
+
+
+## Events Calendar: monthly overview (16 November 2026)
+
+- The Calendar tab **defaults to the full current viewed month**, rather than silently pre-filtering today's date. All enabled occasions for that month appear below the calendar, chronologically.
+- Day cells display the date and up to three tiny dots in the established **peach → mint → rose → sky** palette, keyed to the corresponding month card's position. A chosen date filters the list, changes the agenda heading and reveals a clear **Show all** action. Month navigation resets the filter, including when coming from an outside-month cell. Today's number has a neutral fine outline only; the chosen day uses graphitic fill.
+- Under the month grid, the agenda is a separate visual tier: image-led cards use the four approved untinted event illustrations (or an uploaded event image), a gentle pastel-to-white surface, an event name, date and **one actionable status**. Status derives from stored gifts: `N gift(s) to buy`, `All gifts bought` or `No gifts planned yet`. This is not a budget application: do not show amounts in Calendar agenda cards.
+- Design preserves card shadow gutters, legible controls, touch targets and horizontal alignment at **320/375/390/430px**. Empty months are navigable and show a neutral explanation without creating an unwanted event.
+- The old duplicate **Add occasion** action beside Calendar/Planning was removed; the global FAB already provides this action.
+- **Planning remains unchanged**: the existing month-grouped budget view and event routes continue working. No new or migrated persisted schema, gift states, event associations, navigation tabs, onboarding or shared Home visuals changed.
+- **Annual recurrence is a separate future product decision**. Existing events still have a specific ISO date; this pass intentionally does not auto-generate future birthday/holiday occurrences.
+- Verify screenshots: populated 4-event month with all four colors and status states, selected-day filter, month without occasions and 320px width. Test page navigation, persistent personal records, UI errors and accessibility including selected day semantics.
