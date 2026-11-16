@@ -2751,3 +2751,35 @@ button, input, select, textarea { font-family: inherit; }
   font-weight: 650;
   line-height: 1.45;
 }
+
+/* Calendar polish: both segmented options share the full page width. */
+.events-mode-row { width: 100%; }
+.events-mode-row .pill-tabs {
+  width: 100%;
+  max-width: none;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.events-mode-row .pill-tab { min-width: 0; width: 100%; }
+
+/* Date precedes title, status remains third. */
+.calendar-event-date { margin: 0 0 4px; }
+.calendar-event-body strong { margin: 0; }
+
+/* Art is a high-resolution transparent PNG on the existing white tile.
+   No second frame, stroke, matte, inset border or object-position offset. */
+.hscroll.upcoming-track .occasion-chip .occ-thumb,
+.calendar-event-art,
+.illustration-sample-tile {
+  background: #fff;
+  border: 0;
+  box-shadow: none;
+}
+.hscroll.upcoming-track .occasion-chip .occ-thumb .occ-illustration,
+.calendar-event-art > img.occ-illustration,
+.illustration-sample-tile > img.occ-illustration {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
