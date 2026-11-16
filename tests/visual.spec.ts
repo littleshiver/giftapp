@@ -41,20 +41,39 @@ for (const width of [320, 375, 390, 430])
         await expect(page.locator(".home-heading .compact-budget")).toHaveCount(0);
         const positions = await page.evaluate(() => {
           const card = document.querySelector(".focus-card")?.getBoundingClientRect();
-          const budget = document.querySelector(".compact-budget")?.getBoundingClientRect();
+          const budget = document.querySelector(".home-budget-section")?.getBoundingClientRect();
           return { cardBottom: card?.bottom ?? 0, budgetTop: budget?.top ?? 0 };
         });
         expect(positions.budgetTop).toBeGreaterThan(positions.cardBottom);
       }
-      await page
-        .locator("img")
-        .evaluateAll((images) =>
-          Promise.all(images.map((img) => img.decode().catch(() => {}))),
-        );
+      // Images outside the clipped horizontal carousels are lazy-loaded.
+      // Decoding an image that hasn't started loading can hang indefinitely.
+      await page.locator("img").evaluateAll((images) =>
+        Promise.all(images
+          .filter((img) => img.loading !== "lazy" || img.complete)
+          .map((img) => img.decode().catch(() => {}))),
+      );
+      const overflowDetails = await page.evaluate(() => {
+        const viewport = innerWidth;
+        const candidates = Array.from(document.querySelectorAll("*"))
+          .map((el) => {
+            const box = el.getBoundingClientRect();
+            return {
+              tag: el.tagName,
+              cls: (el.getAttribute("class") || "").slice(0, 80),
+              left: Math.round(box.left),
+              right: Math.round(box.right),
+              parent: (el.parentElement?.getAttribute("class") || "").slice(0, 50),
+            };
+          })
+          .filter((x) => x.right > viewport + 2 || x.left < -2);
+        return { viewport, scrollWidth: document.documentElement.scrollWidth, candidates: candidates.slice(-45) };
+      });
+      if (overflowDetails.scrollWidth > overflowDetails.viewport) {
+        console.log(name + " width overflow: " + JSON.stringify(overflowDetails));
+      }
       expect(
-        await page.evaluate(
-          () => document.documentElement.scrollWidth <= innerWidth,
-        ),
+        overflowDetails.scrollWidth <= overflowDetails.viewport,
         `${name} has no page overflow at ${width}px`,
       ).toBe(true);
       if (name === "home" || width === 390)
@@ -141,6 +160,10 @@ test("preview empty and filled mobile screenshots", async ({ page }, testInfo) =
     !item.overlap,
   )).toBe(true);
   await expect(page.locator(".home-heading")).not.toContainText("Today");
+  await expect(page.locator(".home-heading")).not.toContainText("November");
+  await expect(page.locator(".home-wordmark")).toBeVisible();
+  await expect(page.locator(".home-budget-grid > .home-budget-card")).toHaveCount(2);
+  await expect(page.locator(".home-inspiration")).toBeVisible();
   await expect(page.locator(".focus-gifts .status-tag")).toHaveCount(0);
   await expect(page.locator(".focus-gifts .bought-corner").first()).toBeVisible();
   // The headline and product rail share one inset; never float out of alignment.

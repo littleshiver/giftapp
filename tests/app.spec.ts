@@ -128,8 +128,8 @@ test("recipient budgets, zero/overspending, missing budgets and month accounting
   const data = fixture();
   data.events[0].budgets.p1 = 0;
   await seed(page, data);
-  await expect(page.locator(".compact-budget")).toContainText("7 400 ₽");
-  await expect(page.locator(".compact-budget")).toContainText(
+  await expect(page.locator(".home-budget-month")).toContainText("7 400 ₽");
+  await expect(page.locator(".home-budget-warning")).toContainText(
     "7 400 ₽ over budget",
   );
   await page.goto("/#/events/e1");
@@ -721,4 +721,76 @@ test("demo gift photo appears in the editor rather than a broken image", async (
   await page.locator(".focus-gifts .home-product button").first().click();
   await expect(page.getByRole("dialog")).toBeVisible();
   await expect(page.getByRole("dialog").locator(".photo-upload-preview .demo-product-sprite")).toBeVisible();
+});
+
+test("composed Home uses date-first occasion cards, centered logo and separate budget widgets", async ({ page }) => {
+  const data = fixture();
+  data.events[1].name = "Alexander and Mikhail's wonderful anniversary celebration";
+  await seed(page, data);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/#/");
+  await expect(page.locator(".home-wordmark")).toBeVisible();
+  await expect(page.locator(".home-wordmark")).toContainText("givvy");
+  await expect(page.locator(".home-heading")).not.toContainText("November");
+  await expect(page.locator(".home-budget-card")).toHaveCount(2);
+  await expect(page.locator(".home-budget-month")).toContainText("7 400 ₽");
+  await expect(page.locator(".home-budget-ring")).toHaveAttribute("aria-label", /74%/);
+  // The date must remain above the event name even for a two-line label.
+  const card = page.locator(".occasion-chip").nth(1);
+  const geometry = await card.evaluate((el) => {
+    const date = el.querySelector(".occ-date")!.getBoundingClientRect();
+    const name = el.querySelector(".occ-name")!.getBoundingClientRect();
+    const count = el.querySelector(".occ-count")!.getBoundingClientRect();
+    const icon = el.querySelector(".occ-thumb")!.getBoundingClientRect();
+    const copy = el.querySelector(".occ-copy")!.getBoundingClientRect();
+    return {
+      dateTop: date.top, dateBottom: date.bottom,
+      titleTop: name.top, titleBottom: name.bottom,
+      countBottom: count.bottom,
+      titleHeight: name.height,
+      centerOffset: Math.abs((icon.top + icon.bottom) / 2 - (copy.top + copy.bottom) / 2),
+    };
+  });
+  expect(geometry.dateBottom).toBeLessThan(geometry.titleTop);
+  expect(geometry.titleTop - geometry.countBottom).toBeGreaterThan(3);
+  expect(geometry.titleHeight).toBeGreaterThan(20);
+  expect(geometry.centerOffset).toBeLessThan(19);
+  await expect(page.locator(".focus-gifts .product-title")).toHaveCount(0);
+  const wavePath = await page.locator(".focus-wave path").getAttribute("d");
+  expect(wavePath).toContain("L400 500 L0 500 Z");
+});
+
+test("Home occasion widget switches recipients without changing featured event or personal data", async ({ page }) => {
+  await seed(page);
+  await page.goto("/#/");
+  const saved = await readData(page);
+  await expect(page.locator(".home-budget-recipient")).toHaveCount(1);
+  await page.getByRole("combobox", { name: "Budget occasion" }).selectOption("e2");
+  await expect(page.locator(".home-budget-recipient")).toHaveCount(3);
+  await expect(page.locator(".home-budget-recipient").nth(1)).toContainText("Denis");
+  await expect(page.locator(".home-budget-recipient").nth(1)).toContainText("4 800 ₽");
+  await expect(page.locator(".focus-head h2")).toHaveText("Anna's birthday");
+  expect(await readData(page)).toEqual(saved);
+  await page.locator(".home-budget-event-link").click();
+  await expect(page).toHaveURL(/#\/events\/e2$/);
+});
+
+test("Home swipe teaching animation plays once when visible and respects reduced motion", async ({ page }) => {
+  await seed(page);
+  await page.goto("/#/");
+  const visual = page.locator(".home-inspiration-visual");
+  await visual.scrollIntoViewIfNeeded();
+  await expect(visual).toHaveAttribute("data-played", "true");
+  const iterations = await visual.locator(".home-swipe-card").first()
+    .evaluate((el) => getComputedStyle(el).animationIterationCount);
+  expect(iterations).toBe("1");
+  await page.evaluate(() => scrollTo(0, 0));
+  await visual.scrollIntoViewIfNeeded();
+  await expect(visual).toHaveAttribute("data-played", "true");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const reduced = await visual.locator(".home-swipe-card").first()
+    .evaluate((el) => getComputedStyle(el).animationName);
+  expect(reduced).toBe("none");
+  await page.locator(".home-inspiration-link").click();
+  await expect(page).toHaveURL(/#\/ideas$/);
 });
