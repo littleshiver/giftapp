@@ -1,7 +1,7 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Empty, Title, Section, Photo } from "../components/UI";
+import { Empty, Section, Photo } from "../components/UI";
 import { OccasionArt } from "../components/OccasionArt";
 import { useApp } from "../state/AppState";
 import { enabledEvents, eventBudget } from "../domain/selectors";
@@ -119,7 +119,9 @@ export function Events() {
 
   return (
     <>
-      <Title name="Events" />
+      <header className="page-heading events-page-heading">
+        <h1 className="title-xl">Events</h1>
+      </header>
       <div className="events-mode-row">
         <div className="pill-tabs" role="group" aria-label="Events view">
           {(["calendar", "planning"] as const).map((view) => (
@@ -224,11 +226,11 @@ export function Events() {
               </div>
             ) : (
               <div className="calendar-agenda-empty">
-                <Empty>
+                <p className="calendar-empty-message">
                   {activeDate
-                    ? "Nothing planned on this date. Choose another day or show the whole month."
+                    ? "Nothing planned for this day. Choose another date or show the whole month."
                     : "No occasions this month. Browse another month to see what's coming."}
-                </Empty>
+                </p>
               </div>
             )}
           </section>
