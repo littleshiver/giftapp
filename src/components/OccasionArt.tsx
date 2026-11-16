@@ -1,8 +1,8 @@
 import type { Event } from "../domain/models";
-import cupcake from "../assets/occasions/birthday-cupcake.webp";
-import heart from "../assets/occasions/romantic-heart.webp";
-import partyHat from "../assets/occasions/celebration-hat.webp";
-import tree from "../assets/occasions/new-year-tree.webp";
+import cupcake from "../assets/occasions/birthday-cupcake.png";
+import heart from "../assets/occasions/romantic-heart.png";
+import partyHat from "../assets/occasions/celebration-hat.png";
+import tree from "../assets/occasions/new-year-tree.png";
 
 /** Fixed approved icon artwork. Event palette colors only the surrounding card,
  * never an illustration. One independent image per symbol; no CSS sprite.
