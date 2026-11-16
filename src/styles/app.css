@@ -3220,8 +3220,9 @@ button, input, select, textarea { font-family: inherit; }
   filter: none;
 }
 .app-main-home .home-featured-section {
-  /* Keep a subtle vertical separation without extending the SVG canvas. */
-  box-shadow: 0 16px 23px -25px rgba(47,46,44,.22);
+  /* Full-bleed shadow would create horizontal scroll overflow. The page
+     keeps separation through the wave's gradient and section spacing. */
+  box-shadow: none;
 }
 .app-main-home .focus-head {
   padding-top: 43px;
