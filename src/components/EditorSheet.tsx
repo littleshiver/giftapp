@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Check,
@@ -11,11 +11,19 @@ import type { Event, Gift, Idea, Person } from "../domain/models";
 import { today, uid } from "../utils/format";
 import { readImage } from "../utils/images";
 import { Button, Field, Sheet } from "./Primitives";
+import { Photo } from "./UI";
 export function EditorSheet() {
   const { data, editor, commit, closeEditor, notify, openEditor } = useApp(),
     navigate = useNavigate(),
     [busy, setBusy] = useState(false),
-    [saveError, setSaveError] = useState("");
+    [saveError, setSaveError] = useState(""),
+    [chosenPhotoUrl, setChosenPhotoUrl] = useState(""),
+    [chosenPhotoName, setChosenPhotoName] = useState("");
+  // Browser-owned previews are temporary. Stored photos are never modified
+  // until the user explicitly saves this editor.
+  useEffect(() => () => {
+    if (chosenPhotoUrl) URL.revokeObjectURL(chosenPhotoUrl);
+  }, [chosenPhotoUrl]);
   const g = data.gifts.find((g) => g.id === editor?.id),
     idea = data.ideas.find((i) => i.id === editor?.id),
     p = data.people.find((p) => p.id === editor?.id),
@@ -475,18 +483,39 @@ export function EditorSheet() {
             </div>
             <div className="field">
               <span className="field-label">Photo (optional)</span>
-              <div className="upload-box">
-                {source?.image ? (
-                  <img src={source.image} alt="Current photo" />
-                ) : (
-                  <ImageIcon size={26} />
-                )}
-                <input
-                  aria-label={type === "gift" ? "Gift photo" : "Idea photo"}
-                  name="imageFile"
-                  type="file"
-                  accept="image/*"
-                />
+              <div className="photo-upload">
+                <div className="photo-upload-preview" aria-label="Photo preview">
+                  {chosenPhotoUrl || source?.image ? (
+                    <Photo
+                      src={chosenPhotoUrl || source?.image}
+                      name={source?.name || "Selected photo"}
+                    />
+                  ) : (
+                    <ImageIcon size={29} aria-hidden="true" />
+                  )}
+                </div>
+                <div className="photo-upload-detail">
+                  <strong>{chosenPhotoUrl ? "New photo selected" : source?.image ? "Current photo" : "No photo yet"}</strong>
+                  <label className="photo-upload-button">
+                    <ImageIcon size={16} aria-hidden="true" />
+                    {source?.image || chosenPhotoUrl ? "Change photo" : "Choose photo"}
+                    <input
+                      aria-label={type === "gift" ? "Gift photo" : "Idea photo"}
+                      name="imageFile"
+                      type="file"
+                      accept="image/*"
+                      disabled={busy}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        setChosenPhotoName(file?.name || "");
+                        setChosenPhotoUrl(file ? URL.createObjectURL(file) : "");
+                      }}
+                    />
+                  </label>
+                  <span className="photo-upload-help">
+                    {chosenPhotoName || "JPG, PNG or WebP"}
+                  </span>
+                </div>
               </div>
             </div>
             <Field label="Product link (optional)">
