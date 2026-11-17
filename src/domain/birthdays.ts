@@ -59,6 +59,10 @@ export function ensureBirthdayOccasions(data: AppData, from = today()): AppData 
         changed = true;
       }
     } else {
+      const priorBirthday = events
+        .filter((e) => e.kind === "birthday" && e.people.length === 1 &&
+          e.people[0] === person.id && e.date < next)
+        .sort((a, b) => b.date.localeCompare(a.date))[0];
       events.push({
         id: `birthday:${person.id}:${year}`,
         name: `${person.name}'s birthday`,
@@ -68,6 +72,7 @@ export function ensureBirthdayOccasions(data: AppData, from = today()): AppData 
         people: [person.id],
         budgets: { [person.id]: data.settings.birthdayBudget },
         enabled: true,
+        reminderDays: priorBirthday?.reminderDays,
       });
       changed = true;
     }
