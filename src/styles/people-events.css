@@ -1,0 +1,142 @@
+/* Personal library + occasion plans. Reuses the existing tokens and controls. */
+.people-add { margin-top: 16px; }
+.people-search {
+  display: flex; align-items: center; gap: 10px; border: 1px solid var(--line);
+  background: white; padding: 9px 13px; border-radius: 15px; margin-bottom: 18px;
+  color: var(--muted);
+}
+.people-search input {
+  flex: 1; border: 0; outline-offset: 4px; background: transparent;
+  color: var(--ink); font: inherit; min-width: 0;
+}
+.person-detail .person-back { margin-bottom: 16px; }
+.person-profile-hero {
+  display: flex; align-items: center; gap: 14px; background: white;
+  border-radius: 25px; padding: 17px; box-shadow: var(--shadow);
+}
+.person-profile-photo, .event-person-avatar {
+  flex: 0 0 auto; display: grid; place-items: center; overflow: hidden;
+  color: #5c5977; background: var(--lavender); font-weight: 850;
+}
+.person-profile-photo {
+  width: 79px; height: 79px; border-radius: 21px; font-size: 29px;
+}
+.person-profile-photo img, .event-person-avatar img {
+  width: 100%; height: 100%; display: block; object-fit: cover;
+}
+.person-profile-info { flex: 1; min-width: 0; }
+.person-profile-info h1 { font-size: clamp(19px, 5vw, 27px); line-height: 1.14; overflow-wrap: anywhere; }
+.person-profile-birthday {
+  display: flex; align-items: center; gap: 5px; margin-top: 7px;
+  color: var(--muted); font-size: 12px; font-weight: 690;
+}
+.person-edit-button { align-self: flex-start; padding: 9px; min-width: 42px; }
+.person-edit-button span { display: none; }
+.person-preferences { margin-top: 29px; }
+.person-preferences-card {
+  padding: 18px; border-radius: 23px; background: white;
+  box-shadow: var(--shadow); display: grid; gap: 17px;
+}
+.person-preference h3 {
+  font-size: 11px; font-weight: 800; color: var(--muted);
+  margin: 0 0 7px;
+}
+.person-preference p {
+  font-size: 13px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.person-preferences-empty { font-size: 13px; color: var(--muted); line-height: 1.5; }
+.person-interest-tags { display: flex; flex-wrap: wrap; gap: 7px; }
+.person-interest-tag {
+  background: var(--blue); color: #364754; border-radius: 99px;
+  padding: 7px 11px; font-size: 11.5px; font-weight: 730;
+}
+.person-add-idea { margin-top: 16px; }
+.person-photo-field { margin: 0 0 18px; }
+.person-photo-field > .field-label { display: block; margin-bottom: 7px; }
+.person-photo-preview { border-radius: 18px; overflow: hidden; }
+.person-photo-placeholder { font-size: 27px; font-weight: 850; color: #66617e; }
+.person-photo-remove {
+  display: block; width: fit-content; background: none; border: 0;
+  color: var(--muted); padding: 8px 2px 2px; text-decoration: underline;
+  font-size: 12px; font-weight: 750;
+}
+.person-birthday-label { display: block; margin-bottom: 7px; }
+.person-birthday-fields { display: grid; grid-template-columns: 1.2fr .75fr 1fr; gap: 8px; }
+.person-birthday-fields .field { min-width: 0; }
+.person-birthday-fields select { padding-inline: 7px; font-size: 12px; }
+.person-birthday-fields input { padding-inline: 9px; }
+.person-birthday-help { margin-top: -6px; margin-bottom: 18px; }
+
+.event-summary {
+  background: white; border-radius: 25px; padding: 19px;
+  box-shadow: var(--shadow); display: grid; gap: 17px;
+}
+.event-summary-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.event-summary-top .overline { color: var(--muted); margin-bottom: 5px; }
+.event-summary-top h2 { font-size: 21px; font-weight: 850; line-height: 1.2; }
+.event-summary-budget { display: grid; gap: 9px; }
+.event-summary-budget > div:first-child { font-size: 12px; color: var(--muted); }
+.event-summary-budget strong { color: var(--ink); font-size: 16px; font-weight: 870; }
+.event-summary-budget .warning { margin-top: 0; }
+.event-person-summary {
+  display: flex; align-items: center; gap: 11px; border-radius: 16px;
+  background: var(--bg); padding: 10px 12px;
+}
+.event-person-avatar {
+  width: 42px; height: 42px; border-radius: 13px; font-size: 17px;
+}
+.event-recipient-count {
+  display: flex; align-items: center; gap: 8px;
+  color: var(--muted); font-size: 13px;
+}
+.event-recipient-groups { display: grid; gap: 14px; }
+.event-recipient-groups > .section-top { margin: 0; }
+.event-recipient-group {
+  padding: 16px; border-radius: 23px; box-shadow: var(--shadow);
+  background: white; min-width: 0;
+}
+.event-recipient-group-top {
+  display: flex; gap: 9px; justify-content: space-between;
+  align-items: center; margin-bottom: 15px;
+}
+.event-recipient-name { min-width: 0; flex: 1; }
+.event-recipient-name .item-body { min-width: 0; }
+.event-recipient-name strong { font-size: 13px; }
+.event-recipient-name small { color: var(--muted); font-size: 11px; }
+.event-recipient-budget {
+  flex: 0 0 auto; color: var(--muted); font-size: 11px; font-weight: 750;
+  text-align: right; max-width: 43%;
+}
+.event-recipient-group .detail-gifts { gap: 9px; }
+.event-recipient-group .product-card { border-radius: 14px; }
+.event-empty-gifts { color: var(--muted); font-size: 12px; margin: 4px 0 12px; }
+.event-add-gift, .event-add-recipient { margin-top: 16px; }
+.event-gift { min-width: 0; }
+.event-gift .gift-actions { margin-top: 7px; }
+.gift-picker-intro {
+  font-size: 13px; color: var(--muted); line-height: 1.5; margin-bottom: 15px;
+}
+.gift-picker-ideas { display: grid; gap: 9px; }
+.gift-picker-idea {
+  display: flex; gap: 12px; align-items: center; width: 100%; min-height: 68px;
+  padding: 8px; border-radius: 16px; border: 1px solid var(--line);
+  background: white; color: var(--ink); text-align: left;
+}
+.gift-picker-idea .item-body { min-width: 0; }
+.gift-picker-idea strong { font-size: 13px; overflow-wrap: anywhere; }
+.gift-picker-idea small { font-size: 11px; color: var(--muted); }
+.gift-picker-photo {
+  flex: 0 0 49px; width: 49px; height: 49px; overflow: hidden;
+  display: grid; place-items: center; background: var(--bg); border-radius: 12px;
+}
+.gift-picker-photo img, .gift-picker-photo .demo-product-sprite {
+  width: 100%; height: 100%; display: block; object-fit: cover;
+}
+.gift-picker-new { margin-top: 16px; }
+@media (max-width: 360px) {
+  .person-profile-hero { gap: 10px; padding: 14px; }
+  .person-profile-photo { width: 66px; height: 66px; }
+  .person-birthday-fields { gap: 5px; }
+  .person-birthday-fields select { padding: 6px 3px; }
+  .event-recipient-group { padding: 12px; }
+}
