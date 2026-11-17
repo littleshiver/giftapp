@@ -45,7 +45,8 @@ function validate(d: unknown): AppData {
         e.people.every(text) &&
         record(e.budgets) &&
         Object.values(e.budgets).every(money) &&
-        optionalText(e.image),
+        optionalText(e.image) &&
+        (e.reminderDays == null || [0, 1, 3, 7, 14].includes(e.reminderDays)),
     )
   )
     throw Error("Invalid occasion");
