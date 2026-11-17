@@ -4,6 +4,9 @@ export interface Person {
   birthday: string;
   note: string;
   likes?: string;
+  interests?: string;
+  avoid?: string;
+  photo?: string;
   [key: string]: unknown;
 }
 export type ReminderDays = 0 | 1 | 3 | 7 | 14 | null;
@@ -13,6 +16,8 @@ export interface Event {
   name: string;
   date: string;
   kind: "birthday" | "holiday" | "other";
+  /** For birthday events, only this person is the celebrant. */
+  birthdayPersonId?: string;
   people: string[];
   budgets: Record<string, number>;
   enabled: boolean;
@@ -41,6 +46,8 @@ export interface Idea {
 export interface Gift extends Idea {
   eventId: string;
   status: GiftStatus;
+  /** Optional link back to a saved idea. Gift data is an independent snapshot. */
+  sourceIdeaId?: string;
 }
 export interface Settings {
   birthdayBudget: number;
