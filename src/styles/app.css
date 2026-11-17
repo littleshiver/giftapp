@@ -3087,16 +3087,16 @@ button, input, select, textarea { font-family: inherit; }
 }
 
 /* =========================================================================
-   HOME COMPOSED 2026-11 V1 — approved architecture and non-looping visual
-   All these rules are Home-scoped: do not change Events, Planning or editors.
+   HOME COMPOSED 2026-11 V1 — approved architecture
+   Home-only styles: keep Events and editor components independent.
    ========================================================================= */
 .app-main-home .home-brandbar {
-  height: 72px;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: transparent;
-  margin: 0;
+  margin: 0 0 17px;
 }
 .home-wordmark {
   display: inline-flex;
@@ -3118,10 +3118,12 @@ button, input, select, textarea { font-family: inherit; }
   height: 29px;
 }
 .app-main-home .home-heading {
-  padding: 21px 0 13px;
+  padding: 13px 0 13px;
   margin-bottom: 28px;
 }
+/* A single header surface wraps both logo and greeting, not a separate logo strip. */
 .app-main-home .home-heading::before {
+  inset: -13px calc(-1 * var(--space)) -24px;
   background: radial-gradient(ellipse 74% 92% at 1% 0%, rgba(255,222,202,.32), transparent 82%);
 }
 .app-main-home .home-greeting {
@@ -3485,15 +3487,8 @@ button, input, select, textarea { font-family: inherit; }
   font-weight: 700;
 }
 .home-inspiration-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
+  /* Shared .section-link supplies text weight, size, arrow spacing and decoration. */
   margin-top: 14px;
-  font-size: 12px;
-  font-weight: 870;
-  color: #242A2E;
-  text-decoration: underline;
-  text-underline-offset: 4px;
 }
 .home-inspiration-visual {
   position: relative;
@@ -3537,21 +3532,20 @@ button, input, select, textarea { font-family: inherit; }
 }
 .home-swipe-x { color: #D56F82; }
 .home-swipe-heart { color: #329E72; }
+/* Short gesture sequence once every 12s, otherwise cards stay still. */
 .home-inspiration-visual.is-played .home-swipe-no {
-  animation: home-one-shot-reject 1150ms cubic-bezier(.2,.7,.3,1) 1 both;
+  animation: home-loop-reject 12s cubic-bezier(.2,.7,.3,1) infinite both;
 }
 .home-inspiration-visual.is-played .home-swipe-yes {
-  animation: home-one-shot-like 1150ms cubic-bezier(.2,.7,.3,1) 520ms 1 both;
+  animation: home-loop-like 12s cubic-bezier(.2,.7,.3,1) infinite both;
 }
-@keyframes home-one-shot-reject {
-  0%, 18% { transform: translate(0,0) rotate(-12deg); }
-  64% { transform: translate(-18px,-4px) rotate(-22deg); }
-  100% { transform: translate(0,0) rotate(-12deg); }
+@keyframes home-loop-reject {
+  0%, 2%, 15%, 100% { transform: translate(0,0) rotate(-12deg); }
+  8% { transform: translate(-18px,-4px) rotate(-22deg); }
 }
-@keyframes home-one-shot-like {
-  0%, 18% { transform: translate(0,0) rotate(10deg); }
-  64% { transform: translate(12px,-8px) rotate(17deg); }
-  100% { transform: translate(0,0) rotate(10deg); }
+@keyframes home-loop-like {
+  0%, 9%, 21%, 100% { transform: translate(0,0) rotate(10deg); }
+  15% { transform: translate(12px,-8px) rotate(17deg); }
 }
 @media (max-width: 360px) {
   .app-main-home .hscroll.upcoming-track .occasion-chip { flex-basis: 232px; grid-template-columns: 54px minmax(0,1fr); padding: 13px; }

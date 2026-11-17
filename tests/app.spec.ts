@@ -775,7 +775,7 @@ test("Home occasion widget switches recipients without changing featured event o
   await expect(page).toHaveURL(/#\/events\/e2$/);
 });
 
-test("Home swipe teaching animation plays once when visible and respects reduced motion", async ({ page }) => {
+test("Home swipe teaching animation loops gently and respects reduced motion", async ({ page }) => {
   await seed(page);
   await page.goto("/#/");
   const visual = page.locator(".home-inspiration-visual");
@@ -783,7 +783,7 @@ test("Home swipe teaching animation plays once when visible and respects reduced
   await expect(visual).toHaveAttribute("data-played", "true");
   const iterations = await visual.locator(".home-swipe-card").first()
     .evaluate((el) => getComputedStyle(el).animationIterationCount);
-  expect(iterations).toBe("1");
+  expect(iterations).toBe("infinite");
   await page.evaluate(() => scrollTo(0, 0));
   await visual.scrollIntoViewIfNeeded();
   await expect(visual).toHaveAttribute("data-played", "true");
@@ -801,15 +801,23 @@ test("per-event reminder preferences save, reload and turn off independently", a
   await page.goto("/#/events?mode=reminders");
   await expect(page.getByRole("button", { name: "Reminders", exact: true }))
     .toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByText("Notifications are not sent yet.", { exact: false }))
-    .toBeVisible();
+  await expect(page.getByText("Choose when to be reminded about each occasion.")).toHaveCount(0);
+  await expect(page.getByText(/Reminder preferences are saved/)).toHaveCount(0);
 
   const anna = page.locator(".reminder-event").filter({
     has: page.getByRole("link", { name: /Anna's birthday/ }),
   });
   await expect(anna).toContainText("No reminder");
+  await expect(anna.locator(".reminder-date")).toContainText("NOV");
+  const dateBackground = await anna.locator(".reminder-date")
+    .evaluate((el) => getComputedStyle(el).backgroundColor);
+  expect(dateBackground).not.toBe("rgba(0, 0, 0, 0)");
   await anna.getByRole("button", { name: "Set reminder for Anna's birthday" }).click();
-  await anna.getByRole("button", { name: "7 days before" }).click();
+  const reminderSheet = page.getByRole("dialog", { name: "Remind me" });
+  await expect(reminderSheet).toBeVisible();
+  await expect(anna.locator(".reminder-options")).toHaveCount(0);
+  await reminderSheet.getByRole("button", { name: "7 days before" }).click();
+  await expect(reminderSheet).toHaveCount(0);
   await expect(anna).toContainText("7 days before");
   expect((await readData(page)).events.find((e) => e.id === "e1").reminderDays).toBe(7);
   expect((await readData(page)).events.find((e) => e.id === "e2").reminderDays).toBeUndefined();
@@ -820,9 +828,26 @@ test("per-event reminder preferences save, reload and turn off independently", a
   });
   await expect(savedAnna).toContainText("7 days before");
   await savedAnna.getByRole("button", { name: "Set reminder for Anna's birthday" }).click();
-  await savedAnna.getByRole("button", { name: "Off", exact: true }).click();
+  await page.getByRole("dialog", { name: "Remind me" })
+    .getByRole("button", { name: "Off", exact: true }).click();
   await expect(savedAnna).toContainText("No reminder");
   expect((await readData(page)).events.find((e) => e.id === "e1").reminderDays).toBeNull();
   await page.getByRole("button", { name: "Calendar", exact: true }).click();
   await expect(page.locator(".calendar-card")).toBeVisible();
+});
+
+test("Home header and text links use one shared visual system", async ({ page }) => {
+  await seed(page);
+  await page.goto("/#/");
+  await expect(page.locator(".home-heading > .home-brandbar")).toHaveCount(1);
+  const view = page.getByRole("link", { name: "View calendar" });
+  const explore = page.getByRole("link", { name: "Explore ideas" });
+  await expect(view).toHaveClass(/section-link/);
+  await expect(explore).toHaveClass(/section-link/);
+  const styles = await Promise.all([view, explore].map((link) =>
+    link.evaluate((el) => {
+      const css = getComputedStyle(el);
+      return { fontSize: css.fontSize, fontWeight: css.fontWeight, textDecoration: css.textDecorationLine };
+    })));
+  expect(styles[0]).toEqual(styles[1]);
 });

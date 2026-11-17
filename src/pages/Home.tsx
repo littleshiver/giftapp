@@ -99,8 +99,8 @@ export function Home() {
   }, [selected?.id]);
   return (
     <>
-      <HomeBrand />
       <header className="home-heading">
+        <HomeBrand />
         <h1 className="home-greeting">
           Hi, {data.settings.name?.trim() || "there"}
           <span className="greeting-wave" role="img" aria-label="waving hand">👋</span>

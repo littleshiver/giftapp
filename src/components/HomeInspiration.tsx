@@ -4,7 +4,7 @@ import { ArrowRight, Heart, X } from "lucide-react";
 import mug from "../assets/discovery/mug.jpg";
 import candle from "../assets/discovery/candle.jpg";
 
-/** Decorative one-shot cue. It never loops or captures swipe gestures. */
+/** Low-frequency decorative cue. It starts on first view, then repeats via CSS. */
 export function HomeInspiration() {
   const visual = useRef<HTMLDivElement>(null);
   const [played, setPlayed] = useState(false);
@@ -26,8 +26,8 @@ export function HomeInspiration() {
       <div className="home-inspiration-copy">
         <h2 id="home-inspiration-title">Need inspiration?</h2>
         <p>Swipe through ideas. Save what you like.</p>
-        <Link className="home-inspiration-link" to="/ideas">
-          Explore ideas <ArrowRight size={17} aria-hidden="true"/>
+        <Link className="section-link home-inspiration-link" to="/ideas">
+          Explore ideas <ArrowRight size={16} aria-hidden="true"/>
         </Link>
       </div>
       <div ref={visual} className={"home-inspiration-visual" + (played ? " is-played" : "")}
