@@ -10,8 +10,9 @@ import {
   Plus,
   Gift as GiftIcon,
   Cake,
-  Clock,
   Check,
+  ShoppingBasket,
+  Pencil,
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -129,21 +130,14 @@ export function Title({
   back?: string;
 }) {
   return (
-    <header className="page-heading">
-      <div>
-        <div className="overline">
-          {back ? (
-            <Link className="ghostbutton back-link" to={back}>
-              <ChevronLeft size={15} />
-              Back
-            </Link>
-          ) : (
-            "GIVVY"
-          )}
-        </div>
-        <h1 className="title-xl">{name}</h1>
-        {subtitle && <p className="subheading">{subtitle}</p>}
-      </div>
+    <header className={`page-heading ${back ? "detail-page-heading" : "root-page-heading"}`}>
+      {back && (
+        <Link className="ghostbutton back-link" to={back}>
+          <ChevronLeft size={16} aria-hidden="true" /> Back
+        </Link>
+      )}
+      <h1 className="title-xl">{name}</h1>
+      {subtitle && <p className="subheading">{subtitle}</p>}
     </header>
   );
 }
@@ -206,69 +200,113 @@ export function Photo({
     <GiftIcon size={29} className="ph-icon" />
   );
 }
-export function StatusTag({ status }: { status: Gift["status"] }) {
-  return (
-    <span className={`status-tag ${status === "bought" ? "bought" : "to-buy"}`}>
-      {status === "bought" ? <Check size={12} /> : <Clock size={12} />}{" "}
-      {status === "bought" ? "Bought" : "To buy"}
+/**
+ * Givvy's single gift-card design. Gift ideas share its photography and
+ * typography but never display a purchase status. Overlay actions are sibling
+ * buttons, never nested inside the main edit/open control.
+ */
+export function GiftStatus({
+  status,
+  name,
+  onToggle,
+}: {
+  status: Gift["status"];
+  name: string;
+  onToggle?: () => void;
+}) {
+  const purchased = status === "bought";
+  const Icon = purchased ? Check : ShoppingBasket;
+  const description = purchased ? "Bought" : "To buy";
+  const className = `gift-status-icon ${purchased ? "is-bought" : "is-to-buy"}`;
+  const content = <Icon size={18} strokeWidth={2.5} aria-hidden="true" />;
+  return onToggle ? (
+    <button type="button" className={className}
+      aria-label={`Mark ${name} as ${purchased ? "To buy" : "Bought"}`}
+      aria-pressed={purchased}
+      title={`${description} · tap to change`}
+      onClick={onToggle}>
+      {content}
+    </button>
+  ) : (
+    <span className={className} role="img" aria-label={`${name}: ${description}`} title={description}>
+      {content}
     </span>
   );
 }
+/** Static shorthand for component previews; live gift cards use GiftStatus. */
+export function StatusTag({ status }: { status: Gift["status"] }) {
+  return <GiftStatus status={status} name="Gift" />;
+}
+
 export function Product({
   item,
   person = false,
   home = false,
   onClick,
+  onToggle,
+  showEdit = true,
+  actionLabel,
 }: {
   item: Gift | Idea;
   person?: boolean;
   home?: boolean;
   onClick?: () => void;
+  onToggle?: () => void;
+  showEdit?: boolean;
+  actionLabel?: string;
 }) {
-  const { data } = useApp();
-  const content = (
-    <>
-      <span
-        className="product-visual"
-        style={{ background: gradientFor(item.name) }}
-      >
-        <Photo src={item.image} name={item.name} />
-        {"status" in item &&
-          (home
-            ? (item.status === "bought" && (
-                <span className="bought-corner" role="img" aria-label="Purchased">
-                  <Check size={16} strokeWidth={3} />
-                </span>
-              ))
-            : <StatusTag status={(item as Gift).status} />)}
-      </span>
-      {!home && (
-        <>
-          <span className="product-title">{item.name}</span>
-          <span className="product-caption">
-            {person
-              ? `For ${data.people.find((p) => p.id === item.personId)?.name || "Someone"}`
-              : currency(item.price)}
-          </span>
-        </>
-      )}
-    </>
-  );
+  const { data, commit } = useApp();
+  const gift = "status" in item ? item as Gift : null;
+  const defaultToggle = () => {
+    if (!gift) return;
+    commit({
+      ...data,
+      gifts: data.gifts.map((value) => value.id === gift.id
+        ? { ...value, status: value.status === "bought" ? "to_buy" as const : "bought" as const }
+        : value),
+    });
+  };
+  const caption = person
+    ? `For ${data.people.find((p) => p.id === item.personId)?.name || "Someone"}`
+    : currency(item.price);
   return (
-    <div className={`product-card ${home ? "home-product" : ""}`}>
+    <article className={`product-card gift-card ${home ? "home-product" : ""} ${gift ? "is-gift" : "is-idea"}`}>
       {onClick ? (
         <button
           type="button"
           className="product-open"
-          aria-label={`${home ? "Open gift" : "Edit"} ${item.name}`}
+          aria-label={actionLabel || `${home ? "Open gift" : "Edit"} ${item.name}`}
           onClick={onClick}
         >
-          {content}
+          <span className="product-visual" style={{ background: gradientFor(item.name) }}>
+            <Photo src={item.image} name={item.name} />
+          </span>
+          <span className="gift-card-copy">
+            <strong className="product-title">{item.name}</strong>
+            <span className="product-caption">{caption}</span>
+          </span>
         </button>
       ) : (
-        <div className="product-open">{content}</div>
+        <div className="product-open">
+          <span className="product-visual" style={{ background: gradientFor(item.name) }}>
+            <Photo src={item.image} name={item.name} />
+          </span>
+          <span className="gift-card-copy">
+            <strong className="product-title">{item.name}</strong>
+            <span className="product-caption">{caption}</span>
+          </span>
+        </div>
       )}
-    </div>
+      {gift && <GiftStatus status={gift.status} name={gift.name} onToggle={onToggle || defaultToggle} />}
+      {onClick && showEdit && (
+        <button type="button" className="gift-card-edit"
+          aria-label={`Edit ${gift ? "gift" : "idea"} ${item.name}`}
+          title="Edit"
+          onClick={onClick}>
+          <Pencil size={16} aria-hidden="true"/>
+        </button>
+      )}
+    </article>
   );
 }
 
@@ -314,9 +352,29 @@ export function EventRow({ event: e }: { event: Event }) {
     </Link>
   );
 }
+/** One person portrait/fallback across directory, profile and events. */
+export function PersonAvatar({
+  person,
+  className = "",
+}: {
+  person?: Person;
+  className?: string;
+}) {
+  const palette = ["var(--blue)", "var(--mint)", "var(--rose)", "var(--butter)"];
+  const key = person?.id || person?.name || "";
+  const tone = [...key].reduce((sum, char) => sum + char.charCodeAt(0), 0) % palette.length;
+  return (
+    <span className={`person-avatar ${className}`} style={{ background: palette[tone] }} aria-hidden="true">
+      {person?.photo
+        ? <img src={person.photo} alt="" loading="lazy"/>
+        : <span>{person?.name?.[0]?.toUpperCase() || "?"}</span>}
+    </span>
+  );
+}
+
 export function PersonRow({
   person: p,
-  index = 0,
+  index: _index = 0,
 }: {
   person: Person;
   index?: number;
@@ -325,14 +383,7 @@ export function PersonRow({
   const birthday = monthDay ? fmtDate(`2000-${monthDay}`) : "";
   return (
     <Link className="person-list-item" to={`/people/${p.id}`}>
-      <span
-        className="item-photo item-avatar"
-        style={{
-          background: ["var(--blue)", "var(--mint)", "var(--rose)", "var(--butter)"][index % 4],
-        }}
-      >
-        {p.photo ? <img src={p.photo} alt="" loading="lazy" /> : p.name[0]?.toUpperCase()}
-      </span>
+      <PersonAvatar person={p} className="item-photo item-avatar" />
       <span className="item-body">
         <strong>{p.name}</strong>
         <small>{birthday ? `Birthday · ${birthday}` : "Birthday not set"}</small>

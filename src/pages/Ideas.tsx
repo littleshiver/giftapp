@@ -69,10 +69,7 @@ export function Ideas() {
   );
   return (
     <>
-      <Title
-        name="Gift ideas"
-        subtitle="Save inspiration now. Decide on an occasion later."
-      />
+      <Title name="Ideas" />
       <section>
         <Section title="Discover" />
         <div

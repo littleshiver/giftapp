@@ -19,8 +19,8 @@ test("Home featured gallery: individual gift cards, event link and prefilled add
 
   // The featured panel is no longer a giant click target.
   await expect(page.locator(".focus-card")).not.toHaveAttribute("role", "link");
-  await expect(page.locator(".focus-gifts .product-title")).toHaveCount(0);
-  await expect(page.locator(".focus-gifts .product-caption")).toHaveCount(0);
+  await expect(page.locator(".focus-gifts .product-title")).toHaveCount(3);
+  await expect(page.locator(".focus-gifts .product-caption")).toHaveCount(3);
   await page.locator(".focus-date").click();
   await expect(page).toHaveURL(/\/(?:#\/)?$/);
 
@@ -97,11 +97,11 @@ test("FAB actions; gift photo/status, membership validation and independent idea
   await page
     .getByRole("button", { name: "Mark Scented candle as To buy", exact: true })
     .click();
-  await expect(page.locator(".status-tag.bought")).toHaveCount(0);
+  await expect(page.locator(".gift-status-icon.is-bought")).toHaveCount(0);
   await page
     .getByRole("button", { name: "Mark Scented candle as Bought", exact: true })
     .click();
-  await expect(page.locator(".status-tag.bought")).toHaveCount(1);
+  await expect(page.locator(".gift-status-icon.is-bought")).toHaveCount(1);
   await page
     .getByRole("button", { name: "Edit Scented candle", exact: true })
     .click();
@@ -314,7 +314,7 @@ test("invalid image keeps editor contents and no status duplicates", async ({
   );
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  await expect(page.locator(".status-tag")).toHaveCount(3);
+  await expect(page.locator(".gift-status-icon")).toHaveCount(3);
 });
 
 test("occasion/gift CRUD and explicit cascade deletion retain independent ideas", async ({
@@ -625,15 +625,15 @@ test("featured gallery uses near-full width and a clean green bought tick", asyn
   expect(Math.abs(box!.x)).toBeLessThanOrEqual(1);
   expect(Math.abs(box!.width - 390)).toBeLessThanOrEqual(1);
   expect(Math.abs(box!.x + box!.width - 390)).toBeLessThanOrEqual(1);
-  const marker = page.locator(".focus-gifts .bought-corner");
+  const marker = page.locator(".focus-gifts .gift-status-icon.is-bought");
   await expect(marker).toHaveCount(1);
   const style = await marker.evaluate((el) => {
     const c = getComputedStyle(el);
-    return { color: c.color, border: c.borderTopWidth, shadow: c.boxShadow, bg: c.backgroundColor };
+    return { color: c.color, bg: c.backgroundColor };
   });
   expect(style).toEqual({
-    color: "rgb(255, 255, 255)", border: "0px", shadow: "none",
-    bg: "rgb(34, 149, 100)",
+    color: "rgb(35, 122, 80)",
+    bg: "rgb(221, 242, 229)",
   });
   const geometry = await page.evaluate(() => {
     const hero = document.querySelector(".focus-card")!;
@@ -747,7 +747,7 @@ test("composed Home uses date-first occasion cards, centered logo and separate b
   expect(geometry.titleTop - geometry.countBottom).toBeGreaterThan(3);
   expect(geometry.titleHeight).toBeGreaterThan(20);
   expect(geometry.centerOffset).toBeLessThan(19);
-  await expect(page.locator(".focus-gifts .product-title")).toHaveCount(0);
+  await expect(page.locator(".focus-gifts .product-title")).toHaveCount(3);
   const wavePath = await page.locator(".focus-wave path").getAttribute("d");
   expect(wavePath).toContain("L400 500 L0 500 Z");
 });
@@ -842,4 +842,50 @@ test("Home header and text links use one shared visual system", async ({ page })
       return { fontSize: css.fontSize, fontWeight: css.fontWeight, textDecoration: css.textDecorationLine };
     })));
   expect(styles[0]).toEqual(styles[1]);
+});
+
+
+test("one gift card design separates purchase status and editing on Home and Events", async ({ page }) => {
+  await seed(page);
+  await page.goto("/#/events/e1");
+  const candle = page.locator(".gift-card").filter({
+    has: page.getByRole("button", { name: "Edit Scented candle", exact: true }),
+  });
+  await expect(candle.locator(".gift-status-icon")).toHaveCount(1);
+  await expect(candle.locator(".gift-card-edit")).toHaveCount(1);
+  await expect(candle.locator(".status-tag, .status-button")).toHaveCount(0);
+  await candle.getByRole("button", { name: "Mark Scented candle as To buy" }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  expect((await readData(page)).gifts.find((g) => g.id === "g1").status).toBe("to_buy");
+  await candle.getByRole("button", { name: "Edit gift Scented candle" }).click();
+  await expect(page.getByRole("dialog", { name: "Edit gift" })).toBeVisible();
+  await page.getByRole("button", { name: "Close", exact: true }).click();
+
+  await page.goto("/#/");
+  const homeCandle = page.locator(".focus-gifts .gift-card").filter({
+    has: page.getByRole("button", { name: "Open gift Scented candle" }),
+  });
+  await expect(homeCandle.locator(".gift-card-edit")).toHaveCount(1);
+  await expect(homeCandle.locator(".gift-status-icon.is-to-buy")).toHaveCount(1);
+  await homeCandle.getByRole("button", { name: "Mark Scented candle as Bought" }).click();
+  await expect(homeCandle.locator(".gift-status-icon.is-bought")).toBeVisible();
+  await expect(page).toHaveURL(/#\/$/);
+
+  await page.goto("/#/people/p1");
+  await expect(page.locator(".person-ideas .gift-card")).toHaveCount(1);
+  await expect(page.locator(".person-ideas .gift-status-icon")).toHaveCount(0);
+  await expect(page.locator(".person-ideas .gift-card-edit")).toHaveCount(1);
+});
+
+test("root page headers omit redundant Givvy overlines and detail pages share a back pattern", async ({ page }) => {
+  await seed(page);
+  for (const route of ["/people", "/ideas", "/events"]) {
+    await page.goto("/#" + route);
+    await expect(page.locator("main .root-page-heading, main .events-page-heading")).toHaveCount(1);
+    await expect(page.locator("main .page-heading .overline")).toHaveCount(0);
+  }
+  await page.goto("/#/events/e1");
+  await expect(page.locator(".detail-page-heading .back-link")).toBeVisible();
+  await page.goto("/#/people/p1");
+  await expect(page.locator(".person-back")).toContainText("Back");
 });
