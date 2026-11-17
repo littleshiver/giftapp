@@ -122,30 +122,24 @@ test("FAB actions; gift photo/status, membership validation and independent idea
     "p2",
   );
 });
-test("recipient budgets, zero/overspending, missing budgets and month accounting", async ({
-  page,
-}) => {
+test("birthday has exactly one recipient; budgets and assigned gifts remain event-owned", async ({ page }) => {
   const data = fixture();
   data.events[0].budgets.p1 = 0;
   await seed(page, data);
-  await expect(page.locator(".home-budget-month")).toContainText("7 400 ₽");
-  await expect(page.locator(".home-budget-warning")).toContainText(
-    "7 400 ₽ over budget",
-  );
+  await expect(page.locator(".home-budget-warning")).toContainText("7 400 ₽ over budget");
   await page.goto("/#/events/e1");
-  await expect(page.locator(".person-budget-row")).toContainText("0 ₽");
-  await expect(page.locator(".person-budget-row")).toContainText(
-    "7 400 ₽ over budget",
-  );
+  await expect(page.locator(".event-summary-budget")).toContainText("7 400 ₽");
+  await expect(page.locator(".event-person-summary")).toContainText("Anna");
   await page.getByRole("button", { name: "Edit", exact: true }).click();
-  await page.getByLabel("Include Anna").uncheck();
-  await page.getByRole("button", { name: "Save event", exact: true }).click();
-  await expect(page.getByRole("status")).toContainText("Reassign or delete");
-  await page.getByLabel("Include Anna").check();
+  await expect(page.getByLabel("Include Anna")).toBeDisabled();
   await page.getByLabel("Budget for Anna").fill("");
   await page.getByRole("button", { name: "Save event", exact: true }).click();
-  await expect(page.locator(".person-budget-row")).toContainText("Not set");
-  expect((await readData(page)).events[0].budgets).toEqual({});
+  expect((await readData(page)).events.find((e) => e.id === "e1").budgets).toEqual({});
+  await page.goto("/#/events/e2");
+  await page.getByRole("button", { name: "Edit", exact: true }).click();
+  await page.getByLabel("Include Denis").uncheck();
+  await page.getByRole("button", { name: "Save event", exact: true }).click();
+  await expect(page.getByRole("status")).toContainText("Reassign or delete");
 });
 test("calendar, reminders, people editing and contextual gift/idea creation", async ({
   page,
@@ -169,7 +163,7 @@ test("calendar, reminders, people editing and contextual gift/idea creation", as
     .click();
   await page.getByRole("button", { name: "Add person", exact: true }).click();
   await page.getByLabel("Name", { exact: true }).fill("Jamie");
-  await page.getByLabel("What they like").fill("Books");
+  await page.getByLabel("Wishes & preferences").fill("Books");
   await page.getByRole("button", { name: "Save person", exact: true }).click();
   await page.getByRole("link", { name: /Jamie/ }).click();
   await expect(page.getByText("Books", { exact: true })).toBeVisible();
@@ -381,10 +375,8 @@ test("an imported gift with a missing occasion stays visible and can be repaired
   const data = fixture();
   data.gifts[0].eventId = "missing-occasion";
   await seed(page, data);
-  await page.goto("/#/people/p1");
-  await page
-    .getByRole("button", { name: "Edit Scented candle", exact: true })
-    .click();
+  await page.goto("/#/events");
+  await page.getByRole("button", { name: "Repair Scented candle" }).click();
   await expect(
     page.getByRole("combobox", { name: "Occasion", exact: true }),
   ).toHaveValue("missing-occasion");
@@ -445,39 +437,39 @@ test("new recipient assigned to an occasion appears in the gift picker", async (
   expect(saved.events.find((e) => e.id === "e2").budgets[created.id]).toBe(2000);
 });
 
-test("gift editor can explicitly add a person to an occasion without inventing a budget", async ({
-  page,
-}) => {
+test("gift editor adds people only to group occasions and does not invent budgets", async ({ page }) => {
   await seed(page);
   await page.goto("/#/people");
   await page.getByRole("button", { name: "Add person", exact: true }).click();
   await page.getByLabel("Name", { exact: true }).fill("Rory new");
-  await page.getByRole("button", { name: "Save person", exact: true }).click();
+  await page.getByRole("button", { name: "Save person" }).click();
   const created = (await readData(page)).people.find((p) => p.name === "Rory new");
-  expect(created).toBeTruthy();
 
+  // A birthday is not an occasion with arbitrarily many recipients.
   await page.goto("/#/events/e1");
-  await page.getByRole("button", { name: "Add gift", exact: true }).click();
-  await page.getByRole("combobox", { name: "For", exact: true })
-    .selectOption(created.id);
-  await expect(page.locator('.section-note[role="status"]')).toContainText(
-    "Saving this gift will also add Rory new"
-  );
+  await page.getByRole("button", { name: "Create", exact: true }).click();
+  await page.getByRole("button", { name: "Add gift to occasion" }).click();
+  await expect(page.getByRole("combobox", { name: "For" }).locator("option")).not.toContainText("Rory new");
+  await page.getByRole("button", { name: "Close" }).click();
+
+  await page.goto("/#/events/e2");
+  await page.getByRole("button", { name: "Create", exact: true }).click();
+  await page.getByRole("button", { name: "Add gift to occasion" }).click();
+  await page.getByRole("combobox", { name: "For" }).selectOption(created.id);
+  await expect(page.locator('.section-note[role="status"]'))
+    .toContainText("Saving this gift will also add Rory new");
   await page.getByLabel("Gift name", { exact: true }).fill("Tea set");
   await page.getByLabel("Price (₽)").fill("850");
-  await page.getByRole("button", { name: "Save gift", exact: true }).click();
-
+  await page.getByRole("button", { name: "Save gift" }).click();
   const saved = await readData(page);
-  const occasion = saved.events.find((e) => e.id === "e1");
+  const occasion = saved.events.find((e) => e.id === "e2");
   expect(occasion.people).toContain(created.id);
   expect(Object.hasOwn(occasion.budgets, created.id)).toBe(false);
   expect(saved.gifts.find((g) => g.name === "Tea set")).toMatchObject({
-    eventId: "e1",
-    personId: created.id,
-    status: "to_buy",
+    eventId: "e2", personId: created.id, status: "to_buy",
   });
   await page.reload();
-  expect((await readData(page)).events.find((e) => e.id === "e1").people)
+  expect((await readData(page)).events.find((e) => e.id === "e2").people)
     .toContain(created.id);
 });
 
