@@ -805,7 +805,7 @@ test("per-event reminder preferences save, reload and turn off independently", a
     .toBeVisible();
 
   const anna = page.locator(".reminder-event").filter({
-    has: page.getByRole("link", { name: "Anna's birthday", exact: true }),
+    has: page.getByRole("link", { name: /Anna's birthday/ }),
   });
   await expect(anna).toContainText("No reminder");
   await anna.getByRole("button", { name: "Set reminder for Anna's birthday" }).click();
@@ -816,7 +816,7 @@ test("per-event reminder preferences save, reload and turn off independently", a
 
   await page.reload();
   const savedAnna = page.locator(".reminder-event").filter({
-    has: page.getByRole("link", { name: "Anna's birthday", exact: true }),
+    has: page.getByRole("link", { name: /Anna's birthday/ }),
   });
   await expect(savedAnna).toContainText("7 days before");
   await savedAnna.getByRole("button", { name: "Set reminder for Anna's birthday" }).click();
