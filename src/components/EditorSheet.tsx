@@ -10,7 +10,7 @@ import { useApp } from "../state/AppState";
 import type { Event, Gift, Idea, Person } from "../domain/models";
 import { today, uid } from "../utils/format";
 import { readImage, readAvatar } from "../utils/images";
-import { birthdayFromParts, birthdayMonthDay } from "../domain/birthdays";
+import { birthdayFromParts } from "../domain/birthdays";
 import { Button, Field, Sheet } from "./Primitives";
 import { Photo } from "./UI";
 export function EditorSheet() {
@@ -278,7 +278,7 @@ export function EditorSheet() {
       >
         {!lockedBirthday ? (
           <Field
-            label={type === "person" ? "Name" : type === "event" ? "Occasion name" : "Gift or idea name"}
+            label={type === "person" ? "Name" : type === "event" ? "Occasion name" : type === "gift" ? "Gift name" : "Idea name"}
           >
             <input
               className="control" name="name" required
