@@ -2,6 +2,7 @@ import { useEffect, useState, type CSSProperties } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Bell, BellOff, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { Empty, Section, Photo } from "../components/UI";
+import { Sheet } from "../components/Primitives";
 import { OccasionArt } from "../components/OccasionArt";
 import { useApp } from "../state/AppState";
 import { enabledEvents } from "../domain/selectors";
@@ -83,24 +84,27 @@ function reminderLabel(value: ReminderDays) {
 
 function ReminderEventRow({
   event,
-  onChange,
+  index,
+  onOpen,
 }: {
   event: Event;
-  onChange: (days: ReminderDays) => boolean;
+  index: number;
+  onOpen: () => void;
 }) {
-  const [expanded, setExpanded] = useState(false);
   const current = event.reminderDays ?? null;
   const active = current !== null;
-
+  const tint = occasionTones[index % occasionTones.length].tint;
   return (
-    <article className={`reminder-event ${expanded ? "is-expanded" : ""}`}>
+    <article className="reminder-event">
       <div className="reminder-event-main">
-        <span className="plan-date reminder-date" aria-hidden="true">
+        <span
+          className="plan-date reminder-date"
+          style={{ "--reminder-date-bg": tint } as CSSProperties}
+          aria-hidden="true"
+        >
           {parseDate(event.date).getDate()}
           <small>
-            {parseDate(event.date)
-              .toLocaleDateString("en-US", { month: "short" })
-              .toUpperCase()}
+            {parseDate(event.date).toLocaleDateString("en-US", { month: "short" }).toUpperCase()}
           </small>
         </span>
         <Link className="reminder-event-info" to={`/events/${event.id}`}>
@@ -113,34 +117,12 @@ function ReminderEventRow({
           type="button"
           className={`reminder-toggle ${active ? "is-on" : ""}`}
           aria-label={`Set reminder for ${event.name}`}
-          aria-expanded={expanded}
-          aria-controls={`reminder-options-${event.id}`}
-          onClick={() => setExpanded((value) => !value)}
+          aria-haspopup="dialog"
+          onClick={onOpen}
         >
           {active ? <Bell size={19} /> : <BellOff size={19} />}
         </button>
       </div>
-      {expanded && (
-        <div className="reminder-options" id={`reminder-options-${event.id}`}>
-          <p className="reminder-options-title">Remind me</p>
-          <div className="reminder-choices" role="group" aria-label={`Reminder for ${event.name}`}>
-            {reminderOptions.map((option) => (
-              <button
-                key={option.value ?? "off"}
-                type="button"
-                className={`reminder-choice ${current === option.value ? "is-selected" : ""}`}
-                aria-pressed={current === option.value}
-                onClick={() => {
-                  if (onChange(option.value)) setExpanded(false);
-                }}
-              >
-                <span>{option.label}</span>
-                {current === option.value && <Check size={16} aria-hidden="true" />}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
     </article>
   );
 }
@@ -152,6 +134,7 @@ export function Events() {
   const month = parseDate(ui.month);
   const monthKey = iso(new Date(month.getFullYear(), month.getMonth(), 1)).slice(0, 7);
   const [filteredDate, setFilteredDate] = useState<string | null>(null);
+  const [reminderEventId, setReminderEventId] = useState<string | null>(null);
   const saveReminder = (eventId: string, reminderDays: ReminderDays) =>
     commit({
       ...data,
@@ -162,6 +145,7 @@ export function Events() {
   // A date from another month never filters the newly viewed month.
   const activeDate = filteredDate?.slice(0, 7) === monthKey ? filteredDate : null;
   const evs = enabledEvents(data);
+  const reminderEvent = evs.find((event) => event.id === reminderEventId);
   const monthEvents = evs.filter((e) => e.date.slice(0, 7) === monthKey);
   const displayedEvents = activeDate
     ? monthEvents.filter((e) => e.date === activeDate)
@@ -323,12 +307,6 @@ export function Events() {
         </>
       ) : (
         <div className="reminders-page">
-          <p className="reminders-intro">
-            Choose when to be reminded about each occasion.
-          </p>
-          <p className="reminders-delivery-note">
-            Reminder preferences are saved. Notifications are not sent yet.
-          </p>
           {Object.keys(groups).length ? (
             Object.entries(groups).map(([key, events]) => (
               <section className="month-block reminders-month" key={key}>
@@ -341,7 +319,8 @@ export function Events() {
                     <ReminderEventRow
                       key={event.id}
                       event={event}
-                      onChange={(value) => saveReminder(event.id, value)}
+                      index={evs.indexOf(event)}
+                      onOpen={() => setReminderEventId(event.id)}
                     />
                   ))}
                 </div>
@@ -351,6 +330,34 @@ export function Events() {
             <Empty>Add your first occasion to set a reminder.</Empty>
           )}
         </div>
+      )}
+      {reminderEvent && (
+        <Sheet title="Remind me" onClose={() => setReminderEventId(null)}>
+          <p className="reminder-sheet-occasion">
+            {reminderEvent.name} · {fmtDate(reminderEvent.date)}
+          </p>
+          <div className="reminder-sheet-options" role="group" aria-label={`Reminder for ${reminderEvent.name}`}>
+            {reminderOptions.map((option) => {
+              const chosen = (reminderEvent.reminderDays ?? null) === option.value;
+              return (
+                <button
+                  type="button"
+                  key={option.value ?? "off"}
+                  className={`reminder-sheet-option ${chosen ? "is-selected" : ""}`}
+                  aria-pressed={chosen}
+                  onClick={() => {
+                    if (saveReminder(reminderEvent.id, option.value)) {
+                      setReminderEventId(null);
+                    }
+                  }}
+                >
+                  <span>{option.label}</span>
+                  {chosen && <Check size={18} aria-hidden="true" />}
+                </button>
+              );
+            })}
+          </div>
+        </Sheet>
       )}
     </>
   );
