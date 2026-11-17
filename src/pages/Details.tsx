@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { UsersRound, Check, Clock, Edit3, Plus, ChevronLeft, ChevronRight, Cake } from "lucide-react";
+import { UsersRound, Edit3, Plus, ChevronLeft, ChevronRight, Cake, CalendarDays } from "lucide-react";
 import { birthdayMonthDay } from "../domain/birthdays";
 import {
   Empty,
@@ -8,6 +8,7 @@ import {
   Section,
   Title,
   BudgetBar,
+  PersonAvatar,
 } from "../components/UI";
 import { useApp } from "../state/AppState";
 import {
@@ -19,38 +20,16 @@ import {
 } from "../domain/selectors";
 import { currency, fmtDate, fullDate } from "../utils/format";
 import { Button, Sheet } from "../components/Primitives";
-import { Photo } from "../components/UI";
+
 import type { Gift } from "../domain/models";
 
-function EventGift({
-  gift, multiPerson, onEdit, onToggle,
-}: {
-  gift: Gift;
-  multiPerson: boolean;
-  onEdit: () => void;
-  onToggle: () => void;
-}) {
-  return (
-    <div className="event-gift">
-      <Product item={gift} person={multiPerson} onClick={onEdit}/>
-      <div className="gift-actions">
-        <button
-          type="button"
-          className={`status-button ${gift.status === "bought" ? "is-bought" : ""}`}
-          aria-label={`Mark ${gift.name} as ${gift.status === "bought" ? "To buy" : "Bought"}`}
-          onClick={onToggle}
-        >
-          {gift.status === "bought" ? <Check size={13}/> : <Clock size={13}/>}
-          {gift.status === "bought" ? "Bought" : "To buy"}
-        </button>
-      </div>
-    </div>
-  );
+function EventGift({gift, onEdit}: {gift: Gift; onEdit: () => void}) {
+  return <Product item={gift} onClick={onEdit} />;
 }
 
 export function EventDetail() {
   const { id } = useParams();
-  const { data, openEditor, commit } = useApp();
+  const { data, openEditor } = useApp();
   const [giftPersonId, setGiftPersonId] = useState<string | null>(null);
   const event = data.events.find((item) => item.id === id);
   if (!event) {
@@ -69,19 +48,12 @@ export function EventDetail() {
   const selectedPerson = data.people.find((person) => person.id === giftPersonId);
   const savedIdeas = data.ideas.filter((idea) => idea.personId === giftPersonId);
   const openGift = (personId: string) => setGiftPersonId(personId);
-  const toggle = (id: string) => commit({
-    ...data,
-    gifts: data.gifts.map((gift) => gift.id === id
-      ? { ...gift, status: gift.status === "bought" ? "to_buy" as const : "bought" as const }
-      : gift),
-  });
   const renderGifts = (items: Gift[]) => (
     <div className="detail-gifts">
       {items.map((gift) => (
         <div key={gift.id}>
-          <EventGift gift={gift} multiPerson={false}
-            onEdit={() => openEditor({type: "gift", id: gift.id})}
-            onToggle={() => toggle(gift.id)}/>
+          <EventGift gift={gift}
+            onEdit={() => openEditor({type: "gift", id: gift.id})}/>
           {!associationValid(data, gift) && (
             <p className="warning">This gift's recipient is not linked to the occasion. Edit the gift to repair.</p>
           )}
@@ -97,8 +69,8 @@ export function EventDetail() {
       <div className="event-summary">
         <div className="event-summary-top">
           <div>
-            <p className="overline">{isBirthday ? "Birthday" : "Occasion"}</p>
-            <h2>{fullDate(event.date)}</h2>
+            <p className="event-summary-kicker">{isBirthday ? "Birthday" : "Occasion"}</p>
+            <p className="event-summary-date"><CalendarDays size={17} aria-hidden="true" />{fullDate(event.date)}</p>
           </div>
           <Button variant="outline" onClick={() => openEditor({type: "event", id: event.id})}>
             <Edit3 size={16}/> Edit
@@ -108,9 +80,7 @@ export function EventDetail() {
           const person = data.people.find((item) => item.id === event.people[0]);
           return (
             <Link className="event-person-summary" to={`/people/${event.people[0]}`}>
-              <span className="event-person-avatar" aria-hidden="true">
-                {person?.photo ? <img src={person.photo} alt=""/> : person?.name[0]?.toUpperCase() || "?"}
-              </span>
+              <PersonAvatar person={person} className="event-person-avatar" />
               <span className="item-body">
                 <strong>{person?.name || "Unknown person"}</strong>
                 <small>{isBirthday ? "Birthday person" : "Recipient"}</small>
@@ -143,9 +113,7 @@ export function EventDetail() {
               <div key={personId} className="event-recipient-group">
                 <div className="event-recipient-group-top">
                   <Link className="icontext event-recipient-name" to={`/people/${personId}`}>
-                    <span className="event-person-avatar" aria-hidden="true">
-                      {person?.photo ? <img src={person.photo} alt=""/> : person?.name[0]?.toUpperCase() || "?"}
-                    </span>
+                    <PersonAvatar person={person} className="event-person-avatar" />
                     <span className="item-body">
                       <strong>{person?.name || "Unknown person"}</strong>
                       <small>{items.length} {items.length === 1 ? "gift" : "gifts"}</small>
@@ -204,19 +172,12 @@ export function EventDetail() {
               <p className="gift-picker-intro">Choose from saved ideas or add something new.</p>
               <div className="gift-picker-ideas">
                 {savedIdeas.map((idea) => (
-                  <button className="gift-picker-idea" type="button" key={idea.id}
-                    aria-label={`Use idea ${idea.name}`}
+                  <Product key={idea.id} item={idea} showEdit={false}
+                    actionLabel={`Use idea ${idea.name}`}
                     onClick={() => {
                       setGiftPersonId(null);
                       openEditor({type: "gift", eventId: event.id, personId: selectedPerson.id, prefill: idea});
-                    }}>
-                    <span className="gift-picker-photo"><Photo src={idea.image} name={idea.name}/></span>
-                    <span className="item-body">
-                      <strong>{idea.name}</strong>
-                      <small>{currency(idea.price)}</small>
-                    </span>
-                    <ChevronRight size={17}/>
-                  </button>
+                    }}/>
                 ))}
               </div>
             </>
@@ -249,9 +210,7 @@ export function PersonDetail() {
         <ChevronLeft size={16} aria-hidden="true"/> People
       </Link>
       <div className="person-profile-hero">
-        <span className="person-profile-photo" aria-hidden="true">
-          {person.photo ? <img src={person.photo} alt="" /> : person.name[0]?.toUpperCase()}
-        </span>
+        <PersonAvatar person={person} className="person-profile-photo" />
         <div className="person-profile-info">
           <h1 className="title-xl">{person.name}</h1>
           {birthday ? (
@@ -268,7 +227,7 @@ export function PersonDetail() {
       </div>
       <section className="section person-preferences" aria-labelledby="person-about-heading">
         <div className="section-top">
-          <h2 id="person-about-heading">About {person.name}</h2>
+          <h2 id="person-about-heading">About</h2>
         </div>
         <div className="person-preferences-card">
           {hasPreferences ? (
@@ -325,10 +284,7 @@ export function PersonDetail() {
         ) : (
           <Empty>No ideas saved for {person.name} yet.</Empty>
         )}
-        <Button variant="secondary" className="button-full person-add-idea"
-          onClick={() => openEditor({ type: "idea", personId: person.id })}>
-          <Plus size={16} /> Save a gift idea
-        </Button>
+
       </section>
     </div>
   );
