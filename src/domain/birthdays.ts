@@ -77,6 +77,19 @@ export function ensureBirthdayOccasions(data: AppData, from = today()): AppData 
       changed = true;
     }
   }
+  // If someone changes or clears a birthday, retire outdated *unstarted*
+  // future plans. Never delete an occasion that already contains gifts.
+  const nextDates = new Map(data.people.map((p) =>
+    [p.id, nextBirthdayDate(p.birthday, from)] as const,
+  ));
+  for (let i = events.length - 1; i >= 0; i--) {
+    const event = events[i];
+    if (event.kind !== "birthday" || !event.birthdayPersonId || event.date < from) continue;
+    if (event.date === nextDates.get(event.birthdayPersonId)) continue;
+    if (data.gifts.some((g) => g.eventId === event.id)) continue;
+    events.splice(i, 1);
+    changed = true;
+  }
   return changed ? { ...data, events } : data;
 }
 
