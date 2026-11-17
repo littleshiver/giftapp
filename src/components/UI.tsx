@@ -131,21 +131,14 @@ export function Title({
   back?: string;
 }) {
   return (
-    <header className="page-heading">
-      <div>
-        <div className="overline">
-          {back ? (
-            <Link className="ghostbutton back-link" to={back}>
-              <ChevronLeft size={15} />
-              Back
-            </Link>
-          ) : (
-            "GIVVY"
-          )}
-        </div>
-        <h1 className="title-xl">{name}</h1>
-        {subtitle && <p className="subheading">{subtitle}</p>}
-      </div>
+    <header className={`page-heading ${back ? "detail-page-heading" : "root-page-heading"}`}>
+      {back && (
+        <Link className="ghostbutton back-link" to={back}>
+          <ChevronLeft size={16} aria-hidden="true" /> Back
+        </Link>
+      )}
+      <h1 className="title-xl">{name}</h1>
+      {subtitle && <p className="subheading">{subtitle}</p>}
     </header>
   );
 }
@@ -360,9 +353,29 @@ export function EventRow({ event: e }: { event: Event }) {
     </Link>
   );
 }
+/** One person portrait/fallback across directory, profile and events. */
+export function PersonAvatar({
+  person,
+  className = "",
+}: {
+  person?: Person;
+  className?: string;
+}) {
+  const palette = ["var(--blue)", "var(--mint)", "var(--rose)", "var(--butter)"];
+  const key = person?.id || person?.name || "";
+  const tone = [...key].reduce((sum, char) => sum + char.charCodeAt(0), 0) % palette.length;
+  return (
+    <span className={`person-avatar ${className}`} style={{ background: palette[tone] }} aria-hidden="true">
+      {person?.photo
+        ? <img src={person.photo} alt="" loading="lazy"/>
+        : <span>{person?.name?.[0]?.toUpperCase() || "?"}</span>}
+    </span>
+  );
+}
+
 export function PersonRow({
   person: p,
-  index = 0,
+  index: _index = 0,
 }: {
   person: Person;
   index?: number;
@@ -371,14 +384,7 @@ export function PersonRow({
   const birthday = monthDay ? fmtDate(`2000-${monthDay}`) : "";
   return (
     <Link className="person-list-item" to={`/people/${p.id}`}>
-      <span
-        className="item-photo item-avatar"
-        style={{
-          background: ["var(--blue)", "var(--mint)", "var(--rose)", "var(--butter)"][index % 4],
-        }}
-      >
-        {p.photo ? <img src={p.photo} alt="" loading="lazy" /> : p.name[0]?.toUpperCase()}
-      </span>
+      <PersonAvatar person={p} className="item-photo item-avatar" />
       <span className="item-body">
         <strong>{p.name}</strong>
         <small>{birthday ? `Birthday · ${birthday}` : "Birthday not set"}</small>
