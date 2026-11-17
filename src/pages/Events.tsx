@@ -182,7 +182,10 @@ export function Events() {
     setUi({ selected: ds, month: ds });
     setFilteredDate(ds);
   };
-  const groups = evs.reduce<Record<string, typeof evs>>((out, e) => {
+  // Old birthday plans stay in the calendar/history but should not require
+  // reminders in a future year's planning list.
+  const upcomingReminders = evs.filter((event) => event.date >= today());
+  const groups = upcomingReminders.reduce<Record<string, typeof evs>>((out, e) => {
     (out[e.date.slice(0, 7)] ??= []).push(e);
     return out;
   }, {});
