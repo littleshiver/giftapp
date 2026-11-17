@@ -311,9 +311,6 @@ export function Events() {
             Object.entries(groups).map(([key, events]) => (
               <section className="month-block reminders-month" key={key}>
                 <Section title={monthName(parseDate(key + "-01"))} />
-                <p className="section-note">
-                  {events.length} {events.length === 1 ? "occasion" : "occasions"}
-                </p>
                 <div className="reminder-event-list">
                   {events.map((event) => (
                     <ReminderEventRow
