@@ -359,3 +359,33 @@ test("Events screen: date-first cards and equal-width Calendar/Reminders switch"
   await expect(page.locator(".reminders-month .section-note")).toHaveCount(0);
   await expect(page.locator(".reminder-event")).toHaveCount(3);
 });
+
+test("shared gift card stays consistent in group occasions and the saved-idea picker", async ({ page }, testInfo) => {
+  const directory = testInfo.outputPath("screenshots");
+  await mkdir(directory, { recursive: true });
+  await seed(page);
+  for (const width of [320, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto("/#/events/e2");
+    await expect(page.locator(".event-recipient-group")).toHaveCount(3);
+    const groupBackground = await page.locator(".event-recipient-group").first()
+      .evaluate((el) => getComputedStyle(el).backgroundColor);
+    expect(groupBackground).toBe("rgba(0, 0, 0, 0)");
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+    await page.screenshot({
+      path: `${directory}/event-group-${width}.png`,
+      fullPage: true, animations: "disabled",
+    });
+    await page.getByRole("button", { name: "Add gift for Anna" }).click();
+    const chooser = page.getByRole("dialog", { name: "Gift for Anna" });
+    await expect(chooser.locator(".gift-card.is-idea")).toHaveCount(1);
+    await expect(chooser.locator(".gift-status-icon")).toHaveCount(0);
+    await expect(chooser.getByRole("button", { name: "Use idea Ceramic mug" })).toBeVisible();
+    await page.screenshot({
+      path: `${directory}/idea-picker-${width}.png`,
+      fullPage: true, animations: "disabled",
+    });
+    await chooser.getByRole("button", { name: "Close", exact: true }).click();
+  }
+});
