@@ -45,3 +45,13 @@ One identity area (photo, name, birthday, Edit), an **About** card (tags for int
 ## Future (not added in this release)
 
 No universal recurrence engine for every holiday, push delivery backend, cloud sync, shopping history in People, automatic interest-based recommendations or expanded preference forms. Budget visual redesign remains a separate planned review.
+
+## UI component contract (design-system refresh, November 2026)
+
+- **One reusable Product / Gift Card.** Gift and Idea images use the same square ratio, title, price, radius and typography in Home, Events, People and picker surfaces; context changes density, not component identity.
+- **One purchase-status language:** Bought = green check on a pale green tile. To buy = basket on a pale yellow tile. Status is a separate tappable button in the same top-left position across gift cards; accessible names and `aria-pressed` carry semantics. No duplicate status labels or second status button below the gift.
+- **Editing is separate:** a white pencil control on the top-right of the image opens the existing editor sheet; the larger image/title area can also open the item, but status toggles never open the editor. Idea cards omit purchase status entirely.
+- **Root navigation:** People, Ideas, Events and Settings have one page title, no decorative `GIVVY` overline. Internal pages have a single Back pattern and a content-first title/identity. Home retains its approved greeting and brand layout.
+- **Person Avatar:** one portrait/cropped-image and stable pastel-initial fallback component at sizes appropriate to each context, instead of per-page fallback mechanics.
+- **Grouping:** single-person occasions show one flat gift collection; group occasions have recipient headers separated with quiet rules, avoiding a stack of nested white cards. Saved-idea choice reuses the same visual card within the shared bottom sheet.
+- **Design boundaries:** Calendar, Reminders, the Home header/motion and budget calculations are unchanged. Do not introduce a new card or icon action when a shared component fits.
