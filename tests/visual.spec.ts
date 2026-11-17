@@ -356,4 +356,6 @@ test("Events screen: date-first cards and equal-width Calendar/Reminders switch"
   expect(Math.abs(measure.buttons[0] - measure.buttons[1])).toBeLessThan(1);
   await page.getByRole("button", { name: "Reminders", exact: true }).click();
   await expect(page.locator(".month-block").first()).toBeVisible();
+  await expect(page.locator(".reminders-month .section-note")).toHaveCount(0);
+  await expect(page.locator(".reminder-event")).toHaveCount(3);
 });
