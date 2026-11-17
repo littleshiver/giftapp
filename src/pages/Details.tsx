@@ -207,7 +207,7 @@ export function PersonDetail() {
   return (
     <div className="person-detail">
       <Link className="ghostbutton back-link person-back" to="/people">
-        <ChevronLeft size={16} aria-hidden="true"/> People
+        <ChevronLeft size={16} aria-hidden="true"/> Back
       </Link>
       <div className="person-profile-hero">
         <PersonAvatar person={person} className="person-profile-photo" />
