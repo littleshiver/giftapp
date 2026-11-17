@@ -58,6 +58,8 @@ Browser storage is origin-specific. Export from the old origin and import via Se
 
 ## Design review and screenshots
 
+See the updated [People / Events architecture](docs/PEOPLE_EVENTS_ARCHITECTURE.md) for profile and occasion ownership rules.
+
 See [audit and migration decisions](docs/ui-handoff/audit.md), [approved design system](docs/ui-handoff/DESIGN_SYSTEM.md), [QA](docs/ui-handoff/qa.md) and [mobile screenshots](docs/ui-handoff/screenshots/README.md).
 
 To refresh the screenshot artifacts with isolated fixture data:
