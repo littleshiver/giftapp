@@ -10,7 +10,6 @@ import {
   Plus,
   Gift as GiftIcon,
   Cake,
-  Clock,
   Check,
   ShoppingBasket,
   Pencil,
