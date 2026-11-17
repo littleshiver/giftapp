@@ -165,7 +165,7 @@ test("preview empty and filled mobile screenshots", async ({ page }, testInfo) =
   await expect(page.locator(".home-budget-grid > .home-budget-card")).toHaveCount(2);
   await expect(page.locator(".home-inspiration")).toBeVisible();
   await expect(page.locator(".focus-gifts .status-tag")).toHaveCount(0);
-  await expect(page.locator(".focus-gifts .bought-corner").first()).toBeVisible();
+  await expect(page.locator(".focus-gifts .gift-status-icon.is-bought").first()).toBeVisible();
   // The headline and product rail share one inset; never float out of alignment.
   const layout = await page.evaluate(() => {
     const left = (selector: string) =>
