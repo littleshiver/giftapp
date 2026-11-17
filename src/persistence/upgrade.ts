@@ -1,6 +1,7 @@
 import type { AppData, Gift, Idea } from "../domain/v3";
 import { decode as legacyDecode } from "./legacy";
 import { iso } from "../utils/format";
+import { birthdayMonthDay } from "../domain/birthdays";
 const record = (x: unknown): x is Record<string, unknown> =>
   typeof x === "object" && x !== null && !Array.isArray(x);
 const text = (x: unknown): x is string => typeof x === "string";
@@ -26,9 +27,9 @@ function validate(d: unknown): AppData {
         record(p) &&
         text(p.id) &&
         text(p.name) &&
-        (p.birthday === "" || date(p.birthday)) &&
+        (p.birthday === "" || date(p.birthday) || (p.birthday.length === 5 && !!birthdayMonthDay(p.birthday))) &&
         text(p.note) &&
-        optionalText(p.likes),
+        optionalText(p.likes, p.interests, p.avoid, p.photo),
     )
   )
     throw Error("Invalid recipient");
@@ -45,7 +46,8 @@ function validate(d: unknown): AppData {
         e.people.every(text) &&
         record(e.budgets) &&
         Object.values(e.budgets).every(money) &&
-        optionalText(e.image) &&
+        optionalText(e.image, e.birthdayPersonId) &&
+        (e.birthdayPersonId === undefined || (e.kind === "birthday" && e.people.length === 1 && e.people[0] === e.birthdayPersonId)) &&
         (e.reminderDays == null || [0, 1, 3, 7, 14].includes(e.reminderDays)),
     )
   )
@@ -63,7 +65,7 @@ function validate(d: unknown): AppData {
   if (
     !gifts.every(
       (g) =>
-        item(g) && text(g.eventId) && ["to_buy", "bought"].includes(g.status),
+        item(g) && text(g.eventId) && optionalText(g.sourceIdeaId) && ["to_buy", "bought"].includes(g.status),
     )
   )
     throw Error("Invalid gift");
