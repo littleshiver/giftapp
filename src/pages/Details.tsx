@@ -261,7 +261,7 @@ export function PersonDetail() {
             </p>
           ) : <p className="person-profile-birthday">Birthday not set</p>}
         </div>
-        <Button variant="outline" className="person-edit-button"
+        <Button variant="outline" className="person-edit-button" aria-label="Edit person"
           onClick={() => openEditor({ type: "person", id: person.id })}>
           <Edit3 size={16} /> <span>Edit person</span>
         </Button>
