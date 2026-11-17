@@ -25,6 +25,7 @@ import demoPhotoSheet from "../assets/demo/catalog-hifi.avif";
 
 import { currency, fmtDate } from "../utils/format";
 import { eventBudget } from "../domain/selectors";
+import { birthdayMonthDay } from "../domain/birthdays";
 export { Empty } from "./Primitives";
 export function Navigation() {
   return (
@@ -320,27 +321,23 @@ export function PersonRow({
   person: Person;
   index?: number;
 }) {
-  const { data } = useApp();
+  const monthDay = birthdayMonthDay(p.birthday);
+  const birthday = monthDay ? fmtDate(`2000-${monthDay}`) : "";
   return (
     <Link className="person-list-item" to={`/people/${p.id}`}>
       <span
         className="item-photo item-avatar"
         style={{
-          background: ["var(--blue)", "var(--mint)", "var(--rose)"][index % 3],
+          background: ["var(--blue)", "var(--mint)", "var(--rose)", "var(--butter)"][index % 4],
         }}
       >
-        {p.name[0]?.toUpperCase()}
+        {p.photo ? <img src={p.photo} alt="" loading="lazy" /> : p.name[0]?.toUpperCase()}
       </span>
       <span className="item-body">
         <strong>{p.name}</strong>
-        <small>
-          {p.birthday
-            ? "Birthday · " + fmtDate(p.birthday)
-            : "Birthday not set"}{" "}
-          · {data.ideas.filter((i) => i.personId === p.id).length} saved ideas
-        </small>
+        <small>{birthday ? `Birthday · ${birthday}` : "Birthday not set"}</small>
       </span>
-      <ChevronRight size={19} />
+      <ChevronRight size={19} aria-hidden="true" />
     </Link>
   );
 }

@@ -9,7 +9,8 @@ import {
 import { useApp } from "../state/AppState";
 import type { Event, Gift, Idea, Person } from "../domain/models";
 import { today, uid } from "../utils/format";
-import { readImage } from "../utils/images";
+import { readImage, readAvatar } from "../utils/images";
+import { birthdayFromParts } from "../domain/birthdays";
 import { Button, Field, Sheet } from "./Primitives";
 import { Photo } from "./UI";
 export function EditorSheet() {
@@ -18,7 +19,8 @@ export function EditorSheet() {
     [busy, setBusy] = useState(false),
     [saveError, setSaveError] = useState(""),
     [chosenPhotoUrl, setChosenPhotoUrl] = useState(""),
-    [chosenPhotoName, setChosenPhotoName] = useState("");
+    [chosenPhotoName, setChosenPhotoName] = useState(""),
+    [removePersonPhoto, setRemovePersonPhoto] = useState(false);
   // Browser-owned previews are temporary. Stored photos are never modified
   // until the user explicitly saves this editor.
   useEffect(() => () => {
@@ -29,6 +31,14 @@ export function EditorSheet() {
     p = data.people.find((p) => p.id === editor?.id),
     event = data.events.find((e) => e.id === editor?.id);
   const prefill = editor?.prefill;
+  const birthdayPerson = event?.kind === "birthday" && event.people.length === 1
+    ? data.people.find((person) => person.id === (event.birthdayPersonId || event.people[0])) : undefined;
+  const lockedBirthday = !!birthdayPerson && !!event;
+  const birthdayParts = (p?.birthday || "").split("-");
+  const birthMonth = birthdayParts.length === 3 ? birthdayParts[1] : birthdayParts.length === 2 ? birthdayParts[0] : "";
+  const birthDay = birthdayParts.length === 3 ? birthdayParts[2] : birthdayParts.length === 2 ? birthdayParts[1] : "";
+  const birthYear = birthdayParts.length === 3 ? birthdayParts[0] : "";
+  const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   const formRef = useRef<HTMLFormElement>(null);
   const [eventId, setEventId] = useState(
       g?.eventId ||
@@ -85,21 +95,28 @@ export function EditorSheet() {
     try {
       const next = { ...data };
       if (type === "person") {
+        let photo = removePersonPhoto ? "" : p?.photo || "";
+        const photoFile = fd.get("personPhoto");
+        if (photoFile instanceof File && photoFile.size) photo = await readAvatar(photoFile);
         const value: Person = {
           ...p,
           id: id || uid(),
           name,
-          birthday: text("birthday"),
+          photo,
+          birthday: birthdayFromParts(text("birthMonth"), text("birthDay"), text("birthYear")),
+          interests: text("interests"),
           likes: text("likes"),
+          avoid: text("avoid"),
           note: text("note"),
         };
         next.people = id
           ? data.people.map((p) => (p.id === id ? value : p))
           : [...data.people, value];
       } else if (type === "event") {
-        const people = data.people
-          .filter((p) => fd.get("person_" + p.id) === "on")
-          .map((p) => p.id);
+        const people = lockedBirthday && birthdayPerson
+          ? [birthdayPerson.id]
+          : data.people.filter((person) => fd.get("person_" + person.id) === "on")
+              .map((person) => person.id);
         if (
           id &&
           data.gifts.some(
@@ -117,9 +134,9 @@ export function EditorSheet() {
         const value: Event = {
           ...event,
           id: id || uid(),
-          name,
-          date: text("date"),
-          kind: text("kind") as Event["kind"],
+          name: lockedBirthday ? event?.name || name : name,
+          date: lockedBirthday ? event!.date : text("date"),
+          kind: lockedBirthday ? "birthday" : text("kind") as Event["kind"],
           people,
           budgets,
           enabled: event?.enabled ?? true,
@@ -133,6 +150,11 @@ export function EditorSheet() {
           const selectedOccasion = data.events.find((e) => e.id === eventId);
           if (!selectedOccasion || !data.people.some((p) => p.id === personId))
             throw Error("Choose an occasion and a recipient.");
+          if (selectedOccasion.kind === "birthday" && (
+            selectedOccasion.people.length !== 1 || selectedOccasion.people[0] !== personId
+          )) {
+            throw Error("A birthday has one recipient. Add gifts for others in a separate occasion.");
+          }
           // Selecting an existing person also explicitly assigns them to this
           // occasion. Do not invent or overwrite an individual budget.
           if (!selectedOccasion.people.includes(personId))
@@ -161,6 +183,9 @@ export function EditorSheet() {
             ...value,
             eventId,
             status: text("status") === "bought" ? "bought" : "to_buy",
+            sourceIdeaId: g?.sourceIdeaId || (
+              prefill && data.ideas.some((idea) => idea.id === prefill.id) ? prefill.id : undefined
+            ),
           };
           next.gifts = id
             ? data.gifts.map((g) => (g.id === id ? gift : g))
@@ -190,12 +215,14 @@ export function EditorSheet() {
         : type === "person"
           ? data.gifts.filter((g) => g.personId === id).length
           : 0;
-    if (
-      !confirm(
-        `Delete this ${type}?${count ? ` This also deletes ${count} assigned gifts. Export a backup first if needed.` : ""}`,
-      )
-    )
-      return;
+    const relatedEvents = type === "person"
+      ? data.events.filter((e) => e.people.includes(id || "")).length : 0;
+    const relatedIdeas = type === "person"
+      ? data.ideas.filter((i) => i.personId === id).length : 0;
+    const message = type === "person"
+      ? `Delete ${p?.name || "this person"} permanently? This removes ${count} assigned gifts and their membership in ${relatedEvents} occasions (including their birthday events). ${relatedIdeas} saved ideas will be kept without a recipient. This cannot be undone. Export a backup first if needed.`
+      : `Delete this ${type}?${count ? ` This also deletes ${count} assigned gifts. Export a backup first if needed.` : ""}`;
+    if (!confirm(message)) return;
     let next = { ...data };
     if (type === "person")
       next = {
@@ -205,13 +232,18 @@ export function EditorSheet() {
           i.personId === id ? { ...i, personId: "" } : i,
         ),
         gifts: data.gifts.filter((g) => g.personId !== id),
-        events: data.events.map((e) => ({
-          ...e,
-          people: e.people.filter((pid) => pid !== id),
-          budgets: Object.fromEntries(
-            Object.entries(e.budgets).filter(([pid]) => pid !== id),
-          ),
-        })),
+        events: data.events
+          .filter((e) => !(
+            e.kind === "birthday" && e.people.length === 1 &&
+            e.people[0] === id
+          ))
+          .map((e) => ({
+            ...e,
+            people: e.people.filter((pid) => pid !== id),
+            budgets: Object.fromEntries(
+              Object.entries(e.budgets).filter(([pid]) => pid !== id),
+            ),
+          })),
       };
     else if (type === "event")
       next = {
@@ -233,7 +265,9 @@ export function EditorSheet() {
     selectedOccasion = data.events.find((e) => e.id === eventId),
     assignedRecipientIds = new Set(selectedOccasion?.people || []),
     recipients = eventId
-      ? [
+      ? selectedOccasion?.kind === "birthday" && selectedOccasion.people.length === 1
+        ? data.people.filter((p) => p.id === selectedOccasion.people[0])
+        : [
           ...data.people.filter((p) => assignedRecipientIds.has(p.id)),
           ...data.people.filter((p) => !assignedRecipientIds.has(p.id)),
         ]
@@ -249,64 +283,97 @@ export function EditorSheet() {
           void save(ev.currentTarget);
         }}
       >
-        <Field
-          label={
-            type === "person"
-              ? "Name"
-              : type === "event"
-                ? "Occasion name"
-                : type === "idea"
-                  ? "Idea name"
-                  : "Gift name"
-          }
-        >
-          <input
-            className="control"
-            name="name"
-            required
-            maxLength={type === "gift" || type === "idea" ? 100 : 70}
-            defaultValue={
-              (type === "person" ? p : type === "event" ? event : source)
-                ?.name || ""
-            }
-            placeholder={
-              type === "person"
-                ? "Their name"
-                : type === "event"
-                  ? "e.g. New Year"
-                  : "A lovely thought"
-            }
-          />
-        </Field>
+        {!lockedBirthday ? (
+          <Field
+            label={type === "person" ? "Name" : type === "event" ? "Occasion name" : type === "gift" ? "Gift name" : "Idea name"}
+          >
+            <input
+              className="control" name="name" required
+              maxLength={type === "gift" || type === "idea" ? 100 : 70}
+              defaultValue={(type === "person" ? p : type === "event" ? event : source)?.name || ""}
+              placeholder={type === "person" ? "Their name" : type === "event" ? "e.g. New Year" : "A lovely thought"}
+            />
+          </Field>
+        ) : <input type="hidden" name="name" value={event?.name || ""} />}
         {type === "person" ? (
           <>
-            <Field label="Birthday (optional)">
-              <input
-                className="control"
-                name="birthday"
-                type="date"
-                defaultValue={p?.birthday || ""}
-              />
+            <div className="person-photo-field">
+              <span className="field-label">Photo (optional)</span>
+              <div className="photo-upload">
+                <div className="photo-upload-preview person-photo-preview" aria-label="Person photo preview">
+                  {chosenPhotoUrl || (!removePersonPhoto && p?.photo) ? (
+                    <Photo src={chosenPhotoUrl || p?.photo} name={p?.name || "Person photo"} />
+                  ) : <span className="person-photo-placeholder">{p?.name?.[0]?.toUpperCase() || "?"}</span>}
+                </div>
+                <div className="photo-upload-detail">
+                  <strong>{chosenPhotoUrl ? "New photo selected" : !removePersonPhoto && p?.photo ? "Current photo" : "No photo yet"}</strong>
+                  <label className="photo-upload-button">
+                    <ImageIcon size={16} aria-hidden="true" />
+                    {p?.photo || chosenPhotoUrl ? "Change photo" : "Choose photo"}
+                    <input name="personPhoto" type="file" accept="image/*"
+                      aria-label="Person photo" disabled={busy}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        setChosenPhotoName(file?.name || "");
+                        setChosenPhotoUrl(file ? URL.createObjectURL(file) : "");
+                        if (file) setRemovePersonPhoto(false);
+                      }}
+                    />
+                  </label>
+                  {p?.photo && !removePersonPhoto && !chosenPhotoUrl && (
+                    <button className="person-photo-remove" type="button" onClick={() => setRemovePersonPhoto(true)}>Remove photo</button>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="field-label person-birthday-label">Birthday (optional)</div>
+            <div className="person-birthday-fields">
+              <Field label="Month">
+                <select className="control" name="birthMonth" defaultValue={birthMonth}>
+                  <option value="">Month</option>
+                  {months.map((m, i) => (
+                    <option key={m} value={String(i + 1).padStart(2, "0")}>{m}</option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="Day">
+                <select className="control" name="birthDay" defaultValue={birthDay}>
+                  <option value="">Day</option>
+                  {Array.from({length: 31}, (_, i) => (
+                    <option key={i + 1} value={String(i + 1).padStart(2, "0")}>{i + 1}</option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="Year (optional)">
+                <input className="control" name="birthYear" type="number" min="1900"
+                  max={new Date().getFullYear()} placeholder="Year" defaultValue={birthYear}/>
+              </Field>
+            </div>
+            <p className="section-note person-birthday-help">Birthdays appear in Events automatically. The year can be left blank.</p>
+            <Field label="Interests (comma-separated)">
+              <input className="control" name="interests" defaultValue={p?.interests || ""}
+                placeholder="Books, ceramics, photography…"/>
             </Field>
-            <Field label="What they like">
-              <textarea
-                className="control textarea"
-                name="likes"
-                defaultValue={p?.likes || ""}
-                placeholder="Interests, favorites, wishes…"
-              />
+            <Field label="Wishes & preferences">
+              <textarea className="control textarea" name="likes" defaultValue={p?.likes || ""}
+                placeholder="What they love, would like to have, favorite things…"/>
+            </Field>
+            <Field label="Things to avoid">
+              <textarea className="control textarea" name="avoid" defaultValue={p?.avoid || ""}
+                placeholder="Things they dislike or already have…"/>
             </Field>
             <Field label="Notes">
-              <textarea
-                className="control textarea"
-                name="note"
-                defaultValue={p?.note || ""}
-                placeholder="Little things to remember…"
-              />
+              <textarea className="control textarea" name="note" defaultValue={p?.note || ""}
+                placeholder="Little details worth remembering…"/>
             </Field>
           </>
         ) : type === "event" ? (
           <>
+            {lockedBirthday && birthdayPerson ? (
+              <p className="section-note person-birthday-help">
+                This birthday belongs to {birthdayPerson.name}. Edit their birthday date in People.
+              </p>
+            ) : (
             <div className="form-grid">
               <Field label="Date">
                 <input
@@ -323,15 +390,16 @@ export function EditorSheet() {
                   name="kind"
                   defaultValue={event?.kind || "birthday"}
                 >
-                  <option value="birthday">Birthday</option>
+                  {event?.kind === "birthday" && <option value="birthday">Birthday</option>}
                   <option value="holiday">Holiday</option>
                   <option value="other">Other</option>
                 </select>
               </Field>
             </div>
-            <div className="field-label">Recipients and budgets (₽)</div>
+            )}
+            <div className="field-label">{lockedBirthday ? "Birthday budget (₽)" : "Recipients and budgets (₽)"}</div>
             {data.people.length ? (
-              data.people.map((p) => (
+              (lockedBirthday && birthdayPerson ? [birthdayPerson] : data.people).map((p) => (
                 <div className="recipient-selector" key={p.id}>
                   <label className="checkline">
                     <input
@@ -339,6 +407,7 @@ export function EditorSheet() {
                       type="checkbox"
                       name={"person_" + p.id}
                       defaultChecked={event?.people.includes(p.id)}
+                      disabled={lockedBirthday}
                     />
                     <span>{p.name}</span>
                   </label>

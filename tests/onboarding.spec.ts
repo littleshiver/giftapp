@@ -51,7 +51,11 @@ test("onboarding preview cancel and finish preserve existing plans and images", 
   const d = await readData(page);
   expect(d.people).toEqual(original.people);
   expect(d.gifts).toEqual(original.gifts);
-  expect(d.events).toEqual(original.events);
+  expect(d.events).toEqual(original.events.map((event) =>
+    event.kind === "birthday" && event.people.length === 1
+      ? { ...event, birthdayPersonId: event.people[0] }
+      : event,
+  ));
   expect(d.ideas).toEqual(original.ideas);
 });
 test("exploring first shows real empty states with no placeholder records", async ({

@@ -7,6 +7,7 @@ import {
 } from "react";
 import type { AppData, Editor } from "../domain/models";
 import { today } from "../utils/format";
+import { ensureBirthdayOccasions } from "../domain/birthdays";
 import { load, write } from "../persistence/storage";
 import { emptyDemo, filledDemo } from "../domain/demo";
 
@@ -47,7 +48,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }));
   const setUi = (patch: Partial<UiState>) =>
     updateUi((current) => ({ ...current, ...patch }));
-  const [loaded] = useState(load),
+  const [loaded] = useState(() => {
+    const result = load();
+    return { ...result, data: ensureBirthdayOccasions(result.data) };
+  }),
     [personalData, setPersonalData] = useState(loaded.data),
     [upgradeNotice, setUpgradeNotice] = useState(loaded.upgraded),
     [blocked, setBlocked] = useState(loaded.blocked),
@@ -85,8 +89,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
   const commit = (next: AppData, recovery = false) => {
     // Sandbox edits never touch the real browser storage or migration keys.
+    const ready = ensureBirthdayOccasions(next);
     if (previewMode !== "my") {
-      setPreviewData(next);
+      setPreviewData(ready);
       return true;
     }
     if (blocked && !recovery) {
@@ -96,8 +101,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return false;
     }
     try {
-      write(next);
-      setPersonalData(next);
+      write(ready);
+      setPersonalData(ready);
       setUpgradeNotice(false);
       setBlocked(false);
       setWarning("");
