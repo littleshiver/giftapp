@@ -297,75 +297,79 @@ export function EditorSheet() {
         ) : <input type="hidden" name="name" value={event?.name || ""} />}
         {type === "person" ? (
           <>
-            <div className="person-photo-field">
-              <span className="field-label">Photo (optional)</span>
-              <div className="photo-upload">
-                <div className="photo-upload-preview person-photo-preview" aria-label="Person photo preview">
-                  {chosenPhotoUrl || (!removePersonPhoto && p?.photo) ? (
-                    <Photo src={chosenPhotoUrl || p?.photo} name={p?.name || "Person photo"} />
-                  ) : <span className="person-photo-placeholder">{p?.name?.[0]?.toUpperCase() || "?"}</span>}
-                </div>
-                <div className="photo-upload-detail">
-                  <strong>{chosenPhotoUrl ? "New photo selected" : !removePersonPhoto && p?.photo ? "Current photo" : "No photo yet"}</strong>
-                  <label className="photo-upload-button">
-                    <ImageIcon size={16} aria-hidden="true" />
-                    {p?.photo || chosenPhotoUrl ? "Change photo" : "Choose photo"}
-                    <input name="personPhoto" type="file" accept="image/*"
-                      aria-label="Person photo" disabled={busy}
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        setChosenPhotoName(file?.name || "");
-                        setChosenPhotoUrl(file ? URL.createObjectURL(file) : "");
-                        if (file) setRemovePersonPhoto(false);
-                      }}
-                    />
-                  </label>
-                  {p?.photo && !removePersonPhoto && !chosenPhotoUrl && (
-                    <button className="person-photo-remove" type="button" onClick={() => setRemovePersonPhoto(true)}>Remove photo</button>
-                  )}
+            <div className="person-editor-identity">
+              <div className="person-photo-field">
+                <span className="field-label">Photo</span>
+                <div className="photo-upload">
+                  <div className="photo-upload-preview person-photo-preview" aria-label="Portrait preview">
+                    {chosenPhotoUrl || (!removePersonPhoto && p?.photo) ? (
+                      <Photo src={chosenPhotoUrl || p?.photo} name={p?.name || "Person portrait"}/>
+                    ) : <span className="person-photo-placeholder">{p?.name?.[0]?.toUpperCase() || "?"}</span>}
+                  </div>
+                  <div className="photo-upload-detail">
+                    <label className="photo-upload-button">
+                      <ImageIcon size={16} aria-hidden="true"/>
+                      {p?.photo || chosenPhotoUrl ? "Change photo" : "Add a photo"}
+                      <input name="personPhoto" type="file" accept="image/*"
+                        aria-label="Person photo" disabled={busy}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          setChosenPhotoName(file?.name || "");
+                          setChosenPhotoUrl(file ? URL.createObjectURL(file) : "");
+                          if (file) setRemovePersonPhoto(false);
+                        }}
+                      />
+                    </label>
+                    {p?.photo && !removePersonPhoto && !chosenPhotoUrl && (
+                      <button className="person-photo-remove" type="button"
+                        onClick={() => setRemovePersonPhoto(true)}>Remove photo</button>
+                    )}
+                  </div>
                 </div>
               </div>
+              <div className="field-label person-birthday-label">Birthday</div>
+              <div className="person-birthday-fields">
+                <Field label="Month">
+                  <select className="control" name="birthMonth" defaultValue={birthMonth}>
+                    <option value="">Month</option>
+                    {months.map((m, i) => (
+                      <option key={m} value={String(i + 1).padStart(2, "0")}>{m}</option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Day">
+                  <select className="control" name="birthDay" defaultValue={birthDay}>
+                    <option value="">Day</option>
+                    {Array.from({length: 31}, (_, i) => (
+                      <option key={i + 1} value={String(i + 1).padStart(2, "0")}>{i + 1}</option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Year (optional)">
+                  <input className="control" name="birthYear" type="number" min="1900"
+                    max={new Date().getFullYear()} placeholder="Not required" defaultValue={birthYear}/>
+                </Field>
+              </div>
             </div>
-            <div className="field-label person-birthday-label">Birthday (optional)</div>
-            <div className="person-birthday-fields">
-              <Field label="Month">
-                <select className="control" name="birthMonth" defaultValue={birthMonth}>
-                  <option value="">Month</option>
-                  {months.map((m, i) => (
-                    <option key={m} value={String(i + 1).padStart(2, "0")}>{m}</option>
-                  ))}
-                </select>
+            <section className="person-editor-preferences" aria-label="About them">
+              <h3 className="person-editor-subtitle">About them</h3>
+              <Field label="Interests (comma-separated)">
+                <input className="control" name="interests" defaultValue={p?.interests || ""}
+                  placeholder="Books, ceramics, photography…"/>
               </Field>
-              <Field label="Day">
-                <select className="control" name="birthDay" defaultValue={birthDay}>
-                  <option value="">Day</option>
-                  {Array.from({length: 31}, (_, i) => (
-                    <option key={i + 1} value={String(i + 1).padStart(2, "0")}>{i + 1}</option>
-                  ))}
-                </select>
+              <Field label="Wishes & preferences">
+                <textarea className="control textarea" name="likes" defaultValue={p?.likes || ""}
+                  placeholder="What they love or would like to have…"/>
               </Field>
-              <Field label="Year (optional)">
-                <input className="control" name="birthYear" type="number" min="1900"
-                  max={new Date().getFullYear()} placeholder="Year" defaultValue={birthYear}/>
+              <Field label="Things to avoid">
+                <textarea className="control textarea" name="avoid" defaultValue={p?.avoid || ""}
+                  placeholder="Things they dislike or already have…"/>
               </Field>
-            </div>
-            <p className="section-note person-birthday-help">Birthdays appear in Events automatically. The year can be left blank.</p>
-            <Field label="Interests (comma-separated)">
-              <input className="control" name="interests" defaultValue={p?.interests || ""}
-                placeholder="Books, ceramics, photography…"/>
-            </Field>
-            <Field label="Wishes & preferences">
-              <textarea className="control textarea" name="likes" defaultValue={p?.likes || ""}
-                placeholder="What they love, would like to have, favorite things…"/>
-            </Field>
-            <Field label="Things to avoid">
-              <textarea className="control textarea" name="avoid" defaultValue={p?.avoid || ""}
-                placeholder="Things they dislike or already have…"/>
-            </Field>
-            <Field label="Notes">
-              <textarea className="control textarea" name="note" defaultValue={p?.note || ""}
-                placeholder="Little details worth remembering…"/>
-            </Field>
+              <Field label="Notes">
+                <textarea className="control textarea" name="note" defaultValue={p?.note || ""}
+                  placeholder="Little details worth remembering…"/>
+              </Field>
+            </section>
           </>
         ) : type === "event" ? (
           <>
