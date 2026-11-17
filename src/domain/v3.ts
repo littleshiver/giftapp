@@ -6,6 +6,8 @@ export interface Person {
   likes?: string;
   [key: string]: unknown;
 }
+export type ReminderDays = 0 | 1 | 3 | 7 | 14 | null;
+
 export interface Event {
   id: string;
   name: string;
@@ -15,6 +17,7 @@ export interface Event {
   budgets: Record<string, number>;
   enabled: boolean;
   image?: string;
+  reminderDays?: ReminderDays;
   demo?: boolean;
   [key: string]: unknown;
 }

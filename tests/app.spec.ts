@@ -147,7 +147,7 @@ test("recipient budgets, zero/overspending, missing budgets and month accounting
   await expect(page.locator(".person-budget-row")).toContainText("Not set");
   expect((await readData(page)).events[0].budgets).toEqual({});
 });
-test("calendar, planning, people editing and contextual gift/idea creation", async ({
+test("calendar, reminders, people editing and contextual gift/idea creation", async ({
   page,
 }) => {
   await seed(page);
@@ -161,7 +161,7 @@ test("calendar, planning, people editing and contextual gift/idea creation", asy
   );
   await page.getByRole("button", { name: "2026-12-31", exact: true }).click();
   await expect(page.getByRole("link", { name: /New Year/ })).toBeVisible();
-  await page.getByRole("button", { name: "Planning", exact: true }).click();
+  await page.getByRole("button", { name: "Reminders", exact: true }).click();
   await expect(page.locator(".month-block")).toHaveCount(3);
   await page
     .getByRole("navigation")
@@ -606,7 +606,7 @@ test("calendar marker colors and gift statuses reflect actual enabled events", a
   await expect(page.getByRole("link", { name: /Little celebration/ })).toHaveCount(0);
   await page.getByRole("button", { name: "Show all" }).click();
   await expect(page.locator(".calendar-event-card")).toHaveCount(3);
-  await page.getByRole("button", { name: "Planning", exact: true }).click();
+  await page.getByRole("button", { name: "Reminders", exact: true }).click();
   await expect(page.locator(".month-block")).toHaveCount(3);
 });
 
@@ -793,4 +793,36 @@ test("Home swipe teaching animation plays once when visible and respects reduced
   expect(reduced).toBe("none");
   await page.locator(".home-inspiration-link").click();
   await expect(page).toHaveURL(/#\/ideas$/);
+});
+
+
+test("per-event reminder preferences save, reload and turn off independently", async ({ page }) => {
+  await seed(page);
+  await page.goto("/#/events?mode=reminders");
+  await expect(page.getByRole("button", { name: "Reminders", exact: true }))
+    .toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByText("Notifications are not sent yet.", { exact: false }))
+    .toBeVisible();
+
+  const anna = page.locator(".reminder-event").filter({
+    has: page.getByRole("link", { name: /Anna's birthday/ }),
+  });
+  await expect(anna).toContainText("No reminder");
+  await anna.getByRole("button", { name: "Set reminder for Anna's birthday" }).click();
+  await anna.getByRole("button", { name: "7 days before" }).click();
+  await expect(anna).toContainText("7 days before");
+  expect((await readData(page)).events.find((e) => e.id === "e1").reminderDays).toBe(7);
+  expect((await readData(page)).events.find((e) => e.id === "e2").reminderDays).toBeUndefined();
+
+  await page.reload();
+  const savedAnna = page.locator(".reminder-event").filter({
+    has: page.getByRole("link", { name: /Anna's birthday/ }),
+  });
+  await expect(savedAnna).toContainText("7 days before");
+  await savedAnna.getByRole("button", { name: "Set reminder for Anna's birthday" }).click();
+  await savedAnna.getByRole("button", { name: "Off", exact: true }).click();
+  await expect(savedAnna).toContainText("No reminder");
+  expect((await readData(page)).events.find((e) => e.id === "e1").reminderDays).toBeNull();
+  await page.getByRole("button", { name: "Calendar", exact: true }).click();
+  await expect(page.locator(".calendar-card")).toBeVisible();
 });

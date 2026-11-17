@@ -1,13 +1,12 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Bell, BellOff, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { Empty, Section, Photo } from "../components/UI";
 import { OccasionArt } from "../components/OccasionArt";
 import { useApp } from "../state/AppState";
-import { enabledEvents, eventBudget } from "../domain/selectors";
-import type { AppData, Event } from "../domain/models";
+import { enabledEvents } from "../domain/selectors";
+import type { AppData, Event, ReminderDays } from "../domain/models";
 import {
-  currency,
   fmtDate,
   iso,
   monthName,
@@ -68,13 +67,98 @@ function MonthEventCard({
   );
 }
 
+
+const reminderOptions: { value: ReminderDays; label: string }[] = [
+  { value: null, label: "Off" },
+  { value: 0, label: "On the day" },
+  { value: 1, label: "1 day before" },
+  { value: 3, label: "3 days before" },
+  { value: 7, label: "7 days before" },
+  { value: 14, label: "14 days before" },
+];
+
+function reminderLabel(value: ReminderDays) {
+  return reminderOptions.find((option) => option.value === value)?.label ?? "Off";
+}
+
+function ReminderEventRow({
+  event,
+  onChange,
+}: {
+  event: Event;
+  onChange: (days: ReminderDays) => boolean;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const current = event.reminderDays ?? null;
+  const active = current !== null;
+
+  return (
+    <article className={`reminder-event ${expanded ? "is-expanded" : ""}`}>
+      <div className="reminder-event-main">
+        <span className="plan-date reminder-date" aria-hidden="true">
+          {parseDate(event.date).getDate()}
+          <small>
+            {parseDate(event.date)
+              .toLocaleDateString("en-US", { month: "short" })
+              .toUpperCase()}
+          </small>
+        </span>
+        <Link className="reminder-event-info" to={`/events/${event.id}`}>
+          <strong>{event.name}</strong>
+          <small className={active ? "is-on" : ""}>
+            {active ? reminderLabel(current) : "No reminder"}
+          </small>
+        </Link>
+        <button
+          type="button"
+          className={`reminder-toggle ${active ? "is-on" : ""}`}
+          aria-label={`Set reminder for ${event.name}`}
+          aria-expanded={expanded}
+          aria-controls={`reminder-options-${event.id}`}
+          onClick={() => setExpanded((value) => !value)}
+        >
+          {active ? <Bell size={19} /> : <BellOff size={19} />}
+        </button>
+      </div>
+      {expanded && (
+        <div className="reminder-options" id={`reminder-options-${event.id}`}>
+          <p className="reminder-options-title">Remind me</p>
+          <div className="reminder-choices" role="group" aria-label={`Reminder for ${event.name}`}>
+            {reminderOptions.map((option) => (
+              <button
+                key={option.value ?? "off"}
+                type="button"
+                className={`reminder-choice ${current === option.value ? "is-selected" : ""}`}
+                aria-pressed={current === option.value}
+                onClick={() => {
+                  if (onChange(option.value)) setExpanded(false);
+                }}
+              >
+                <span>{option.label}</span>
+                {current === option.value && <Check size={16} aria-hidden="true" />}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </article>
+  );
+}
+
 export function Events() {
-  const { data, ui, setUi } = useApp();
+  const { data, ui, setUi, commit } = useApp();
   const [params] = useSearchParams();
   const { mode } = ui;
   const month = parseDate(ui.month);
   const monthKey = iso(new Date(month.getFullYear(), month.getMonth(), 1)).slice(0, 7);
   const [filteredDate, setFilteredDate] = useState<string | null>(null);
+  const saveReminder = (eventId: string, reminderDays: ReminderDays) =>
+    commit({
+      ...data,
+      events: data.events.map((event) =>
+        event.id === eventId ? { ...event, reminderDays } : event,
+      ),
+    });
   // A date from another month never filters the newly viewed month.
   const activeDate = filteredDate?.slice(0, 7) === monthKey ? filteredDate : null;
   const evs = enabledEvents(data);
@@ -96,7 +180,9 @@ export function Events() {
   });
 
   useEffect(() => {
-    if (params.get("mode") === "planning") setUi({ mode: "planning" });
+    if (["planning", "reminders"].includes(params.get("mode") ?? "")) {
+      setUi({ mode: "reminders" });
+    }
   }, [params]);
 
   const first = new Date(month.getFullYear(), month.getMonth(), 1);
@@ -124,7 +210,7 @@ export function Events() {
       </header>
       <div className="events-mode-row">
         <div className="pill-tabs" role="group" aria-label="Events view">
-          {(["calendar", "planning"] as const).map((view) => (
+          {(["calendar", "reminders"] as const).map((view) => (
             <button
               key={view}
               type="button"
@@ -132,7 +218,7 @@ export function Events() {
               aria-pressed={mode === view}
               onClick={() => setUi({ mode: view })}
             >
-              {view === "calendar" ? "Calendar" : "Planning"}
+              {view === "calendar" ? "Calendar" : "Reminders"}
             </button>
           ))}
         </div>
@@ -235,38 +321,36 @@ export function Events() {
             )}
           </section>
         </>
-      ) : Object.keys(groups).length ? (
-        Object.entries(groups).map(([key, events]) => (
-          <section className="month-block" key={key}>
-            <Section title={monthName(parseDate(key + "-01"))} />
-            <p className="section-note" style={{ marginBottom: 11 }}>
-              {currency(events.reduce((n, e) => n + eventBudget(e), 0))}{" "}
-              allocated · {events.length} occasions
-            </p>
-            {events.map((e) => (
-              <Link className="plan-event" key={e.id} to={`/events/${e.id}`}>
-                <span className="plan-date">
-                  {parseDate(e.date).getDate()}
-                  <small>
-                    {parseDate(e.date)
-                      .toLocaleDateString("en-US", { month: "short" })
-                      .toUpperCase()}
-                  </small>
-                </span>
-                <span className="item-body">
-                  <strong>{e.name}</strong>
-                  <small>{e.people.length} recipients</small>
-                </span>
-                <strong className="text-sm nowrap">
-                  {currency(eventBudget(e))}
-                </strong>
-                <ChevronRight size={16} />
-              </Link>
-            ))}
-          </section>
-        ))
       ) : (
-        <Empty>Add your first occasion to start planning.</Empty>
+        <div className="reminders-page">
+          <p className="reminders-intro">
+            Choose when to be reminded about each occasion.
+          </p>
+          <p className="reminders-delivery-note">
+            Reminder preferences are saved. Notifications are not sent yet.
+          </p>
+          {Object.keys(groups).length ? (
+            Object.entries(groups).map(([key, events]) => (
+              <section className="month-block reminders-month" key={key}>
+                <Section title={monthName(parseDate(key + "-01"))} />
+                <p className="section-note">
+                  {events.length} {events.length === 1 ? "occasion" : "occasions"}
+                </p>
+                <div className="reminder-event-list">
+                  {events.map((event) => (
+                    <ReminderEventRow
+                      key={event.id}
+                      event={event}
+                      onChange={(value) => saveReminder(event.id, value)}
+                    />
+                  ))}
+                </div>
+              </section>
+            ))
+          ) : (
+            <Empty>Add your first occasion to set a reminder.</Empty>
+          )}
+        </div>
       )}
     </>
   );

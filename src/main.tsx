@@ -4,6 +4,7 @@ import { AppProvider } from "./state/AppState";
 import { App } from "./App";
 import "./styles/tokens.css";
 import "./styles/app.css";
+import "./styles/reminders.css";
 createRoot(document.getElementById("root")!).render(
   <HashRouter>
     <AppProvider>
