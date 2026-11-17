@@ -1,5 +1,6 @@
 import { Link, useParams } from "react-router-dom";
-import { UsersRound, Check, Clock, Edit3, Plus } from "lucide-react";
+import { UsersRound, Check, Clock, Edit3, Plus, ChevronLeft, Cake } from "lucide-react";
+import { birthdayMonthDay } from "../domain/birthdays";
 import {
   AddGift,
   Empty,
@@ -174,84 +175,102 @@ export function EventDetail() {
   );
 }
 export function PersonDetail() {
-  const { id } = useParams(),
-    { data, openEditor } = useApp(),
-    p = data.people.find((p) => p.id === id);
-  if (!p) return <Title name="Person not found" back="/people" />;
-  const events = data.events.filter((e) => e.people.includes(p.id)),
-    gs = giftsFor(data, undefined, p.id),
-    ideas = data.ideas.filter((i) => i.personId === p.id);
+  const { id } = useParams();
+  const { data, openEditor } = useApp();
+  const person = data.people.find((candidate) => candidate.id === id);
+  if (!person) return <Title name="Person not found" back="/people" />;
+  const ideas = data.ideas.filter((idea) => idea.personId === person.id);
+  const interests = (person.interests || "").split(",").map((item) => item.trim()).filter(Boolean);
+  const birthday = birthdayMonthDay(person.birthday);
+  const hasPreferences = interests.length || person.likes || person.avoid || person.note;
+
   return (
-    <>
-      <Title name={p.name} back="/people" />
-      <div className="detail-hero">
-        <div className="overline">Your person</div>
-        <h2 className="title-lg">{p.name}</h2>
-        <p className="detail-mini">
-          {p.birthday
-            ? "Birthday · " + fullDate(p.birthday)
-            : "Birthday not set"}
-        </p>
-        <div className="hero-actions">
-          <span className="text-sm muted">Their little details</span>
-          <Button
-            variant="outline"
-            onClick={() => openEditor({ type: "person", id: p.id })}
-          >
-            <Edit3 size={15} />
-            Edit person
-          </Button>
+    <div className="person-detail">
+      <Link className="ghostbutton back-link person-back" to="/people">
+        <ChevronLeft size={16} aria-hidden="true"/> People
+      </Link>
+      <div className="person-profile-hero">
+        <span className="person-profile-photo" aria-hidden="true">
+          {person.photo ? <img src={person.photo} alt="" /> : person.name[0]?.toUpperCase()}
+        </span>
+        <div className="person-profile-info">
+          <h1 className="title-xl">{person.name}</h1>
+          {birthday ? (
+            <p className="person-profile-birthday">
+              <Cake size={15} aria-hidden="true"/>
+              Birthday · {fmtDate(`2000-${birthday}`)}
+            </p>
+          ) : <p className="person-profile-birthday">Birthday not set</p>}
         </div>
+        <Button variant="outline" className="person-edit-button"
+          onClick={() => openEditor({ type: "person", id: person.id })}>
+          <Edit3 size={16} /> <span>Edit person</span>
+        </Button>
       </div>
-      <section className="section">
-        <Section title="What they like" />
-        <div className="data-card" style={{ marginTop: 0 }}>
-          <p>{p.likes || "Add interests, wishes and favorite things."}</p>
-          {p.note && <p style={{ marginTop: 9 }}>{p.note}</p>}
+      <section className="section person-preferences" aria-labelledby="person-about-heading">
+        <div className="section-top">
+          <h2 id="person-about-heading">About {person.name}</h2>
         </div>
-      </section>
-      <section className="section">
-        <Section title="Their occasions" />
-        <div className="info-list">
-          {events.length ? (
-            events.map((e) => <EventRow event={e} key={e.id} />)
+        <div className="person-preferences-card">
+          {hasPreferences ? (
+            <>
+              {interests.length > 0 && (
+                <div className="person-preference">
+                  <h3>Interests</h3>
+                  <div className="person-interest-tags">
+                    {interests.map((interest, i) => (
+                      <span className="person-interest-tag" key={i}>{interest}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {person.likes && (
+                <div className="person-preference">
+                  <h3>Wishes & preferences</h3>
+                  <p>{person.likes}</p>
+                </div>
+              )}
+              {person.avoid && (
+                <div className="person-preference">
+                  <h3>Things to avoid</h3>
+                  <p>{person.avoid}</p>
+                </div>
+              )}
+              {person.note && (
+                <div className="person-preference">
+                  <h3>Notes</h3>
+                  <p>{person.note}</p>
+                </div>
+              )}
+            </>
           ) : (
-            <Empty>No occasions linked to this person yet.</Empty>
+            <p className="person-preferences-empty">What do they love? Add interests, wishes or little things to remember.</p>
           )}
         </div>
       </section>
-      <section className="section">
-        <Section title="Their gifts & ideas" />
-        {gs.length || ideas.length ? (
+      <section className="section person-ideas" aria-labelledby="person-ideas-heading">
+        <div className="section-top">
+          <h2 id="person-ideas-heading">Gift ideas</h2>
+          <button className="section-link" type="button"
+            onClick={() => openEditor({ type: "idea", personId: person.id })}>
+            <Plus size={16} /> Add idea
+          </button>
+        </div>
+        {ideas.length ? (
           <div className="smallcards-grid">
-            {gs.map((g) => (
-              <Product
-                key={g.id}
-                item={g}
-                onClick={() => openEditor({ type: "gift", id: g.id })}
-              />
-            ))}
-            {ideas.map((i) => (
-              <Product
-                key={"idea-" + i.id}
-                item={i}
-                onClick={() => openEditor({ type: "idea", id: i.id })}
-              />
+            {ideas.map((idea) => (
+              <Product key={idea.id} item={idea}
+                onClick={() => openEditor({ type: "idea", id: idea.id })} />
             ))}
           </div>
         ) : (
-          <Empty>No gifts or ideas saved yet.</Empty>
+          <Empty>No ideas saved for {person.name} yet.</Empty>
         )}
-        <Button
-          variant="secondary"
-          className="button-full"
-          style={{ marginTop: 17 }}
-          onClick={() => openEditor({ type: "idea", personId: p.id })}
-        >
-          <Plus size={16} />
-          Save a gift idea
+        <Button variant="secondary" className="button-full person-add-idea"
+          onClick={() => openEditor({ type: "idea", personId: person.id })}>
+          <Plus size={16} /> Save a gift idea
         </Button>
       </section>
-    </>
+    </div>
   );
 }
