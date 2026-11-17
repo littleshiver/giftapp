@@ -1,12 +1,10 @@
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { UsersRound, Check, Clock, Edit3, Plus, ChevronLeft, Cake } from "lucide-react";
+import { UsersRound, Check, Clock, Edit3, Plus, ChevronLeft, ChevronRight, Cake } from "lucide-react";
 import { birthdayMonthDay } from "../domain/birthdays";
 import {
-  AddGift,
   Empty,
-  EventRow,
   Product,
-  IdeaRow,
   Section,
   Title,
   BudgetBar,
@@ -20,160 +18,221 @@ import {
   total,
 } from "../domain/selectors";
 import { currency, fmtDate, fullDate } from "../utils/format";
-import { Button } from "../components/Primitives";
+import { Button, Sheet } from "../components/Primitives";
+import { Photo } from "../components/UI";
+import type { Gift } from "../domain/models";
+
+function EventGift({
+  gift, multiPerson, onEdit, onToggle,
+}: {
+  gift: Gift;
+  multiPerson: boolean;
+  onEdit: () => void;
+  onToggle: () => void;
+}) {
+  return (
+    <div className="event-gift">
+      <Product item={gift} person={multiPerson} onClick={onEdit}/>
+      <div className="gift-actions">
+        <button
+          type="button"
+          className={`status-button ${gift.status === "bought" ? "is-bought" : ""}`}
+          aria-label={`Mark ${gift.name} as ${gift.status === "bought" ? "To buy" : "Bought"}`}
+          onClick={onToggle}
+        >
+          {gift.status === "bought" ? <Check size={13}/> : <Clock size={13}/>}
+          {gift.status === "bought" ? "Bought" : "To buy"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function EventDetail() {
-  const { id } = useParams(),
-    { data, openEditor, commit } = useApp(),
-    e = data.events.find((e) => e.id === id);
-  if (!e)
+  const { id } = useParams();
+  const { data, openEditor, commit } = useApp();
+  const [giftPersonId, setGiftPersonId] = useState<string | null>(null);
+  const event = data.events.find((item) => item.id === id);
+  if (!event) {
     return (
       <>
-        <Title name="Occasion not found" back="/events" />
+        <Title name="Occasion not found" back="/events"/>
         <Empty>This occasion is unavailable.</Empty>
       </>
     );
-  const gs = giftsFor(data, e.id),
-    budget = eventBudget(e),
-    cost = total(gs);
+  }
+  const gifts = giftsFor(data, event.id);
+  const budget = eventBudget(event);
+  const cost = total(gifts);
+  const isGroup = event.people.length > 1;
+  const isBirthday = event.kind === "birthday" && event.people.length === 1;
+  const selectedPerson = data.people.find((person) => person.id === giftPersonId);
+  const savedIdeas = data.ideas.filter((idea) => idea.personId === giftPersonId);
+  const openGift = (personId: string) => setGiftPersonId(personId);
+  const toggle = (id: string) => commit({
+    ...data,
+    gifts: data.gifts.map((gift) => gift.id === id
+      ? { ...gift, status: gift.status === "bought" ? "to_buy" as const : "bought" as const }
+      : gift),
+  });
+  const renderGifts = (items: Gift[]) => (
+    <div className="detail-gifts">
+      {items.map((gift) => (
+        <div key={gift.id}>
+          <EventGift gift={gift} multiPerson={false}
+            onEdit={() => openEditor({type: "gift", id: gift.id})}
+            onToggle={() => toggle(gift.id)}/>
+          {!associationValid(data, gift) && (
+            <p className="warning">This gift's recipient is not linked to the occasion. Edit the gift to repair.</p>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+  const unassigned = gifts.filter((gift) => !event.people.includes(gift.personId));
+
   return (
-    <>
-      <Title name={e.name} back="/events" />
-      <div className="detail-hero">
-        <div className="overline">
-          {e.kind === "birthday" ? "Birthday" : "Occasion"}
-        </div>
-        <h2 className="title-lg">{fullDate(e.date)}</h2>
-        <div className="detail-mini">
-          <UsersRound size={15} />
-          {e.people.length} {e.people.length === 1 ? "recipient" : "recipients"}
-        </div>
-        <div className="hero-actions">
-          <span className="hero-budget">
-            {currency(cost)}{" "}
-            <span style={{ fontWeight: 400 }}>
-              of {currency(budget)} selected
-            </span>
-          </span>
-          <Button
-            variant="outline"
-            onClick={() => openEditor({ type: "event", id: e.id })}
-          >
-            <Edit3 size={16} />
-            Edit
+    <div className="event-detail">
+      <Title name={event.name} back="/events" />
+      <div className="event-summary">
+        <div className="event-summary-top">
+          <div>
+            <p className="overline">{isBirthday ? "Birthday" : "Occasion"}</p>
+            <h2>{fullDate(event.date)}</h2>
+          </div>
+          <Button variant="outline" onClick={() => openEditor({type: "event", id: event.id})}>
+            <Edit3 size={16}/> Edit
           </Button>
         </div>
-        <BudgetBar bought={bought(gs)} committed={cost} budget={budget} />
-        {cost > budget && (
-          <p className="warning">{currency(cost - budget)} over budget</p>
+        {!isGroup && event.people.length === 1 && (() => {
+          const person = data.people.find((item) => item.id === event.people[0]);
+          return (
+            <Link className="event-person-summary" to={`/people/${event.people[0]}`}>
+              <span className="event-person-avatar" aria-hidden="true">
+                {person?.photo ? <img src={person.photo} alt=""/> : person?.name[0]?.toUpperCase() || "?"}
+              </span>
+              <span className="item-body">
+                <strong>{person?.name || "Unknown person"}</strong>
+                <small>{isBirthday ? "Birthday person" : "Recipient"}</small>
+              </span>
+              <ChevronRight size={17} aria-hidden="true"/>
+            </Link>
+          );
+        })()}
+        {isGroup && (
+          <p className="event-recipient-count"><UsersRound size={16}/> {event.people.length} recipients</p>
         )}
+        <div className="event-summary-budget">
+          <div>
+            <strong>{currency(cost)}</strong>
+            <span> of {currency(budget)} planned</span>
+          </div>
+          <BudgetBar bought={bought(gifts)} committed={cost} budget={budget}/>
+          {cost > budget && <p className="warning">{currency(cost - budget)} over budget</p>}
+        </div>
       </div>
-      <section className="section">
-        <Section title="People & budgets" />
-        {e.people.length ? (
-          e.people.map((pid) => {
-            const p = data.people.find((p) => p.id === pid),
-              items = giftsFor(data, e.id, pid),
-              n = total(items),
-              limit = e.budgets[pid];
+
+      {isGroup ? (
+        <section className="section event-recipient-groups">
+          <Section title="Gifts by person"/>
+          {event.people.map((personId) => {
+            const person = data.people.find((item) => item.id === personId);
+            const items = giftsFor(data, event.id, personId);
+            const limit = event.budgets[personId];
             return (
-              <div className="person-budget-row" key={pid}>
-                <div className="toprow">
-                  <Link className="icontext" to={`/people/${pid}`}>
-                    <span className="avatar-bubble">{p?.name[0] || "?"}</span>
+              <div key={personId} className="event-recipient-group">
+                <div className="event-recipient-group-top">
+                  <Link className="icontext event-recipient-name" to={`/people/${personId}`}>
+                    <span className="event-person-avatar" aria-hidden="true">
+                      {person?.photo ? <img src={person.photo} alt=""/> : person?.name[0]?.toUpperCase() || "?"}
+                    </span>
                     <span className="item-body">
-                      <strong>{p?.name || "Unknown recipient"}</strong>
-                      <small>{items.length} gifts selected</small>
+                      <strong>{person?.name || "Unknown person"}</strong>
+                      <small>{items.length} {items.length === 1 ? "gift" : "gifts"}</small>
                     </span>
                   </Link>
-                  <strong className="text-sm">
-                    {limit === undefined ? "Not set" : currency(limit)}
-                  </strong>
+                  <span className="event-recipient-budget">{limit === undefined ? "Budget not set" : currency(limit) + " budget"}</span>
                 </div>
-                <BudgetBar
-                  bought={bought(items)}
-                  committed={n}
-                  budget={limit ?? 0}
-                />
-                <div
-                  className={`budget-numbers ${limit !== undefined && n > limit ? "warning" : ""}`}
-                >
-                  {currency(n)} committed ·{" "}
-                  {limit === undefined
-                    ? "Budget not set"
-                    : n > limit
-                      ? `${currency(n - limit)} over budget`
-                      : `${currency(limit - n)} available`}
-                </div>
-              </div>
-            );
-          })
-        ) : (
-          <Empty>Add recipients in Edit occasion.</Empty>
-        )}
-      </section>
-      <section className="section">
-        <Section title="Gifts" />
-        {gs.length ? (
-          <div className="detail-gifts">
-            {gs.map((g) => (
-              <div key={g.id}>
-                <Product
-                  item={g}
-                  person={e.people.length > 1}
-                  onClick={() => openEditor({ type: "gift", id: g.id })}
-                />
-                <div className="gift-actions">
-                  <button
-                    className={`status-button ${g.status === "bought" ? "is-bought" : ""}`}
-                    aria-label={`Mark ${g.name} as ${g.status === "bought" ? "To buy" : "Bought"}`}
-                    onClick={() =>
-                      commit({
-                        ...data,
-                        gifts: data.gifts.map((x) =>
-                          x.id === g.id
-                            ? {
-                                ...x,
-                                status:
-                                  x.status === "bought" ? "to_buy" : "bought",
-                              }
-                            : x,
-                        ),
-                      })
-                    }
-                  >
-                    {g.status === "bought" ? (
-                      <Check size={13} />
-                    ) : (
-                      <Clock size={13} />
-                    )}{" "}
-                    {g.status === "bought" ? "Bought" : "To buy"}
-                  </button>
-                </div>
-                {!associationValid(data, g) && (
-                  <p className="warning">
-                    Recipient is not assigned to this occasion. Edit the
-                    occasion or gift to repair.
-                  </p>
+                {items.length ? renderGifts(items) : <p className="event-empty-gifts">No gifts selected yet.</p>}
+                {person && (
+                  <Button variant="secondary" className="button-full event-add-gift"
+                    onClick={() => openGift(personId)}>
+                    <Plus size={16}/> Add gift for {person.name}
+                  </Button>
                 )}
               </div>
-            ))}
-          </div>
-        ) : (
-          <Empty>No gifts selected yet. Add your first gift.</Empty>
-        )}
-        <Button
-          variant="secondary"
-          className="button-full"
-          style={{ marginTop: 16 }}
-          onClick={() => openEditor({ type: "gift", eventId: e.id })}
-        >
-          <Plus size={16} />
-          Add gift
-        </Button>
-      </section>
-    </>
+            );
+          })}
+          <Button variant="outline" className="button-full event-add-recipient"
+            onClick={() => openEditor({type: "event", id: event.id})}>
+            <Plus size={16}/> Add recipient
+          </Button>
+        </section>
+      ) : event.people.length === 1 ? (
+        <section className="section event-single-gifts">
+          <Section title="Gifts"/>
+          {gifts.filter((gift) => gift.personId === event.people[0]).length
+            ? renderGifts(gifts.filter((gift) => gift.personId === event.people[0]))
+            : <Empty>No gifts selected yet.</Empty>}
+          <Button variant="secondary" className="button-full event-add-gift"
+            onClick={() => openGift(event.people[0])}>
+            <Plus size={16}/> Add gift
+          </Button>
+        </section>
+      ) : (
+        <section className="section">
+          <Empty>No recipients yet. Add people to start planning gifts.</Empty>
+          <Button variant="secondary" className="button-full event-add-recipient"
+            onClick={() => openEditor({type: "event", id: event.id})}>
+            <Plus size={16}/> Add recipient
+          </Button>
+        </section>
+      )}
+
+      {unassigned.length > 0 && (
+        <section className="section">
+          <Section title="Needs attention"/>
+          <p className="section-note">These gifts are not assigned to a current recipient. Edit them to repair their links.</p>
+          {renderGifts(unassigned)}
+        </section>
+      )}
+
+      {selectedPerson && (
+        <Sheet title={`Gift for ${selectedPerson.name}`} onClose={() => setGiftPersonId(null)}>
+          {savedIdeas.length ? (
+            <>
+              <p className="gift-picker-intro">Choose from saved ideas or add something new.</p>
+              <div className="gift-picker-ideas">
+                {savedIdeas.map((idea) => (
+                  <button className="gift-picker-idea" type="button" key={idea.id}
+                    aria-label={`Use idea ${idea.name}`}
+                    onClick={() => {
+                      setGiftPersonId(null);
+                      openEditor({type: "gift", eventId: event.id, personId: selectedPerson.id, prefill: idea});
+                    }}>
+                    <span className="gift-picker-photo"><Photo src={idea.image} name={idea.name}/></span>
+                    <span className="item-body">
+                      <strong>{idea.name}</strong>
+                      <small>{currency(idea.price)}</small>
+                    </span>
+                    <ChevronRight size={17}/>
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : <p className="gift-picker-intro">No ideas saved for {selectedPerson.name} yet. You can add a new gift.</p>}
+          <Button className="button-full gift-picker-new" onClick={() => {
+            setGiftPersonId(null);
+            openEditor({type: "gift", eventId: event.id, personId: selectedPerson.id});
+          }}>
+            <Plus size={16}/> Add a new gift
+          </Button>
+        </Sheet>
+      )}
+    </div>
   );
 }
+
 export function PersonDetail() {
   const { id } = useParams();
   const { data, openEditor } = useApp();
