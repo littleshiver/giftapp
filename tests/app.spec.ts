@@ -449,7 +449,7 @@ test("gift editor adds people only to group occasions and does not invent budget
   await page.goto("/#/events/e1");
   await page.getByRole("button", { name: "Create", exact: true }).click();
   await page.getByRole("button", { name: "Add gift to occasion" }).click();
-  await expect(page.getByRole("combobox", { name: "For" }).locator("option")).not.toContainText("Rory new");
+  await expect(page.getByRole("combobox", { name: "For" }).locator("option")).toHaveCount(2);
   await page.getByRole("button", { name: "Close" }).click();
 
   await page.goto("/#/events/e2");
