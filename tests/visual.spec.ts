@@ -22,7 +22,7 @@ for (const width of [320, 375, 390, 430])
     const shots = [
       ["home", "/"],
       ["calendar", "/events"],
-      ["planning", "/events?mode=planning"],
+      ["reminders", "/events?mode=reminders"],
       ["event", "/events/e1"],
       ["people", "/people"],
       ["person", "/people/p1"],
@@ -338,7 +338,7 @@ test("calendar QA: four occasions, chosen date and quiet month", async ({ page }
   });
 });
 
-test("Events screen: date-first cards and equal-width Calendar/Planning switch", async ({ page }) => {
+test("Events screen: date-first cards and equal-width Calendar/Reminders switch", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await seed(page);
   await page.goto("/#/events");
@@ -354,6 +354,6 @@ test("Events screen: date-first cards and equal-width Calendar/Planning switch",
   });
   expect(Math.abs(measure.container - measure.group)).toBeLessThan(1);
   expect(Math.abs(measure.buttons[0] - measure.buttons[1])).toBeLessThan(1);
-  await page.getByRole("button", { name: "Planning", exact: true }).click();
+  await page.getByRole("button", { name: "Reminders", exact: true }).click();
   await expect(page.locator(".month-block").first()).toBeVisible();
 });
