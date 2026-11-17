@@ -54,7 +54,7 @@ test("person portrait, interests and private gift-idea library persist without p
   await page.getByRole("button", { name: "Edit person" }).click();
   await page.getByLabel("Interests (comma-separated)").fill("Books, Ceramics");
   await page.getByLabel("Things to avoid").fill("Strong fragrance");
-  await page.getByLabel("Person photo").setInputFiles({
+  await page.getByLabel("Person photo", { exact: true }).setInputFiles({
     name: "anna.jpg", mimeType: "image/jpeg",
     buffer: Buffer.from(image("birthday").split(",")[1], "base64"),
   });
