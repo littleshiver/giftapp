@@ -82,6 +82,7 @@ export function applySetup(
           name: `${name}'s birthday`,
           date,
           kind: "birthday",
+          birthdayPersonId: person.id,
           people: [person.id],
           budgets: { [person.id]: draft.budget },
           enabled: true,
