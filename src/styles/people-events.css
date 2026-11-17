@@ -140,3 +140,12 @@
   .person-birthday-fields select { padding: 6px 3px; }
   .event-recipient-group { padding: 12px; }
 }
+
+.event-repair { padding-bottom: 20px; }
+.event-repair .section-note { margin-bottom: 10px; }
+.event-repair-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 15px; border: 1px solid var(--line); border-radius: 14px;
+  background: white; width: 100%; margin-bottom: 8px; color: var(--ink);
+  font-size: 13px; font-weight: 750; text-align: left;
+}
