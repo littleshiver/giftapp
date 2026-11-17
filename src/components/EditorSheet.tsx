@@ -150,6 +150,11 @@ export function EditorSheet() {
           const selectedOccasion = data.events.find((e) => e.id === eventId);
           if (!selectedOccasion || !data.people.some((p) => p.id === personId))
             throw Error("Choose an occasion and a recipient.");
+          if (selectedOccasion.kind === "birthday" && (
+            selectedOccasion.people.length !== 1 || selectedOccasion.people[0] !== personId
+          )) {
+            throw Error("A birthday has one recipient. Add gifts for others in a separate occasion.");
+          }
           // Selecting an existing person also explicitly assigns them to this
           // occasion. Do not invent or overwrite an individual budget.
           if (!selectedOccasion.people.includes(personId))
@@ -260,7 +265,9 @@ export function EditorSheet() {
     selectedOccasion = data.events.find((e) => e.id === eventId),
     assignedRecipientIds = new Set(selectedOccasion?.people || []),
     recipients = eventId
-      ? [
+      ? selectedOccasion?.kind === "birthday" && selectedOccasion.people.length === 1
+        ? data.people.filter((p) => p.id === selectedOccasion.people[0])
+        : [
           ...data.people.filter((p) => assignedRecipientIds.has(p.id)),
           ...data.people.filter((p) => !assignedRecipientIds.has(p.id)),
         ]
