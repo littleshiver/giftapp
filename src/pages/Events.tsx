@@ -5,7 +5,7 @@ import { Empty, Section, Photo } from "../components/UI";
 import { Sheet } from "../components/Primitives";
 import { OccasionArt } from "../components/OccasionArt";
 import { useApp } from "../state/AppState";
-import { enabledEvents } from "../domain/selectors";
+import { associationValid, enabledEvents } from "../domain/selectors";
 import type { AppData, Event, ReminderDays } from "../domain/models";
 import {
   fmtDate,
@@ -128,7 +128,7 @@ function ReminderEventRow({
 }
 
 export function Events() {
-  const { data, ui, setUi, commit } = useApp();
+  const { data, ui, setUi, commit, openEditor } = useApp();
   const [params] = useSearchParams();
   const { mode } = ui;
   const month = parseDate(ui.month);
@@ -145,6 +145,7 @@ export function Events() {
   // A date from another month never filters the newly viewed month.
   const activeDate = filteredDate?.slice(0, 7) === monthKey ? filteredDate : null;
   const evs = enabledEvents(data);
+  const unlinkedGifts = data.gifts.filter((gift) => !associationValid(data, gift));
   const reminderEvent = evs.find((event) => event.id === reminderEventId);
   const monthEvents = evs.filter((e) => e.date.slice(0, 7) === monthKey);
   const displayedEvents = activeDate
@@ -330,6 +331,19 @@ export function Events() {
             <Empty>Add your first occasion to set a reminder.</Empty>
           )}
         </div>
+      )}
+      {unlinkedGifts.length > 0 && (
+        <section className="section event-repair">
+          <Section title="Gifts needing attention" />
+          <p className="section-note">Some saved gifts have an unavailable occasion or recipient. You can edit them without losing their details.</p>
+          {unlinkedGifts.map((gift) => (
+            <button type="button" key={gift.id} className="event-repair-item"
+              onClick={() => openEditor({type: "gift", id: gift.id})}
+              aria-label={`Repair ${gift.name}`}>
+              <span>{gift.name}</span><ChevronRight size={17}/>
+            </button>
+          ))}
+        </section>
       )}
       {reminderEvent && (
         <Sheet title="Remind me" onClose={() => setReminderEventId(null)}>
