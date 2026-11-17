@@ -1,0 +1,474 @@
+/* Givvy design system refinement — unified cards, page headers and profile/event layouts.
+   This file intentionally comes after the approved Calendar/Reminders/Home styles. */
+:root {
+  --givvy-card-radius: 18px;
+  --givvy-card-gap: 12px;
+  --givvy-control-size: 40px;
+  --givvy-line: #E7E9EB;
+  --givvy-soft-shadow: 0 5px 18px rgba(41,46,51,.055);
+  --givvy-soft-ink: #66717B;
+}
+/* Consistent root navigation: no repeat brand overlines or secondary blurbs. */
+.root-page-heading, .events-page-heading {
+  margin: 0 0 22px;
+  padding: 0;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+}
+.root-page-heading .title-xl, .events-page-heading .title-xl {
+  font-size: 29px;
+  line-height: 1.15;
+  letter-spacing: -.85px;
+  font-weight: 870;
+}
+.detail-page-heading {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 13px;
+  margin-bottom: 18px;
+}
+.detail-page-heading .title-xl {
+  font-size: clamp(26px, 7vw, 32px);
+  font-weight: 890;
+  line-height: 1.12;
+  letter-spacing: -.85px;
+}
+.detail-page-heading .back-link {
+  min-height: 35px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 8px 0 0;
+  font-size: 13px;
+  font-weight: 760;
+  color: #69747D;
+}
+/* All gift and idea cards share the same anatomy. Two separate,
+   discoverable tap targets never sit inside one another. */
+.gift-card {
+  position: relative;
+  isolation: isolate;
+  min-width: 0;
+  border: 0;
+  border-radius: var(--givvy-card-radius);
+}
+.gift-card .product-open {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: none;
+  padding: 0;
+  text-align: left;
+  color: var(--ink);
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+.gift-card .product-open:focus-visible,
+.gift-card .gift-status-icon:focus-visible,
+.gift-card .gift-card-edit:focus-visible {
+  outline: 3px solid #5987AC;
+  outline-offset: 3px;
+}
+.gift-card .product-visual {
+  display: flex;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  height: auto;
+  border-radius: var(--givvy-card-radius);
+  overflow: hidden;
+  align-items: center;
+  justify-content: center;
+  outline: 1px solid rgba(29,38,46,.05);
+  outline-offset: -1px;
+}
+.gift-card .product-visual img,
+.gift-card .product-visual .demo-product-sprite {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+.gift-card-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 9px 2px 1px;
+}
+.gift-card .product-title {
+  margin: 0;
+  min-height: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: normal;
+  text-overflow: ellipsis;
+  color: #283038;
+  font-size: 13px;
+  font-weight: 830;
+  letter-spacing: -.1px;
+  line-height: 1.3;
+}
+.gift-card .product-caption {
+  display: block;
+  min-height: 0;
+  margin: 0;
+  color: #606D76;
+  font-size: 12px;
+  font-weight: 640;
+  line-height: 1.4;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.gift-card .gift-status-icon, .gift-card-edit {
+  position: absolute;
+  z-index: 4;
+  top: 9px;
+  display: grid;
+  width: var(--givvy-control-size);
+  height: var(--givvy-control-size);
+  flex: 0 0 var(--givvy-control-size);
+  place-items: center;
+  border-radius: 13px;
+  border: 1px solid rgba(255,255,255,.85);
+  box-shadow: 0 3px 10px rgba(29,36,40,.1);
+}
+.gift-card .gift-status-icon {
+  left: 9px;
+  cursor: pointer;
+}
+.gift-card .gift-status-icon.is-bought, .gift-status-icon.is-bought {
+  background: #DDF2E5;
+  color: #237A50;
+}
+.gift-card .gift-status-icon.is-to-buy, .gift-status-icon.is-to-buy {
+  background: #FFF2D9;
+  color: #93672B;
+}
+.gift-card .gift-card-edit {
+  right: 9px;
+  color: #333C44;
+  background: rgba(255,255,255,.96);
+  cursor: pointer;
+}
+.gift-card .gift-status-icon:active, .gift-card .gift-card-edit:active {
+  transform: scale(.96);
+}
+.gift-card.is-idea .gift-card-edit { right: 9px; }
+.gift-card.is-idea .gift-status-icon { display: none; }
+.smallcards-grid, .detail-gifts {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  align-items: start;
+  gap: 16px 12px;
+}
+.smallcards-grid .gift-card, .detail-gifts .gift-card {
+  width: 100%;
+  flex: initial;
+  min-width: 0;
+}
+.focus-gifts > .gift-card {
+  flex: 0 0 148px;
+  align-self: start;
+}
+.focus-gifts .gift-card .product-open { height: auto; }
+.focus-gifts .gift-card .product-title {
+  display: -webkit-box;
+  min-height: 0;
+  margin: 0;
+  -webkit-line-clamp: 2;
+  font-size: 13px;
+}
+.focus-gifts .gift-card .product-caption {
+  min-height: 0;
+  margin-top: 0;
+}
+.focus-gifts .gift-card .gift-card-copy { padding-top: 9px; }
+@media (max-width:360px) {
+  .focus-gifts > .gift-card { flex-basis: 133px; }
+  .gift-card .gift-status-icon, .gift-card .gift-card-edit {
+    width: 36px; height: 36px; top: 8px; border-radius: 12px;
+  }
+  .gift-card .gift-status-icon { left: 8px; }
+  .gift-card .gift-card-edit { right: 8px; }
+}
+
+/* Person directory and profile share one portrait treatment. */
+.person-avatar {
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  overflow: hidden;
+  color: #4E5363;
+  font-weight: 850;
+  flex-shrink: 0;
+}
+.person-avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.person-list-item {
+  border-radius: 19px;
+  box-shadow: var(--givvy-soft-shadow);
+  min-height: 78px;
+}
+.person-list-item .person-avatar { border-radius: 15px; }
+.person-list-item .item-body strong { font-size: 14px; font-weight: 810; }
+.person-list-item .item-body small { font-size: 12px; margin-top: 5px; }
+.person-list-item > svg { color: #8A9299; }
+.person-back {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  min-height: 36px;
+  padding: 0;
+  margin-bottom: 13px;
+  font-weight: 760;
+  font-size: 13px;
+  color: #66727B;
+}
+.person-profile-hero {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: linear-gradient(120deg,#FFF4EC 0%, #F6F3F5 62%, #F3F7F7 100%);
+  box-shadow: none;
+  border: 1px solid rgba(188,190,192,.13);
+  padding: 19px 17px;
+  border-radius: 25px;
+}
+.person-profile-photo {
+  width: 82px;
+  height: 82px;
+  font-size: 29px;
+  border-radius: 22px;
+  box-shadow: 0 3px 10px rgba(40,44,51,.07);
+}
+.person-profile-info h1 {
+  font-size: clamp(22px, 6.5vw, 29px);
+  font-weight: 890;
+  letter-spacing: -.7px;
+}
+.person-profile-birthday {
+  gap: 7px;
+  margin-top: 7px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.person-edit-button {
+  align-self: flex-start;
+  min-height: 40px;
+  min-width: 40px;
+  padding: 0;
+  border-radius: 13px;
+  color: #48555F;
+  background: rgba(255,255,255,.92);
+  border: 1px solid #E6E7E9;
+}
+.person-detail .section-top h2 { font-size: 19px; font-weight: 840; }
+.person-preferences { margin-top: 26px; }
+.person-preferences-card {
+  display: grid;
+  gap: 16px;
+  border-radius: 21px;
+  padding: 17px;
+  background: #FFFFFF;
+  border: 1px solid #EEF0F1;
+  box-shadow: 0 5px 15px rgba(37,43,49,.04);
+}
+.person-preference + .person-preference {
+  border-top: 1px solid #EFF0F2;
+  padding-top: 15px;
+}
+.person-preference h3 {
+  font-size: 12px;
+  line-height: 1.3;
+  font-weight: 790;
+  color: #68737C;
+  margin-bottom: 8px;
+}
+.person-preference p {
+  font-size: 14px;
+  line-height: 1.55;
+  color: #343F47;
+}
+.person-interest-tags { gap: 8px; }
+.person-interest-tag {
+  padding: 8px 12px;
+  color: #415A52;
+  font-size: 12px;
+  background: #E8F4ED;
+}
+.person-preference:has(> h3:first-child) { min-width:0; }
+.person-preferences-empty { line-height: 1.55; font-size: 13px; }
+.person-ideas .smallcards-grid { gap: 15px 12px; }
+.person-ideas .section-link { min-height: 40px; }
+.person-ideas .empty-card {
+  box-shadow: none;
+  border: 1px dashed #DADEE1;
+  padding: 23px 16px;
+}
+
+/* One event header and flatter recipient grouping, instead of nested cards. */
+.event-detail .detail-page-heading { margin-bottom: 17px; }
+.event-summary {
+  padding: 18px 18px 16px;
+  gap: 15px;
+  border-radius: 23px;
+  background: linear-gradient(135deg,#FFF5E9 0%,#F8F5F2 57%,#F4F8F6 100%);
+  border: 1px solid rgba(228,227,225,.75);
+  box-shadow: none;
+}
+.event-summary-kicker {
+  font-size: 11px;
+  color: #77818A;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  font-weight: 790;
+  margin-bottom: 6px;
+}
+.event-summary-date {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #333E46;
+  font-size: 15px;
+  font-weight: 800;
+}
+.event-summary-top .button-outline {
+  flex: 0 0 auto;
+  min-height: 39px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.88);
+}
+.event-person-summary {
+  background: rgba(255,255,255,.73);
+  padding: 10px 11px;
+  border: 1px solid rgba(226,228,230,.7);
+  border-radius: 16px;
+}
+.event-person-avatar {
+  width: 43px;
+  height: 43px;
+  border-radius: 13px;
+  font-size: 17px;
+}
+.event-recipient-count { font-size: 12px; font-weight: 750; }
+.event-summary-budget {
+  gap: 6px;
+  border-top: 1px solid rgba(152,156,159,.17);
+  padding-top: 13px;
+}
+.event-summary-budget strong { font-size: 15px; }
+.event-recipient-groups { gap: 0; }
+.event-recipient-groups > .section-top { margin-bottom: 7px; }
+.event-recipient-group {
+  border-radius: 0;
+  border: 0;
+  border-bottom: 1px solid #E7E9EB;
+  background: transparent;
+  box-shadow: none;
+  padding: 18px 0 22px;
+}
+.event-recipient-group-top {
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 13px;
+}
+.event-recipient-name { gap: 10px; }
+.event-recipient-name .item-body strong { font-size: 14px; font-weight: 825; }
+.event-recipient-name .item-body small { font-size: 12px; }
+.event-recipient-budget { font-size: 11px; line-height: 1.4; }
+.event-recipient-group .detail-gifts,
+.event-single-gifts .detail-gifts {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 16px 12px;
+}
+.event-recipient-group .gift-card { border-radius: 18px; }
+.event-empty-gifts {
+  background: #F5F7F7;
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin: 0;
+  font-size: 12px;
+}
+.event-add-gift, .event-add-recipient {
+  margin-top: 14px;
+  min-height: 44px;
+}
+.event-recipient-group .event-add-gift {
+  background: #EFF2F2;
+}
+.event-single-gifts > .section-top { margin-bottom: 16px; }
+
+/* A photo-first picker built from exactly the same idea card component. */
+.gift-picker-intro { margin-bottom: 14px; font-size: 13px; }
+.gift-picker-ideas {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  align-items: start;
+  gap: 17px 12px;
+}
+.gift-picker-ideas .gift-card { width: 100%; }
+.gift-picker-ideas .gift-card-copy { padding-top: 8px; }
+.gift-picker-ideas .gift-card .product-visual { border-radius: 17px; }
+.gift-picker-new { margin-top: 18px; }
+
+/* The existing person editor sheet, not a new form system. */
+.person-editor-identity { padding-bottom: 7px; }
+.person-editor-preferences {
+  border-top: 1px solid #ECEEF0;
+  padding-top: 20px;
+}
+.person-editor-subtitle {
+  font-size: 17px;
+  font-weight: 840;
+  color: #29333B;
+  margin-bottom: 17px;
+  letter-spacing: -.3px;
+}
+.person-editor-preferences .textarea { min-height: 67px; }
+.person-photo-field { margin-bottom: 20px; }
+.person-photo-field .field-label { margin-bottom: 8px; }
+.person-photo-field .photo-upload {
+  background: #F8F9FA;
+  padding: 10px;
+  border-radius: 17px;
+}
+.person-photo-field .photo-upload-preview {
+  width: 78px;
+  height: 78px;
+  flex-basis: 78px;
+  border-radius: 17px;
+}
+.person-birthday-label { margin-bottom: 10px; }
+.person-birthday-fields {
+  grid-template-columns: minmax(0,1.35fr) minmax(0,.85fr);
+  gap: 8px 10px;
+  margin-bottom: 13px;
+}
+.person-birthday-fields .field { margin-bottom: 3px; }
+.person-birthday-fields .field:nth-child(3) { grid-column: 1 / -1; width: min(180px,100%); }
+.person-birthday-fields .control { font-size: 16px; min-height: 45px; }
+.person-birthday-fields select { padding: 10px; }
+.person-birthday-fields .field-label { font-size: 12px; }
+.person-editor-preferences .control { font-size: 16px; }
+@media (max-width: 359px) {
+  .person-profile-hero { padding: 14px; gap: 11px; }
+  .person-profile-photo { width: 68px; height: 68px; border-radius: 17px; }
+  .person-profile-info h1 { font-size: 21px; }
+  .event-recipient-budget { max-width: 39%; }
+  .gift-picker-ideas, .detail-gifts { gap: 14px 9px; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .gift-card .gift-status-icon, .gift-card .gift-card-edit { transition: none; }
+}
