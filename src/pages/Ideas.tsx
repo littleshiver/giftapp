@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ChevronDown, ChevronRight, Heart, SlidersHorizontal, UsersRound, X } from "lucide-react";
 import type { Idea } from "../domain/models";
 import { Empty, PersonAvatar, Product, Title } from "../components/UI";
 import { Button, Sheet } from "../components/Primitives";
+import { WAVE_SHAPE_PATH } from "../components/WaveShape";
 import { useApp } from "../state/AppState";
 import { uid } from "../utils/format";
 // Inline the source images: saving a suggestion must work offline, survive a
@@ -69,6 +70,7 @@ export function Ideas() {
   const [draftFilters, setDraftFilters] = useState<DiscoveryFilters>(initialFilters);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [likedId, setLikedId] = useState<string | null>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
   const dragStart = useRef<{ x: number; y: number; dx: number } | null>(null);
   const [dragX, setDragX] = useState(0);
   const [exiting, setExiting] = useState<"left" | "right" | null>(null);
@@ -84,6 +86,27 @@ export function Ideas() {
     setExiting(null);
     setLikedId(null);
   }, [tab]);
+  // Measure the actual top edge of the stage, including dynamic browser chrome
+  // and variable filter-chip rows; the wave color must reach the viewport bottom.
+  useLayoutEffect(() => {
+    if (tab !== "discover") return;
+    const element = stageRef.current;
+    if (!element) return;
+    const measure = () => {
+      element.style.setProperty(
+        "--discover-stage-top",
+        `${Math.max(0, Math.round(element.getBoundingClientRect().top))}px`,
+      );
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    window.visualViewport?.addEventListener("resize", measure);
+    return () => {
+      window.removeEventListener("resize", measure);
+      window.visualViewport?.removeEventListener("resize", measure);
+    };
+  }, [tab, filters]);
+
   const isAnimating = exiting !== null;
   const activeFilterCount = Object.values(filters).filter(Boolean).length;
 
@@ -219,7 +242,19 @@ export function Ideas() {
           </div>
 
           {suggestion ? (
-            <div className="ideas-swipe-stage">
+            <div className="ideas-swipe-stage" ref={stageRef}>
+              <svg className="ideas-stage-wave" viewBox="0 0 400 500"
+                preserveAspectRatio="none" aria-hidden="true">
+                <defs>
+                  <linearGradient id="givvy-discover-wave" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stopColor="var(--discover-wave-top)" />
+                    <stop offset=".35" stopColor="var(--discover-wave-middle)" />
+                    <stop offset=".8" stopColor="var(--discover-wave-bottom)" />
+                    <stop offset="1" stopColor="var(--discover-wave-bottom)" />
+                  </linearGradient>
+                </defs>
+                <path d={WAVE_SHAPE_PATH} fill="url(#givvy-discover-wave)" />
+              </svg>
               <article className={`ideas-discovery-card ${exiting ? "is-exiting" : ""} ${dragX ? "is-dragging" : ""}`}
                 data-swipe-direction={dragX > 0 ? "right" : dragX < 0 ? "left" : "none"}
                 style={{
