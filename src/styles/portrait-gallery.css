@@ -465,7 +465,7 @@
 .person-gallery-birthday svg > *,
 .person-birthday-countdown svg > *,
 .person-detail .person-profile-birthday svg > * {
-  transform: translateY(-1.25px);
+  transform: translateY(-2.5px);
 }
 .person-collection-tabs {
   display: grid;
