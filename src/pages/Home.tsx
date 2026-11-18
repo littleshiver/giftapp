@@ -108,7 +108,7 @@ export function Home() {
       </header>
       <section>
         <Section title="Coming up">
-          <Link className="section-link" to="/events">
+          <Link data-ph="home-view-calendar" className="section-link" to="/events">
             View calendar
             <ArrowRight size={16} />
           </Link>
@@ -120,7 +120,7 @@ export function Home() {
             ref={upcomingRef}
           >
             {upcoming.map((e, index) => (
-              <button
+              <button data-ph="home-occasion-chip"
                 key={e.id}
                 className={`occasion-chip ${selected?.id === e.id ? "is-selected" : ""}`}
                 style={toneStyle(toneFor(index))}
@@ -175,7 +175,7 @@ export function Home() {
               </div>
               <div className="focus-title-row">
                 <h2>{selected.name}</h2>
-                <Link
+                <Link data-ph="home-open-occasion"
                   className="focus-event-link"
                   to={`/events/${selected.id}`}
                   aria-label={`Open ${selected.name} occasion`}

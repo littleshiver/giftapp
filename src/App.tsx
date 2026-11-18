@@ -48,7 +48,7 @@ export function App() {
                 records remain in backups. A version 3 copy is written only when
                 you save a change.
               </p>
-              <Link to="/settings">Review and export backups</Link>
+              <Link data-ph="upgrade-review-backups" to="/settings">Review and export backups</Link>
             </details>
           )}
           <Routes>

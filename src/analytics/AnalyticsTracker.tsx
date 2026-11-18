@@ -33,10 +33,10 @@ export function AnalyticsTracker() {
         which buttons get tapped. Names, dates and notes are never recorded.
       </p>
       <div className="consent-actions">
-        <button type="button" className="button-secondary" onClick={() => setConsent("denied")}>
+        <button data-ph="consent-deny" type="button" className="button-secondary" onClick={() => setConsent("denied")}>
           No thanks
         </button>
-        <button type="button" className="button-primary" onClick={() => setConsent("granted")}>
+        <button data-ph="consent-allow" type="button" className="button-primary" onClick={() => setConsent("granted")}>
           Allow
         </button>
       </div>

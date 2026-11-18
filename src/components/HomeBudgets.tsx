@@ -90,13 +90,13 @@ export function HomeBudgets({ data, selected }: { data: AppData; selected?: Even
                   <p className="home-budget-empty">Add recipients to plan individual gifts.</p>
                 )}
                 {recipients.length > 3 && (
-                  <button type="button" className="home-budget-toggle"
+                  <button data-ph="home-budget-show-more" type="button" className="home-budget-toggle"
                     onClick={() => setExpanded((value) => !value)}>
                     {expanded ? "Show fewer" : "Show " + (recipients.length - 3) + " more"}
                   </button>
                 )}
               </div>
-              <Link className="home-budget-event-link" to={"/events/" + event.id}>
+              <Link data-ph="home-budget-occasion" className="home-budget-event-link" to={"/events/" + event.id}>
                 <span>{currency(total(giftsFor(data, event.id)))} of {currency(eventBudget(event))}</span>
                 <ArrowUpRight size={15} aria-hidden="true"/>
               </Link>

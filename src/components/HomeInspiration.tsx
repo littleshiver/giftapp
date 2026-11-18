@@ -26,7 +26,7 @@ export function HomeInspiration() {
       <div className="home-inspiration-copy">
         <h2 id="home-inspiration-title">Need inspiration?</h2>
         <p>Swipe through ideas. Save what you like.</p>
-        <Link className="section-link home-inspiration-link" to="/ideas">
+        <Link data-ph="home-explore-ideas" className="section-link home-inspiration-link" to="/ideas">
           Explore ideas <ArrowRight size={16} aria-hidden="true"/>
         </Link>
       </div>
