@@ -114,15 +114,15 @@ export function Account() {
               : ""}
           </p>
           <p style={{ marginTop: 12 }}>
-            Your people, occasions and gifts stay on this device and are kept
-            with your account. Sync across devices is coming next.
+            Your people, occasions, gifts and ideas are saved to your account
+            and available on any device where you sign in.
           </p>
           <Button
             variant="secondary"
             className="button-full"
             style={{ marginTop: 16 }}
             disabled={busy}
-            onClick={() => run(signOutUser, "You're signed out. Your lists are still here.")}
+            onClick={() => run(signOutUser, "You're signed out. Your lists stay safe in your account.")}
           >
             <LogOut size={16} />
             Sign out

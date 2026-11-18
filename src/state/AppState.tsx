@@ -1,6 +1,7 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useRef,
   useState,
   type ReactNode,
@@ -9,6 +10,34 @@ import type { AppData, Editor } from "../domain/models";
 import { today } from "../utils/format";
 import { ensureBirthdayOccasions } from "../domain/birthdays";
 import { load, write } from "../persistence/storage";
+import { initialData } from "../domain/initial";
+import { useAuth } from "../auth/AuthContext";
+import {
+  hasContent,
+  loadRemote,
+  mergeGuestInto,
+  subscribe,
+  writeDiff,
+} from "../sync/cloud";
+
+export type SyncStatus = "local" | "loading" | "synced" | "saving" | "error";
+const ACCOUNT_CACHE = (uid: string) => `givvy_account_${uid}`;
+const GUEST_BACKUP_KEY = "givvy_guest_backup_v3";
+function readCache(uid: string): AppData | null {
+  try {
+    const raw = localStorage.getItem(ACCOUNT_CACHE(uid));
+    return raw ? (JSON.parse(raw) as AppData) : null;
+  } catch {
+    return null;
+  }
+}
+function writeCache(uid: string, data: AppData) {
+  try {
+    localStorage.setItem(ACCOUNT_CACHE(uid), JSON.stringify(data));
+  } catch {
+    /* Cache is optional; Firestore keeps its own offline copy. */
+  }
+}
 import { emptyDemo, filledDemo } from "../domain/demo";
 
 export type PreviewMode = "my" | "empty" | "filled";
@@ -32,6 +61,8 @@ interface State {
   previewMode: PreviewMode;
   setPreviewMode: (mode: PreviewMode) => void;
   commit: (data: AppData, recovery?: boolean) => boolean;
+  /** "local" for guests; otherwise the state of the account sync. */
+  syncStatus: SyncStatus;
   editor: Editor | null;
   openEditor: (e: Editor) => void;
   closeEditor: () => void;
@@ -59,6 +90,76 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [upgradeNotice, setUpgradeNotice] = useState(loaded.upgraded),
     [blocked, setBlocked] = useState(loaded.blocked),
     [warning, setWarning] = useState(loaded.warning);
+  const auth = useAuth(),
+    uid = auth.status === "signed-in" ? auth.user!.uid : null,
+    [syncStatus, setSyncStatus] = useState<SyncStatus>(
+      auth.status === "loading" ? "loading" : "local",
+    ),
+    /** Last version known to be in Firestore: the base for diffs. */
+    remote = useRef<AppData | null>(null),
+    accountUid = useRef<string | null>(null);
+  useEffect(() => {
+    if (auth.status === "loading") return;
+    if (!uid) {
+      if (accountUid.current) {
+        // Signed out: show this browser's guest data again (empty after a
+        // migration), never the previous account's lists.
+        accountUid.current = null;
+        remote.current = null;
+        setEditor(null);
+        setPersonalData(ensureBirthdayOccasions(load().data));
+      }
+      setSyncStatus("local");
+      return;
+    }
+    accountUid.current = uid;
+    let stop: (() => void) | undefined,
+      cancelled = false;
+    setSyncStatus("loading");
+    const cached = readCache(uid);
+    if (cached) setPersonalData(ensureBirthdayOccasions(cached));
+    (async () => {
+      const current = await loadRemote(uid);
+      if (cancelled) return;
+      const guest = load();
+      if (
+        !guest.blocked &&
+        (hasContent(guest.data) || (!current && guest.data.settings.onboardingComplete))
+      ) {
+        // Everything entered as a guest (including onboarding) moves into
+        // the account, then the guest copy is cleared so it can't be merged
+        // into a different account later. A raw backup stays in this browser.
+        const merged = ensureBirthdayOccasions(mergeGuestInto(current, guest.data));
+        await writeDiff(uid, current, merged);
+        try {
+          localStorage.setItem(GUEST_BACKUP_KEY, JSON.stringify({ version: 3, data: guest.data }));
+          write(initialData());
+        } catch {
+          /* Backup is best-effort. */
+        }
+        if (hasContent(guest.data)) notify("Your lists are now saved to your account ✓");
+      } else if (!current) {
+        await writeDiff(uid, null, initialData());
+      }
+      if (cancelled) return;
+      stop = await subscribe(
+        uid,
+        (data) => {
+          remote.current = data;
+          const ready = ensureBirthdayOccasions(data);
+          setPersonalData(ready);
+          writeCache(uid, ready);
+          setSyncStatus("synced");
+        },
+        () => setSyncStatus("error"),
+      );
+      if (cancelled) stop();
+    })().catch(() => !cancelled && setSyncStatus("error"));
+    return () => {
+      cancelled = true;
+      stop?.();
+    };
+  }, [uid, auth.status]);
   const [previewMode, changePreviewMode] = useState<PreviewMode>(() => {
     try {
       const mode = sessionStorage.getItem(PREVIEW_KEY);
@@ -95,6 +196,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const ready = ensureBirthdayOccasions(next);
     if (previewMode !== "my") {
       setPreviewData(ready);
+      return true;
+    }
+    if (uid && accountUid.current === uid) {
+      setPersonalData(ready);
+      writeCache(uid, ready);
+      const base = remote.current;
+      remote.current = ready;
+      setSyncStatus("saving");
+      writeDiff(uid, base, ready)
+        .then(() => setSyncStatus("synced"))
+        .catch(() => {
+          if (remote.current === ready) remote.current = base;
+          setSyncStatus("error");
+          notify("Couldn't save to your account. Changes are kept and will retry.");
+        });
       return true;
     }
     if (blocked && !recovery) {
@@ -139,6 +255,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         previewMode,
         setPreviewMode,
         commit,
+        syncStatus,
         editor,
         openEditor,
         closeEditor: () => setEditor(null),

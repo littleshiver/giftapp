@@ -13,7 +13,7 @@ import { Account } from "./pages/Account";
 import { EventDetail, PersonDetail } from "./pages/Details";
 import { useApp } from "./state/AppState";
 export function App() {
-  const { data, editor, warning, upgradeNotice, closeEditor, openEditor } = useApp(),
+  const { data, editor, warning, upgradeNotice, closeEditor, openEditor, syncStatus } = useApp(),
     location = useLocation();
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -56,6 +56,9 @@ export function App() {
               path="/"
               element={
                 !warning &&
+                // Wait for a signed-in account to load before deciding the
+                // user is new (a fresh device starts with an empty cache).
+                syncStatus !== "loading" &&
                 !data.settings.onboardingComplete &&
                 !data.people.length &&
                 !data.events.length &&
