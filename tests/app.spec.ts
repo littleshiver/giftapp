@@ -925,3 +925,31 @@ test("global FAB is the only add entry point on all main and detail pages", asyn
   await expect(page.getByRole("combobox", { name: "For" })).toHaveValue("p1");
   await page.getByRole("button", { name: "Close" }).click();
 });
+
+test("Home gift image is a reminder only, with right-hand status and text fallback for missing photo", async ({page}) => {
+  const data = fixture();
+  data.gifts[0].image = "";
+  await seed(page, data);
+  const home = page.locator(".focus-gifts .home-product").filter({
+    has: page.getByRole("button",{name:"View gift Scented candle"}),
+  });
+  await expect(home.locator(".product-title, .product-caption, .gift-card-edit")).toHaveCount(0);
+  await expect(home.locator(".home-gift-placeholder-name")).toHaveText("Scented candle");
+  const fallbackVisible = await home.locator(".home-gift-placeholder-name")
+    .evaluate((el) => getComputedStyle(el).display);
+  expect(fallbackVisible).toBe("flex");
+  const geometry = await home.evaluate((el) => {
+    const image = el.querySelector(".product-visual")!.getBoundingClientRect();
+    const status = el.querySelector(".gift-status-icon")!.getBoundingClientRect();
+    return { rightGap: image.right - status.right, leftGap: status.left - image.left, size: status.width };
+  });
+  expect(geometry.rightGap).toBeGreaterThanOrEqual(5);
+  expect(geometry.rightGap).toBeLessThanOrEqual(14);
+  expect(geometry.leftGap).toBeGreaterThan(80);
+  expect(geometry.size).toBeLessThanOrEqual(34);
+  await home.getByRole("button",{name:"Mark Scented candle as To buy"}).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await home.getByRole("button",{name:"View gift Scented candle"}).click();
+  await expect(page).toHaveURL(/#\/events\/e1$/);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+});
