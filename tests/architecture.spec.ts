@@ -53,8 +53,8 @@ test("person portrait, interests and private gift-idea library persist without p
   await seed(page);
   await page.goto("/#/people/p1");
   await page.getByRole("button", { name: "Edit person" }).click();
-  await page.getByLabel("Interests (comma-separated)").fill("Books, Ceramics");
-  await page.getByLabel("Things to avoid").fill("Strong fragrance");
+  await page.getByLabel("Good gifts").fill("Books, Ceramics");
+  await page.getByLabel("Avoid gifting").fill("Strong fragrance");
   await page.getByLabel("Person photo", { exact: true }).setInputFiles({
     name: "anna.jpg", mimeType: "image/jpeg",
     buffer: Buffer.from(image("birthday").split(",")[1], "base64"),
@@ -62,7 +62,9 @@ test("person portrait, interests and private gift-idea library persist without p
   await page.getByRole("button", { name: "Save person" }).click();
   await page.reload();
   await expect(page.locator(".person-profile-photo img")).toBeVisible();
-  await expect(page.locator(".person-interest-tag")).toHaveText(["Books", "Ceramics"]);
+  await expect(page.locator(".person-guidance-positive")).toContainText("Books, Ceramics");
+  await expect(page.locator(".person-guidance-negative")).toContainText("Strong fragrance");
+  await expect(page.locator(".person-detail #person-about-heading")).toHaveCount(0);
   await expect(page.getByText("Strong fragrance")).toBeVisible();
   await expect(page.getByText("Ceramic mug", { exact: true })).toBeVisible();
   await expect(page.locator(".person-detail .status-button")).toHaveCount(0);
@@ -71,7 +73,7 @@ test("person portrait, interests and private gift-idea library persist without p
   const data = await readData(page);
   expect(data.people.find((p) => p.id === "p1").photo).toMatch(/^data:image\/jpeg;base64,/);
   await page.goto("/#/people");
-  await expect(page.locator(".person-list-item img")).toHaveCount(1);
+  await expect(page.locator(".person-gallery-portrait img")).toHaveCount(1);
 });
 
 test("group occasion copies one person's saved idea to an independent gift snapshot", async ({ page }) => {
