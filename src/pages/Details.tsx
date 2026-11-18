@@ -29,7 +29,7 @@ function EventGift({gift, onEdit}: {gift: Gift; onEdit: () => void}) {
 
 export function EventDetail() {
   const { id } = useParams();
-  const { data, openEditor } = useApp();
+  const { data, openEditor, ui, setUi } = useApp();
   const [giftPersonId, setGiftPersonId] = useState<string | null>(null);
   const event = data.events.find((item) => item.id === id);
   if (!event) {
@@ -45,9 +45,16 @@ export function EventDetail() {
   const cost = total(gifts);
   const isGroup = event.people.length > 1;
   const isBirthday = event.kind === "birthday" && event.people.length === 1;
-  const selectedPerson = data.people.find((person) => person.id === giftPersonId);
-  const savedIdeas = data.ideas.filter((idea) => idea.personId === giftPersonId);
-  const openGift = (personId: string) => setGiftPersonId(personId);
+  const giftPickerOpen = ui.giftPickerEventId === event.id;
+  const activePersonId = giftPersonId || (
+    giftPickerOpen && event.people.length === 1 ? event.people[0] : null
+  );
+  const selectedPerson = data.people.find((person) => person.id === activePersonId);
+  const savedIdeas = data.ideas.filter((idea) => idea.personId === activePersonId);
+  const closeGiftPicker = () => {
+    setGiftPersonId(null);
+    setUi({ giftPickerEventId: "" });
+  };
   const renderGifts = (items: Gift[]) => (
     <div className="detail-gifts">
       {items.map((gift) => (
@@ -122,19 +129,9 @@ export function EventDetail() {
                   <span className="event-recipient-budget">{limit === undefined ? "Budget not set" : currency(limit) + " budget"}</span>
                 </div>
                 {items.length ? renderGifts(items) : <p className="event-empty-gifts">No gifts selected yet.</p>}
-                {person && (
-                  <Button variant="secondary" className="button-full event-add-gift"
-                    onClick={() => openGift(personId)}>
-                    <Plus size={16}/> Add gift for {person.name}
-                  </Button>
-                )}
               </div>
             );
           })}
-          <Button variant="outline" className="button-full event-add-recipient"
-            onClick={() => openEditor({type: "event", id: event.id})}>
-            <Plus size={16}/> Add recipient
-          </Button>
         </section>
       ) : event.people.length === 1 ? (
         <section className="section event-single-gifts">
@@ -142,18 +139,10 @@ export function EventDetail() {
           {gifts.filter((gift) => gift.personId === event.people[0]).length
             ? renderGifts(gifts.filter((gift) => gift.personId === event.people[0]))
             : <Empty>No gifts selected yet.</Empty>}
-          <Button variant="secondary" className="button-full event-add-gift"
-            onClick={() => openGift(event.people[0])}>
-            <Plus size={16}/> Add gift
-          </Button>
         </section>
       ) : (
         <section className="section">
           <Empty>No recipients yet. Add people to start planning gifts.</Empty>
-          <Button variant="secondary" className="button-full event-add-recipient"
-            onClick={() => openEditor({type: "event", id: event.id})}>
-            <Plus size={16}/> Add recipient
-          </Button>
         </section>
       )}
 
@@ -165,8 +154,26 @@ export function EventDetail() {
         </section>
       )}
 
-      {selectedPerson && (
-        <Sheet title={`Gift for ${selectedPerson.name}`} onClose={() => setGiftPersonId(null)}>
+      {giftPickerOpen && !selectedPerson && event.people.length > 1 && (
+        <Sheet title="Choose recipient" onClose={closeGiftPicker}>
+          <div className="gift-recipient-choices">
+            {event.people.map((personId) => {
+              const person = data.people.find((candidate) => candidate.id === personId);
+              if (!person) return null;
+              return (
+                <button type="button" className="gift-recipient-option" key={person.id}
+                  onClick={() => setGiftPersonId(person.id)}>
+                  <PersonAvatar person={person} className="event-person-avatar" />
+                  <span className="item-body"><strong>{person.name}</strong></span>
+                  <ChevronRight size={18} aria-hidden="true"/>
+                </button>
+              );
+            })}
+          </div>
+        </Sheet>
+      )}
+      {giftPickerOpen && selectedPerson && (
+        <Sheet title={`Gift for ${selectedPerson.name}`} onClose={closeGiftPicker}>
           {savedIdeas.length ? (
             <>
               <p className="gift-picker-intro">Choose from saved ideas or add something new.</p>
@@ -175,7 +182,7 @@ export function EventDetail() {
                   <Product key={idea.id} item={idea} showEdit={false}
                     actionLabel={`Use idea ${idea.name}`}
                     onClick={() => {
-                      setGiftPersonId(null);
+                      closeGiftPicker();
                       openEditor({type: "gift", eventId: event.id, personId: selectedPerson.id, prefill: idea});
                     }}/>
                 ))}
@@ -183,7 +190,7 @@ export function EventDetail() {
             </>
           ) : <p className="gift-picker-intro">No ideas saved for {selectedPerson.name} yet. You can add a new gift.</p>}
           <Button className="button-full gift-picker-new" onClick={() => {
-            setGiftPersonId(null);
+            closeGiftPicker();
             openEditor({type: "gift", eventId: event.id, personId: selectedPerson.id});
           }}>
             <Plus size={16}/> Add a new gift
@@ -269,10 +276,6 @@ export function PersonDetail() {
       <section className="section person-ideas" aria-labelledby="person-ideas-heading">
         <div className="section-top">
           <h2 id="person-ideas-heading">Gift ideas</h2>
-          <button className="section-link" type="button"
-            onClick={() => openEditor({ type: "idea", personId: person.id })}>
-            <Plus size={16} /> Add idea
-          </button>
         </div>
         {ideas.length ? (
           <div className="smallcards-grid">
