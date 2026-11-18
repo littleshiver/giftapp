@@ -285,45 +285,47 @@ export function Ideas() {
       {filtersOpen && (
         <Sheet title="Filters" onClose={() => setFiltersOpen(false)}>
           <div className="ideas-filter-sheet">
-            <fieldset className="ideas-filter-fieldset">
-              <legend>Age</legend>
-              <div className="ideas-filter-choices">
-                {([
-                  ["any", "Any age"], ["adult", "Adult"], ["child", "Child"],
-                ] as const).map(([value, label]) => (
-                  <button type="button" key={value}
-                    className={`ideas-filter-choice ${draftFilters.audience === value ? "is-selected" : ""}`}
-                    aria-pressed={draftFilters.audience === value}
-                    onClick={() => setDraftFilters(current => ({ ...current, audience: value }))}>
-                    {label}
-                    {draftFilters.audience === value && <Check size={18} aria-hidden="true"/>}
-                  </button>
+            <details className="ideas-filter-dropdown" open>
+              <summary>
+                <span>Age</span>
+                <small>{draftFilters.audiences.length ? draftFilters.audiences.map(v => audienceLabels[v]).join(", ") : "Any age"}</small>
+                <ChevronDown size={18} aria-hidden="true"/>
+              </summary>
+              <div className="ideas-filter-checks" role="group" aria-label="Age">
+                {(["adult", "child"] as const).map(value => (
+                  <label className="ideas-filter-check" key={value}>
+                    <input type="checkbox" checked={draftFilters.audiences.includes(value)}
+                      onChange={() => toggleDraft("audiences", value)}/>
+                    <span>{audienceLabels[value]}</span>
+                  </label>
                 ))}
               </div>
-            </fieldset>
-            <fieldset className="ideas-filter-fieldset">
-              <legend>Relationship</legend>
-              <div className="ideas-filter-choices">
-                {([
-                  ["any", "Anyone"], ["close", "Close person"],
-                  ["acquaintance", "Acquaintance"],
-                ] as const).map(([value, label]) => (
-                  <button type="button" key={value}
-                    className={`ideas-filter-choice ${draftFilters.relationship === value ? "is-selected" : ""}`}
-                    aria-pressed={draftFilters.relationship === value}
-                    onClick={() => setDraftFilters(current => ({ ...current, relationship: value }))}>
-                    {label}
-                    {draftFilters.relationship === value && <Check size={18} aria-hidden="true"/>}
-                  </button>
+            </details>
+            <details className="ideas-filter-dropdown">
+              <summary>
+                <span>Relationship</span>
+                <small>{draftFilters.relationships.length ?
+                  draftFilters.relationships.map(v => relationshipLabels[v]).join(", ") : "Anyone"}</small>
+                <ChevronDown size={18} aria-hidden="true"/>
+              </summary>
+              <div className="ideas-filter-checks" role="group" aria-label="Relationship">
+                {(["close", "acquaintance"] as const).map(value => (
+                  <label className="ideas-filter-check" key={value}>
+                    <input type="checkbox" checked={draftFilters.relationships.includes(value)}
+                      onChange={() => toggleDraft("relationships", value)}/>
+                    <span>{relationshipLabels[value]}</span>
+                  </label>
                 ))}
               </div>
-            </fieldset>
+            </details>
             <div className="ideas-filter-footer">
-              <button type="button" className="button-outline"
-                onClick={() => setDraftFilters({ ...initialFilters })}>Clear</button>
-              <Button type="button" onClick={() => { setFilters(draftFilters); setFiltersOpen(false); }}>
-                Apply filters
-              </Button>
+              <button type="button" className="button-outline" onClick={() => setDraftFilters({
+                audiences: [], relationships: [],
+              })}>Clear</button>
+              <Button type="button" onClick={() => {
+                setFilters({ audiences: [...draftFilters.audiences], relationships: [...draftFilters.relationships] });
+                setFiltersOpen(false);
+              }}>Apply filters</Button>
             </div>
           </div>
         </Sheet>
