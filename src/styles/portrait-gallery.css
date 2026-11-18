@@ -55,21 +55,25 @@
   height: 16px;
 }
 
-/* People is a small, photo-first collection (typically 10–15 people).
-   Status is a quiet action hint, not another editable/checkable object. */
+/* Three consistent, small portrait tiles. No occasion details or gift counts:
+   those belong on Events. Every tile keeps its height regardless of countdown. */
 .people-gallery-grid {
   display: grid;
-  grid-template-columns: repeat(2,minmax(0,1fr));
-  gap: 17px 12px;
-  align-items: start;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  grid-auto-rows: 1fr;
+  column-gap: 9px;
+  row-gap: 13px;
+  align-items: stretch;
   padding-bottom: 25px;
 }
 .person-gallery-card {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   min-width: 0;
-  border-radius: 20px;
+  border-radius: 16px;
   background: #fff;
-  box-shadow: 0 6px 18px rgba(36,43,47,.055);
+  box-shadow: 0 5px 15px rgba(36,43,47,.05);
   overflow: hidden;
   text-decoration: none;
   color: inherit;
@@ -79,13 +83,20 @@
   outline: 3px solid #5987ac;
   outline-offset: 3px;
 }
+.person-gallery-image {
+  position: relative;
+  display: block;
+  aspect-ratio: 1;
+  width: 100%;
+  overflow: hidden;
+}
 .person-gallery-portrait {
   display: block;
-  aspect-ratio: 1/1;
   width: 100%;
-  height: auto;
+  height: 100%;
+  aspect-ratio: 1;
   border-radius: 0;
-  font-size: 44px;
+  font-size: clamp(24px,8vw,38px);
   overflow: hidden;
 }
 .person-gallery-portrait > span:not(.demo-person-sprite) {
@@ -99,44 +110,59 @@
   height: 100%;
   background-repeat: no-repeat;
 }
+.person-birthday-countdown {
+  position: absolute;
+  z-index: 2;
+  top: 6px;
+  right: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  max-width: calc(100% - 12px);
+  padding: 5px 6px;
+  border-radius: 9px;
+  background: rgba(255,255,255,.95);
+  box-shadow: 0 2px 8px rgba(39,47,54,.13);
+  color: #354951;
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 820;
+  white-space: nowrap;
+}
+.person-birthday-countdown svg { flex: 0 0 auto; }
 .person-gallery-info {
   display: grid;
+  grid-template-rows: minmax(28px,auto) 15px;
+  align-content: start;
+  gap: 4px;
+  min-height: 66px;
   min-width: 0;
-  gap: 6px;
-  padding: 12px 12px 14px;
+  padding: 9px 8px 10px;
 }
 .person-gallery-info > strong {
-  font-size: 14px;
-  font-weight: 850;
-  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  min-width: 0;
+  font-size: 12.5px;
+  font-weight: 840;
+  line-height: 1.18;
   overflow-wrap: anywhere;
 }
 .person-gallery-birthday {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   min-width: 0;
-  color: #68747d;
-  font-size: 11.5px;
-  font-weight: 695;
-  line-height: 1.2;
-}
-.person-gallery-birthday svg { flex-shrink: 0; }
-.person-gallery-hint {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  min-height: 28px;
-  overflow: hidden;
-  padding: 7px 9px;
-  margin-top: 2px;
-  border-radius: 10px;
-  background: #f0f5f2;
-  color: #456452;
+  color: #69757d;
   font-size: 10.5px;
-  font-weight: 725;
-  line-height: 1.35;
+  font-weight: 695;
+  line-height: 1.15;
+  white-space: nowrap;
+  letter-spacing: -.2px;
 }
+.person-gallery-birthday svg { flex: 0 0 13px; }
 
 /* The person profile is a single two-column composition: photo on the left,
    identity and short gift preferences on the right, with no About card. */
@@ -258,8 +284,11 @@
   .person-detail .person-profile-photo { border-radius: 16px; }
   .person-guidance { padding: 10px; }
   .person-guidance p { font-size: 11.5px; }
-  .person-gallery-info { padding: 10px 9px 12px; }
-  .person-gallery-hint { font-size: 10px; }
+  .people-gallery-grid { gap: 11px 7px; }
+  .person-gallery-info { padding: 8px 6px 9px; min-height: 63px; }
+  .person-gallery-info > strong { font-size: 12px; }
+  .person-gallery-birthday { font-size: 10px; gap: 2px; }
+  .person-birthday-countdown { top: 5px; right: 5px; padding: 4px 5px; font-size: 9.5px; gap: 2px; }
 }
 
 /* Empty / Filled is the primary design preview switch. Personal data stays
