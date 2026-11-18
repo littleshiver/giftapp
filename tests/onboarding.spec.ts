@@ -73,7 +73,7 @@ test("exploring first shows real empty states with no placeholder records", asyn
     "Add a person to an occasion",
   );
   await page.goto("/#/ideas");
-  await page.getByRole("button", { name: "Like idea" }).click();
+  await page.getByRole("button", { name: "Like idea", exact: true }).click();
   await expect(page.getByRole("dialog", { name: "Save this idea for who?" })).toBeVisible();
   await page.getByRole("dialog", { name: "Save this idea for who?" })
     .getByRole("button", { name: /Anyone/ }).click();
