@@ -104,7 +104,8 @@ export function EditorSheet() {
           name,
           photo,
           birthday: birthdayFromParts(text("birthMonth"), text("birthDay"), text("birthYear")),
-          interests: text("interests"),
+          interests: "", // Legacy tags are consolidated into one positive preference field.
+
           likes: text("likes"),
           avoid: text("avoid"),
           note: text("note"),
@@ -352,16 +353,13 @@ export function EditorSheet() {
               </div>
             </div>
             <section className="person-editor-preferences" aria-label="About them">
-              <h3 className="person-editor-subtitle">About them</h3>
-              <Field label="Interests (comma-separated)">
-                <input className="control" name="interests" defaultValue={p?.interests || ""}
-                  placeholder="Books, ceramics, photography…"/>
+              <h3 className="person-editor-subtitle">Gift preferences</h3>
+              <Field label="Good gifts">
+                <textarea className="control textarea" name="likes"
+                  defaultValue={[p?.interests, p?.likes].filter(Boolean).join(" · ")}
+                  placeholder="What do they love? Hobbies, wishes, favorite things…"/>
               </Field>
-              <Field label="Wishes & preferences">
-                <textarea className="control textarea" name="likes" defaultValue={p?.likes || ""}
-                  placeholder="What they love or would like to have…"/>
-              </Field>
-              <Field label="Things to avoid">
+              <Field label="Avoid gifting">
                 <textarea className="control textarea" name="avoid" defaultValue={p?.avoid || ""}
                   placeholder="Things they dislike or already have…"/>
               </Field>
