@@ -17,9 +17,9 @@ export function coverKind(event: Pick<Event, "kind" | "name">): EventCoverKind {
 const photo: Record<EventCoverKind, string> = {
   birthday: "https://images.unsplash.com/photo-1511348398635-8efff213a280?auto=format&fit=crop&w=1100&q=75",
   winter: "https://images.unsplash.com/photo-1766393030565-12f744515335?auto=format&fit=crop&w=1100&q=75",
-  hanukkah: "https://images.unsplash.com/photo-1569415860599-5514567fde28?auto=format&fit=crop&w=1100&q=75",
+  hanukkah: "https://images.unsplash.com/photo-1765731401421-cae4930d250b?auto=format&fit=crop&w=1100&q=75",
   romantic: "https://images.unsplash.com/photo-1721775999121-7be73ba0e29f?auto=format&fit=crop&w=1100&q=75",
-  celebration: "https://images.unsplash.com/photo-1569415860599-5514567fde28?auto=format&fit=crop&w=1100&q=75",
+  celebration: "https://images.unsplash.com/photo-1727178757622-26389a0538f5?auto=format&fit=crop&w=1100&q=75",
 };
 export function EventCover({event}: {event: Event}) {
   return <img className="event-hero-image" src={photo[coverKind(event)]}
