@@ -59,7 +59,7 @@ function GiftGroup({
   const visible = filter === "all" ? items : items.filter(g => g.status === filter);
   const spent = bought(items);
   return (
-    <section className="event-person-gifts" aria-label={`Gifts for ${person?.name ?? "recipient"}`}>
+    <section className="event-person-gifts event-recipient-group" aria-label={`Gifts for ${person?.name ?? "recipient"}`}>
       <div className="event-person-gifts-heading">
         <span className="event-person-gifts-identity">
           <PersonAvatar person={person} className="event-person-avatar"/>
@@ -114,7 +114,7 @@ export function EventDetail() {
         <div className="event-hero-shade" aria-hidden="true"/>
         <BackLink to="/events" className="event-hero-action event-hero-back"/>
         <button data-ph="occasion-edit" type="button" className="event-hero-action event-hero-edit"
-          aria-label="Edit occasion" onClick={() => openEditor({type:"event",id:event.id})}>
+          aria-label="Edit" onClick={() => openEditor({type:"event",id:event.id})}>
           <Pencil size={17} aria-hidden="true"/>
         </button>
         <span className="event-hero-date">{fullDate(event.date)}</span>
@@ -163,7 +163,7 @@ export function EventDetail() {
       </section>
 
       {event.people.length ? (
-        <div className={`event-gift-groups ${isGroup ? "is-group" : "is-single"}`}>
+        <div className={isGroup ? "event-gift-groups is-group event-recipient-groups" : "event-gift-groups is-single event-single-gifts"}>
           {isGroup && <h2 className="event-gifts-title">Gifts by person</h2>}
           {event.people.map(personId => (
             <GiftGroup key={personId} person={data.people.find(p => p.id===personId)}
