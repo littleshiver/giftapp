@@ -713,3 +713,24 @@ test("Notifications float 8–16px above navigation and never collide with Disco
     expect(metrics.reactionGap).toBeGreaterThanOrEqual(8);
   }
 });
+
+test("Discover nav has no separate gradient fade, while Home retains it", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await seed(page);
+  await page.goto("/#/ideas");
+  await expect(page.getByRole("button", { name: "Discover" })).toBeVisible();
+  await expect(page.locator(".nav-wrap")).toHaveCSS("background-image", "none");
+  await page.goto("/#/");
+  await expect(page.locator(".nav-wrap")).toHaveCSS("background-image", /linear-gradient/);
+});
+
+test("Collapsed Home greeting also collapses its header spacing", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await seed(page);
+  const before = await page.locator(".home-heading").evaluate(el => el.getBoundingClientRect().height);
+  await page.mouse.wheel(0, 450);
+  await expect(page.locator(".home-greeting")).toHaveClass(/is-dismissed/);
+  await page.waitForTimeout(430);
+  const after = await page.locator(".home-heading").evaluate(el => el.getBoundingClientRect().height);
+  expect(before - after).toBeGreaterThan(35);
+});
