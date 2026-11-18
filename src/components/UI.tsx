@@ -27,7 +27,8 @@ import demoPhotoSheet from "../assets/demo/catalog-hifi.avif";
 import { currency, fmtDate } from "../utils/format";
 import { eventBudget } from "../domain/selectors";
 import { birthdayMonthDay, nextBirthdayDate } from "../domain/birthdays";
-import { today, parseDate } from "../utils/format";
+import { today } from "../utils/format";
+import { CountdownBadge, daysUntilDate } from "./CountdownBadge";
 import demoPersonSheet from "../assets/demo/people-portraits.webp";
 export { Empty } from "./Primitives";
 export function Navigation() {
@@ -448,22 +449,16 @@ export function PersonRow({person: p}: {person: Person}) {
   const birthday = monthDay ? fmtDate(`2000-${monthDay}`) : "";
   const from = today();
   const nextBirthday = monthDay ? nextBirthdayDate(p.birthday, from) : "";
-  const days = nextBirthday
-    ? Math.round((parseDate(nextBirthday).getTime() - parseDate(from).getTime()) / 86400000)
-    : null;
-  const comingSoon = days !== null && days >= 0 && days <= 30;
-  const countdown = days === 0 ? "Today" : `${days}d`;
+  const days = nextBirthday ? daysUntilDate(nextBirthday) : null;
+  const comingSoon = days !== null && days <= 30;
   return (
     <Link data-ph="person-card" className="person-gallery-card" to={`/people/${p.id}`}>
       <span className="person-gallery-image">
         <PersonAvatar person={p} className="person-gallery-portrait" />
         {comingSoon && (
-          <span className="person-birthday-countdown"
-            aria-label={days === 0 ? "Birthday today" : `Birthday in ${days} days`}
-            title={days === 0 ? "Birthday today" : `Birthday in ${days} days`}>
-            <Cake size={12} aria-hidden="true"/>
-            <span>{countdown}</span>
-          </span>
+          <CountdownBadge days={days!} className="person-birthday-countdown"
+            label={days === 0 ? "Birthday today" : `Birthday in ${days} days`}
+            icon={<Cake size={12} aria-hidden="true"/>}/>
         )}
       </span>
       <span className="person-gallery-info">
