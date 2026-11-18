@@ -15,6 +15,10 @@ import {
   signUpWithEmail,
 } from "../auth/providers";
 
+// Sign in with Apple needs an Apple Developer account (Services ID + key).
+// Turn the button on with VITE_AUTH_APPLE=1 once Apple is configured in Firebase.
+const appleEnabled = import.meta.env.VITE_AUTH_APPLE === "1";
+
 const providerNames: Record<string, string> = {
   "google.com": "Google",
   "apple.com": "Apple",
@@ -150,6 +154,7 @@ export function Account() {
             <GoogleMark />
             Continue with Google
           </Button>
+          {appleEnabled && (
           <Button
             className="button-full account-apple"
             disabled={busy || status === "loading"}
@@ -158,6 +163,7 @@ export function Account() {
             <AppleMark />
             Continue with Apple
           </Button>
+          )}
         </div>
         <div className="account-divider"><span>or with email</span></div>
         <form onSubmit={submit}>
