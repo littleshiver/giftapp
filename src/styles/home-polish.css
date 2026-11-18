@@ -164,3 +164,48 @@
   .app-main-home .home-greeting { transition: none; }
   .app-main-home .home-greeting .greeting-wave { animation: none; }
 }
+
+/* Greeting is not merely transparent: the whole header's spare vertical
+   padding/margin is collapsed when its one-time message disappears. */
+.app-main-home .home-heading {
+  transition: margin-bottom 340ms ease, padding-bottom 340ms ease;
+}
+.app-main-home .home-heading:has(.home-greeting.is-dismissed) {
+  margin-bottom: 2px;
+  padding-bottom: 2px;
+}
+.app-main-home .home-heading .home-greeting.is-dismissed {
+  padding: 0;
+  line-height: 0;
+}
+/* On People the optional cake sits optically centered with the digits.
+   Reset old icon-specific transforms, which were written for an older badge. */
+.person-gallery-image .person-birthday-countdown.countdown-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 24px;
+  min-height: 24px;
+  padding: 0 6px;
+  line-height: 1;
+}
+.person-gallery-image .person-birthday-countdown.countdown-badge svg,
+.person-gallery-image .person-birthday-countdown.countdown-badge svg > * {
+  position: static;
+  top: auto;
+  transform: none;
+}
+.person-gallery-image .person-birthday-countdown.countdown-badge > span {
+  display: inline-flex;
+  align-items: center;
+  height: 12px;
+}
+/* Give both top-level chips and Home's hero gifts space for their shadows. */
+.app-main-home .hscroll.upcoming-track { padding-top: 16px; }
+.app-main-home .home-featured-section,
+.app-main-home .focus-card { overflow: visible; }
+.app-main-home .focus-gifts { padding-top: 22px; }
+@media (prefers-reduced-motion: reduce) {
+  .app-main-home .home-heading { transition: none; }
+}

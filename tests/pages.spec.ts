@@ -87,7 +87,12 @@ test("Pages production assets, hash routes, editing and reload on mobile", async
         .getByRole("link", { name, exact: true })
         .click();
       expect(new URL(page.url()).pathname).toBe("/giftapp/");
-      await expect(page.locator("h1")).toBeVisible();
+      if (name === "Home") {
+        // The greeting is intentionally dismissed after a client-side revisit.
+        await expect(page.locator(".home-wordmark")).toBeVisible();
+      } else {
+        await expect(page.locator("h1")).toBeVisible();
+      }
     }
     await page.goto("http://127.0.0.1:4174/giftapp/#/people");
     await page.getByRole("button", { name: "Create", exact: true }).click();
