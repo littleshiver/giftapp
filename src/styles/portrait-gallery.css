@@ -278,11 +278,12 @@
   letter-spacing: -.65px;
   overflow-wrap: anywhere;
 }
-.person-detail .person-profile-birthday {
+ .person-detail .person-profile-birthday {
   position: absolute;
   z-index: 2;
   bottom: 44px; /* clear of the 27px white-panel photo overlap */
-  left: 17px;
+  left: 50%;
+  transform: translateX(-50%);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -386,7 +387,7 @@
 @media (max-width: 359px) {
   .app-main-home .focus-gifts > .gift-card.home-product { flex-basis: 133px; }
   .person-detail .person-profile-cover { border-radius: 20px; }
-  .person-detail .person-profile-birthday { left: 13px; bottom: 41px; min-height: 33px; }
+  .person-detail .person-profile-birthday { bottom: 41px; min-height: 33px; }
   .person-photo-action { top: 10px; width: 42px; height: 42px; }
   .person-photo-back { left: 10px; }
   .person-photo-edit { right: 10px; }
@@ -420,4 +421,63 @@
 .preview-return-personal:focus-visible {
   outline: 3px solid #5987ac;
   outline-offset: 3px;
+}
+
+/* One shared routed Back affordance: same arrow, size and surface on
+   full-bleed portraits and ordinary event details. */
+.app-main.app-main-profile {
+  padding-top: 0;
+}
+.app-main.app-main-event-detail {
+  padding-top: 13px;
+}
+.back-navigation,
+.detail-page-heading .back-navigation {
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.9);
+  color: #26313b;
+  background: rgba(255,255,255,.94);
+  box-shadow: 0 3px 12px rgba(29,35,39,.11);
+  text-decoration: none;
+}
+.back-navigation svg {
+  display: block;
+  flex: 0 0 auto;
+}
+.back-navigation:focus-visible {
+  outline: 3px solid #5987ac;
+  outline-offset: 3px;
+}
+.person-photo-back.back-navigation {
+  position: absolute;
+}
+/* Cake artwork is weighted toward the bottom. Move the drawing, not its
+   SVG bounding box: the flex row remains mathematically centered while the
+   visible cake and adjacent glyph align optically. */
+.person-gallery-birthday svg > *,
+.person-birthday-countdown svg > *,
+.person-detail .person-profile-birthday svg > * {
+  transform: translateY(-1.25px);
+}
+.person-collection-tabs {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  margin: 0 0 17px;
+}
+.person-collection-tabs .pill-tab {
+  min-height: 43px;
+  font-size: 13px;
+  border-radius: 12px;
+}
+.person-gift-collection {
+  padding-top: 0;
 }
