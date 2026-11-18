@@ -307,7 +307,7 @@ test("Gifted segment derives only bought gifts from past occasions, then edits/d
   await expect(page.locator(".person-gift-collection .gift-card")).toHaveCount(1);
   await expect(page.locator(".person-gift-collection")).toContainText("Scented candle");
   await expect(page.locator(".person-gift-collection")).toContainText("Anna's birthday");
-  await expect(page.locator(".person-gift-collection")).toContainText("November 10, 2026");
+  await expect(page.locator(".person-gift-collection")).toContainText("Nov 10, 2026");
   await expect(page.locator(".person-gift-collection .gift-status-icon")).toHaveCount(1);
   await expect(page.locator(".person-gift-collection button.gift-status-icon")).toHaveCount(0);
   await expect(page.getByText("Future present")).toHaveCount(0);
