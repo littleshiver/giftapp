@@ -176,3 +176,79 @@
   .event-detail-v2 .event-overview .event-hero { height: clamp(255px, 34vw, 340px); }
   .event-detail-v2 .event-overview-panel { padding-inline: 24px; }
 }
+
+/* Event + People share exactly the same date-pill geometry and appearance.
+   This late shared rule wins over legacy route-specific offsets. */
+.person-detail .person-profile-birthday,
+.event-detail-v2 .event-overview .event-hero-date {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  right: auto;
+  bottom: 44px;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  max-width: calc(100% - 34px);
+  min-height: 35px;
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid rgba(255,255,255,.85);
+  border-radius: 12px;
+  background: rgba(255,255,255,.95);
+  box-shadow: 0 3px 11px rgba(28,36,43,.12);
+  color: #35424b;
+  font-size: 13px;
+  font-weight: 760;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* The group recipients and budget already have a separator; the line
+   immediately below the event title added no information. */
+.event-detail-v2 .event-overview-panel .event-summary-recipients {
+  border-top: 0;
+  padding-top: 0;
+}
+
+/* Natural spacing between recipient gift groups replaces hard rules. */
+.event-detail-v2 .event-gift-groups .event-recipient-group {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+/* Recipient identity is a real profile link for both single and group events. */
+.event-detail-v2 a.event-person-gifts-identity {
+  color: inherit;
+  text-decoration: none;
+  border-radius: 12px;
+  padding: 5px;
+  margin: -5px;
+  min-height: 44px;
+}
+.event-detail-v2 a.event-person-gifts-identity:focus-visible,
+.event-detail-v2 .event-stack-link:focus-visible {
+  outline: 3px solid #5987ac;
+  outline-offset: 3px;
+}
+
+/* Overlapping portraits retain their existing sizing, but each is tappable. */
+.event-detail-v2 .event-avatar-stack .event-stack-link {
+  display: grid;
+  place-items: center;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  margin-left: -7px;
+  border-radius: 50%;
+  text-decoration: none;
+}
+.event-detail-v2 .event-avatar-stack .event-stack-link > .event-stack-avatar {
+  display: grid;
+  margin-left: 0;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+}
