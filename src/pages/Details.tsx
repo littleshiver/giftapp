@@ -226,14 +226,14 @@ export function PersonDetail() {
             aria-label="Edit person" onClick={() => openEditor({type:"person", id:person.id})}>
             <Edit3 size={18} aria-hidden="true"/>
           </button>
+          <p className="person-profile-birthday">
+            <Cake size={16} aria-hidden="true"/>
+            <span>{birthday ? fmtDate(`2000-${birthday}`) : "Birthday not set"}</span>
+          </p>
         </div>
         <div className="person-profile-panel">
           <div className="person-profile-identity">
             <h1 className="title-xl">{person.name}</h1>
-            <p className="person-profile-birthday">
-              <Cake size={16} aria-hidden="true"/>
-              <span>{birthday ? fmtDate(`2000-${birthday}`) : "Birthday not set"}</span>
-            </p>
           </div>
           {(positive || negative) ? (
             <div className="person-gift-guidance">
