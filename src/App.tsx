@@ -87,7 +87,8 @@ export function App() {
         {location.pathname !== "/onboarding" && (
           <>
             <Navigation />
-            <CreateMenu />
+            {/* Account is a settings screen: no "add" action there. */}
+            {location.pathname !== "/account" && <CreateMenu />}
           </>
         )}
       </div>

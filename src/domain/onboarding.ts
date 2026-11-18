@@ -26,6 +26,27 @@ export function nextOccurrence(monthDay: string, from = today()) {
   }
   throw Error("Please choose a valid date.");
 }
+/**
+ * Hanukkah follows the Hebrew calendar, so it has no fixed month/day.
+ * First full day of each 8-day festival (the candle lighting starts the
+ * evening before); extend this list before 2036.
+ */
+export const hanukkahFirstDays = [
+  "2026-12-05",
+  "2027-12-25",
+  "2028-12-13",
+  "2029-12-02",
+  "2030-12-21",
+  "2031-12-10",
+  "2032-11-28",
+  "2033-12-17",
+  "2034-12-07",
+  "2035-12-26",
+  "2036-12-14",
+];
+export function nextHanukkah(from = today()) {
+  return hanukkahFirstDays.find((d) => d >= from) ?? "";
+}
 // Explicitly additive: existing people, plans and recipient budgets are retained.
 export function applySetup(
   data: AppData,
@@ -95,14 +116,18 @@ export function applySetup(
     "International Women's Day": "03-08",
   };
   for (const holiday of draft.holidays) {
+    const date =
+      holiday === "Hanukkah"
+        ? nextHanukkah(from)
+        : dates[holiday] && nextOccurrence(dates[holiday], from);
     if (
-      dates[holiday] &&
+      date &&
       !next.events.some((e) => e.name === holiday && e.kind === "holiday")
     )
       next.events.push({
         id: uid(),
         name: holiday,
-        date: nextOccurrence(dates[holiday], from),
+        date,
         kind: "holiday",
         people: [],
         budgets: {},
