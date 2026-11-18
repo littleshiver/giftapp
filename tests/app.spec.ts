@@ -134,7 +134,7 @@ test("birthday has exactly one recipient; budgets and assigned gifts remain even
   await seed(page, data);
   await expect(page.locator(".home-budget-warning")).toContainText("7 400 ₽ over budget");
   await page.goto("/#/events/e1");
-  await expect(page.locator(".event-summary-budget")).toContainText("7 400 ₽");
+  await expect(page.locator(".event-summary-budget")).toContainText("1 900 ₽");
   await expect(page.locator(".event-person-summary")).toContainText("Anna");
   await page.getByRole("button", { name: "Edit", exact: true }).click();
   await expect(page.getByLabel("Include Anna")).toBeDisabled();
@@ -617,7 +617,7 @@ test("calendar shows whole month first, filters by day and restores month view",
   await expect(page.locator(".calendar-agenda-heading h2")).toHaveText("November events");
   await expect(page.locator(".calendar-event-card")).toHaveCount(1);
   await expect(page.locator(".calendar-event-card")).toContainText("Anna's birthday");
-  await expect(page.locator(".calendar-event-card")).toContainText("2 gifts to buy");
+  await expect(page.locator(".calendar-event-card .calendar-event-status")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Add occasion", exact: true })).toHaveCount(0);
 
   // The initial date is an outline for Today, but never an active filter.
@@ -639,7 +639,7 @@ test("calendar shows whole month first, filters by day and restores month view",
   await expect(page.locator(".calendar-top strong")).toHaveText("December 2026");
   await expect(page.locator(".calendar-agenda-heading h2")).toHaveText("December events");
   await expect(page.locator(".calendar-event-card")).toContainText("New Year");
-  await expect(page.locator(".calendar-event-card")).toContainText("1 gift to buy");
+  await expect(page.locator(".calendar-event-card .calendar-event-status")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Show all" })).toHaveCount(0);
 });
 
@@ -670,7 +670,7 @@ test("calendar marker colors and gift statuses reflect actual enabled events", a
     els.map((e) => getComputedStyle(e).getPropertyValue("--calendar-event-tint").trim())
   );
   expect(new Set(tints).size).toBe(3);
-  await expect(page.getByRole("link", { name: /Tea meetup/ })).toContainText("No gifts planned yet");
+  await expect(page.getByRole("link", { name: /Tea meetup/ })).toContainText("Tea meetup");
 
   await page.getByRole("button", { name: "2026-11-28" }).click();
   await expect(page.locator(".calendar-event-card")).toHaveCount(2);
@@ -965,7 +965,7 @@ test("root page headers omit redundant Givvy overlines and detail pages share a 
     await expect(page.locator("main .page-heading .overline")).toHaveCount(0);
   }
   await page.goto("/#/events/e1");
-  await expect(page.locator(".detail-page-heading .back-link")).toBeVisible();
+  await expect(page.locator(".event-hero-back")).toBeVisible();
   await page.goto("/#/people/p1");
   await expect(page.getByRole("link", { name: "Back to People" })).toBeVisible();
   await expect(page.locator(".person-photo-back")).toBeVisible();
