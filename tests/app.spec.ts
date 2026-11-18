@@ -1061,7 +1061,7 @@ test("Discover supports drag feedback, snap-back and animated swipe outcomes", a
   await page.goto("/#/ideas");
   const card = page.locator(".ideas-discovery-card");
   const stage = page.locator(".ideas-swipe-stage");
-  await expect(stage).toHaveCSS("background-image", /linear-gradient/);
+  await expect(stage.locator(".ideas-stage-wave path")).toHaveCount(1);
   await expect(page.getByRole("button", { name: "Create", exact: true })).toHaveCount(0);
   const box = await card.boundingBox();
   if (!box) throw Error("Missing swipe card bounds");
