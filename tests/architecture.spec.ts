@@ -234,18 +234,26 @@ test("Variant C profile crops wide portraits to a stable square without stretchi
   for (const width of [320, 390, 430]) {
     await page.setViewportSize({ width, height: 844 });
     const shape = await page.locator(".person-profile-hero").evaluate((hero) => {
+      const shell = document.querySelector(".app-shell")!.getBoundingClientRect();
       const cover = hero.querySelector(".person-profile-cover")!.getBoundingClientRect();
       const photo = hero.querySelector(".person-profile-photo")!.getBoundingClientRect();
       const panel = hero.querySelector(".person-profile-panel")!.getBoundingClientRect();
       const edit = hero.querySelector(".person-photo-edit")!.getBoundingClientRect();
-      const birthday = hero.querySelector(".person-profile-birthday")!;
+      const birthday = hero.querySelector(".person-profile-cover > .person-profile-birthday")!;
+      const birthdayBox = birthday.getBoundingClientRect();
       const icon = birthday.querySelector("svg")!.getBoundingClientRect();
       const date = birthday.querySelector("span")!.getBoundingClientRect();
       const center = (r: DOMRect) => (r.top + r.bottom) / 2;
       return {
         squareDelta: Math.abs(cover.width - cover.height),
         photoDelta: Math.abs(photo.height - cover.height),
+        coverFullWidth: Math.abs(shell.width - cover.width),
+        coverLeft: Math.abs(shell.left - cover.left),
+        panelFullWidth: Math.abs(shell.width - panel.width),
+        panelLeft: Math.abs(shell.left - panel.left),
         overlap: cover.bottom - panel.top,
+        birthdayAbovePanel: panel.top - birthdayBox.bottom,
+        birthdayOnPhoto: birthdayBox.top > cover.top && birthdayBox.bottom < cover.bottom,
         editWithinCover: edit.left > cover.left && edit.right < cover.right,
         alignment: Math.abs(center(icon) - center(date)),
         objectFit: getComputedStyle(hero.querySelector(".person-profile-photo img")!).objectFit,
@@ -254,6 +262,12 @@ test("Variant C profile crops wide portraits to a stable square without stretchi
     });
     expect(shape.squareDelta).toBeLessThan(1);
     expect(shape.photoDelta).toBeLessThan(1);
+    expect(shape.coverFullWidth).toBeLessThan(1);
+    expect(shape.coverLeft).toBeLessThan(1);
+    expect(shape.panelFullWidth).toBeLessThan(1);
+    expect(shape.panelLeft).toBeLessThan(1);
+    expect(shape.birthdayOnPhoto).toBe(true);
+    expect(shape.birthdayAbovePanel).toBeGreaterThanOrEqual(8);
     expect(shape.overlap).toBeGreaterThan(15);
     expect(shape.overlap).toBeLessThan(38);
     expect(shape.editWithinCover).toBe(true);

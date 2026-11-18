@@ -187,6 +187,10 @@
 .person-detail .person-profile-hero {
   display: block;
   position: relative;
+  /* Deliberately extend past the app's page gutters on both sides.
+     The cover AND the overlapping white panel must be edge-to-edge. */
+  width: calc(100% + 2 * var(--space));
+  margin-inline: calc(-1 * var(--space));
   padding: 0;
   background: transparent;
   border: 0;
@@ -275,14 +279,25 @@
   overflow-wrap: anywhere;
 }
 .person-detail .person-profile-birthday {
+  position: absolute;
+  z-index: 2;
+  bottom: 44px; /* clear of the 27px white-panel photo overlap */
+  left: 17px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 7px;
-  margin: 8px 0 0;
-  color: #65717a;
+  max-width: calc(100% - 34px);
+  min-height: 35px;
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid rgba(255,255,255,.85);
+  border-radius: 12px;
+  background: rgba(255,255,255,.95);
+  box-shadow: 0 3px 11px rgba(28,36,43,.12);
+  color: #35424b;
   font-size: 13px;
-  font-weight: 720;
+  font-weight: 760;
   line-height: 1;
   white-space: nowrap;
 }
@@ -368,13 +383,10 @@
 .person-birthday-countdown {
   align-items: center;
 }
-@media (min-width: 560px) {
-  .person-detail .person-profile-hero { max-width: 500px; margin: 0 auto; }
-  .person-detail .person-gift-guidance { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
 @media (max-width: 359px) {
   .app-main-home .focus-gifts > .gift-card.home-product { flex-basis: 133px; }
   .person-detail .person-profile-cover { border-radius: 20px; }
+  .person-detail .person-profile-birthday { left: 13px; bottom: 41px; min-height: 33px; }
   .person-photo-action { top: 10px; width: 42px; height: 42px; }
   .person-photo-back { left: 10px; }
   .person-photo-edit { right: 10px; }
