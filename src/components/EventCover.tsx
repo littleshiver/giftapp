@@ -1,10 +1,13 @@
 import type { Event } from "../domain/models";
-import localCovers from "../assets/events/givvy-event-covers.avif";
+import birthdayCover from "../assets/events/cover-birthday.jpg";
+import winterCover from "../assets/events/cover-winter.jpg";
+import hanukkahCover from "../assets/events/cover-hanukkah.jpg";
+import romanticCover from "../assets/events/cover-romantic.jpg";
+import celebrationCover from "../assets/events/cover-celebration.jpg";
 
-/** Five event photos generated specifically for Givvy, bundled locally as
- * a single optimized 5-row image (birthday, winter, Hanukkah, romantic,
- * generic). Custom uploaded event pictures always take precedence.
- * All rows have equal height; frame cropping matches the displayed hero. */
+/** Five high-quality, full-frame event cover photographs packaged locally.
+ * Use one independent image per category to preserve a real 2:1 crop with no
+ * sprite stretching or artificial pixelation. Custom event photos take precedence. */
 export type EventCoverKind = "birthday" | "winter" | "hanukkah" | "romantic" | "celebration";
 export function coverKind(event: Pick<Event, "kind" | "name">): EventCoverKind {
   const n = event.name.toLocaleLowerCase();
@@ -14,20 +17,21 @@ export function coverKind(event: Pick<Event, "kind" | "name">): EventCoverKind {
   if (/anniversary|wedding|valentine|romantic|engagement|годовщин|свадьб|помолв|романтич/.test(n)) return "romantic";
   return "celebration";
 }
-const offset: Record<EventCoverKind, string> = {
-  birthday: "0%",
-  winter: "-20%",
-  hanukkah: "-40%",
-  romantic: "-60%",
-  celebration: "-80%",
+const coverImages: Record<EventCoverKind, string> = {
+  birthday: birthdayCover,
+  winter: winterCover,
+  hanukkah: hanukkahCover,
+  romantic: romanticCover,
+  celebration: celebrationCover,
 };
+
 export function EventCover({event}: {event: Event}) {
   const kind = coverKind(event);
   return (
     <span className="event-cover-frame">
-      <img className="event-hero-image" src={localCovers} alt="" aria-hidden="true"
-        data-cover-kind={kind} style={{transform: `translateY(${offset[kind]})`}}
-        decoding="async" loading="eager"/>
+      <img className="event-hero-image"
+        src={coverImages[kind]} alt="" aria-hidden="true"
+        data-cover-kind={kind} decoding="async" loading="eager"/>
     </span>
   );
 }

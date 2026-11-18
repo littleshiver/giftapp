@@ -1,23 +1,24 @@
-/* The five real photo presets live in one five-row AVIF sprite.
-   The window clips exactly one row while preserving regular image fallback. */
+/* Dedicated high-resolution landscape covers: one source per category.
+   Images always preserve aspect ratio. No row atlas, vertical transforms
+   or fill-stretching. Crop rather than distort uploaded/curated artwork. */
+.app-main.app-main-event-detail {
+  padding-top: 0;
+}
 .event-detail-v2 .event-overview .event-hero .event-cover-frame {
-  position: relative;
   display: block;
   width: 100%;
   height: 100%;
   overflow: hidden;
 }
 .event-detail-v2 .event-overview .event-hero .event-cover-frame > img.event-hero-image {
-  position: absolute;
   display: block;
-  left: 0;
-  top: 0;
+  position: static;
   width: 100%;
-  height: 500%;
-  max-width: none;
-  object-fit: fill;
-  object-position: center;
-  pointer-events: none;
+  height: 100%;
+  max-width: 100%;
+  object-fit: cover;
+  object-position: center center;
+  transform: none;
 }
 
 /* Event cover and content now share the People profile's one-sheet language.
@@ -75,9 +76,7 @@
   box-shadow: none;
   text-align: center;
 }
-.event-detail-v2 .event-overview-panel .event-identity-type {
-  margin: 0 0 5px;
-}
+/* A semantic title is sufficient: never repeat "Birthday" / "Occasion". */
 .event-detail-v2 .event-overview-panel .event-identity h1 {
   font-size: clamp(25px, 7vw, 32px);
   line-height: 1.12;

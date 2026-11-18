@@ -112,7 +112,8 @@ test("single-recipient birthday has no group plan and only accepts the celebrant
   await page.goto("/#/events/e1");
   await expect(page.locator(".event-single-gifts")).toBeVisible();
   await expect(page.locator(".event-recipient-groups")).toHaveCount(0);
-  await expect(page.locator(".event-person-summary")).toContainText("Anna");
+  await expect(page.locator(".event-person-summary")).toHaveCount(0);
+  await expect(page.locator(".event-single-gifts .event-person-gifts-identity")).toContainText("Anna");
   await page.getByRole("button", { name: "Create", exact: true }).click();
   await page.getByRole("button", { name: "Add gift to occasion" }).click();
   await expect(page.getByRole("dialog", { name: "Gift for Anna" })).toBeVisible();
