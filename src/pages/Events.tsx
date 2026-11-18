@@ -6,7 +6,7 @@ import { Sheet } from "../components/Primitives";
 import { OccasionArt } from "../components/OccasionArt";
 import { useApp } from "../state/AppState";
 import { associationValid, enabledEvents } from "../domain/selectors";
-import type { AppData, Event, ReminderDays } from "../domain/models";
+import type { Event, ReminderDays } from "../domain/models";
 import {
   fmtDate,
   iso,
