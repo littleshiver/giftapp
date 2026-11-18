@@ -604,7 +604,7 @@ test("Discover reactions stay above bottom navigation, even on short phones with
   }
 });
 
-test("Multiple removable filters never cover Discover reactions on a 320px short screen", async ({page}, testInfo) => {
+test("Four active filters scroll sideways instead of wrapping or pushing Discover beneath the nav", async ({page}, testInfo) => {
   const dir = testInfo.outputPath("screenshots");
   await mkdir(dir, {recursive:true});
   await seed(page);
@@ -612,22 +612,96 @@ test("Multiple removable filters never cover Discover reactions on a 320px short
   await page.goto("/#/ideas");
   await page.getByRole("button",{name:"Filters"}).click();
   const sheet = page.getByRole("dialog",{name:"Filters"});
-  await sheet.getByRole("checkbox",{name:"Adult"}).check();
-  await sheet.getByRole("checkbox",{name:"Child"}).check();
-  await sheet.locator(".ideas-filter-dropdown").nth(1).locator("summary").click();
-  await sheet.getByRole("checkbox",{name:"Close person"}).check();
-  await sheet.getByRole("checkbox",{name:"Acquaintance"}).check();
+  await sheet.getByRole("combobox",{name:"Age"}).selectOption("adult");
+  await sheet.getByRole("combobox",{name:"Relationship"}).selectOption("friend");
+  await sheet.getByRole("combobox",{name:"Category"}).selectOption("home");
+  await sheet.getByRole("combobox",{name:"Budget"}).selectOption("mid");
   await sheet.getByRole("button",{name:"Apply filters"}).click();
   await expect(page.locator(".ideas-filter-chip")).toHaveCount(4);
-  await expect(page.locator(".ideas-discovery-card")).toBeVisible();
-  const gap = await page.evaluate(() => {
+  await expect(page.locator(".ideas-discovery-caption")).toHaveText("Ceramic mug");
+  const geometry = await page.evaluate(() => {
+    const toolbar = document.querySelector(".ideas-filter-toolbar")!.getBoundingClientRect();
+    const chipsEl = document.querySelector(".ideas-active-filters") as HTMLElement;
+    const chips = [...chipsEl.children].map(chip => chip.getBoundingClientRect());
     const nav = document.querySelector(".bottom-nav")!.getBoundingClientRect();
     const actions = document.querySelector(".ideas-reactions")!.getBoundingClientRect();
-    return nav.top - actions.bottom;
+    return {
+      oneRow: chips.every(chip => Math.abs(chip.top - chips[0].top) < 1),
+      scrollable: chipsEl.scrollWidth > chipsEl.clientWidth,
+      toolbarHeight: toolbar.height,
+      gap: nav.top - actions.bottom,
+      overflow: document.documentElement.scrollWidth - innerWidth,
+    };
   });
-  expect(gap).toBeGreaterThanOrEqual(8);
+  expect(geometry.oneRow).toBe(true);
+  expect(geometry.scrollable).toBe(true);
+  expect(geometry.toolbarHeight).toBeLessThan(52);
+  expect(geometry.gap).toBeGreaterThanOrEqual(10);
+  expect(geometry.overflow).toBeLessThanOrEqual(1);
   await page.screenshot({
-    path:`${dir}/discover-four-filters-320x667.png`,
-    fullPage:true,animations:"disabled",
+    path:`${dir}/discover-four-filters-horizontal-320x667.png`,
+    fullPage:true, animations:"disabled",
   });
+});
+
+test("Discover color field is full bleed, curved and mat-framed at phone widths", async ({page}) => {
+  await seed(page);
+  for(const viewport of [{width:320,height:667}, {width:390,height:844}, {width:430,height:932}]) {
+    await page.setViewportSize(viewport);
+    await page.goto("/#/ideas");
+    const metrics = await page.evaluate(() => {
+      const shell = document.querySelector(".app-shell")!.getBoundingClientRect();
+      const stage = document.querySelector(".ideas-swipe-stage")!.getBoundingClientRect();
+      const mat = document.querySelector(".ideas-discovery-card")!;
+      const image = document.querySelector(".ideas-discovery-photo")!.getBoundingClientRect();
+      const card = mat.getBoundingClientRect();
+      const title = document.querySelector(".ideas-discovery-caption h2")!;
+      const heart = document.querySelector(".ideas-like svg")!;
+      return {
+        leftGap: Math.abs(stage.left - shell.left),
+        rightGap: Math.abs(stage.right - shell.right),
+        height: stage.height,
+        imageInset: image.left - card.left,
+        titleSize: parseFloat(getComputedStyle(title).fontSize),
+        shadow: getComputedStyle(mat).boxShadow,
+        radius: getComputedStyle(document.querySelector(".ideas-swipe-stage")!).borderTopLeftRadius,
+        heartFill: heart.getAttribute("fill"),
+        heartColor: getComputedStyle(document.querySelector(".ideas-like")!).color,
+        dislikeColor: getComputedStyle(document.querySelector(".ideas-dislike")!).color,
+        overflow: document.documentElement.scrollWidth - innerWidth,
+      };
+    });
+    expect(metrics.leftGap).toBeLessThanOrEqual(1);
+    expect(metrics.rightGap).toBeLessThanOrEqual(1);
+    expect(metrics.height).toBeLessThanOrEqual(510);
+    expect(metrics.imageInset).toBeGreaterThanOrEqual(8);
+    expect(metrics.titleSize).toBeLessThanOrEqual(15);
+    expect(metrics.shadow).not.toBe("none");
+    expect(metrics.radius).not.toBe("0px");
+    expect(metrics.heartFill).toBe("currentColor");
+    expect(metrics.heartColor).not.toBe(metrics.dislikeColor);
+    expect(metrics.overflow).toBeLessThanOrEqual(1);
+  }
+});
+
+test("Notifications float 8–16px above navigation and never collide with Discover reactions", async ({page}) => {
+  await seed(page);
+  for (const viewport of [{width:320,height:667}, {width:390,height:844}]) {
+    await page.setViewportSize(viewport);
+    await page.goto("/#/ideas");
+    await page.getByRole("button", {name:"Dislike idea"}).click();
+    await expect(page.locator(".app-toast")).toBeVisible();
+    const metrics = await page.evaluate(() => {
+      const nav = document.querySelector(".bottom-nav")!.getBoundingClientRect();
+      const toast = document.querySelector(".app-toast")!.getBoundingClientRect();
+      const actions = document.querySelector(".ideas-reactions")!.getBoundingClientRect();
+      return {
+        toastGap: nav.top - toast.bottom,
+        reactionGap: toast.top - actions.bottom,
+      };
+    });
+    expect(metrics.toastGap).toBeGreaterThanOrEqual(8);
+    expect(metrics.toastGap).toBeLessThanOrEqual(16);
+    expect(metrics.reactionGap).toBeGreaterThanOrEqual(8);
+  }
 });

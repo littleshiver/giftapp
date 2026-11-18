@@ -231,9 +231,8 @@ test("Discover filters are in a separate sheet, with removable chips and meaning
   await page.goto("/#/ideas");
   await page.getByRole("button", { name: "Filters" }).click();
   const sheet = page.getByRole("dialog", { name: "Filters" });
-  await sheet.getByRole("checkbox", { name: "Child", exact: true }).check();
-  await sheet.locator(".ideas-filter-dropdown").nth(1).locator("summary").click();
-  await sheet.getByRole("checkbox", { name: "Close person", exact: true }).check();
+  await sheet.getByRole("combobox", { name: "Age" }).selectOption("child");
+  await sheet.getByRole("combobox", { name: "Relationship" }).selectOption("close");
   await sheet.getByRole("button", { name: "Apply filters" }).click();
   await expect(sheet).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Remove Child filter" })).toBeVisible();
@@ -1098,25 +1097,32 @@ test("Discover supports drag feedback, snap-back and animated swipe outcomes", a
   expect((await readData(page)).skipped).toContain("discovery:ceramic-mug");
 });
 
-test("Discover dropdowns allow multiple values and chips remove selections independently", async ({ page }) => {
+test("Discover filters are exclusive dropdowns; four removable chips preserve individual values", async ({ page }) => {
   await seed(page);
   await page.goto("/#/ideas");
   await page.getByRole("button", { name: "Filters" }).click();
   const dialog = page.getByRole("dialog", { name: "Filters" });
-  await dialog.getByRole("checkbox", { name: "Adult" }).check();
-  await dialog.getByRole("checkbox", { name: "Child" }).check();
-  await dialog.locator(".ideas-filter-dropdown").nth(1).locator("summary").click();
-  await dialog.getByRole("checkbox", { name: "Close person" }).check();
-  await dialog.getByRole("checkbox", { name: "Acquaintance" }).check();
+  const age = dialog.getByRole("combobox", { name: "Age" });
+  const relationship = dialog.getByRole("combobox", { name: "Relationship" });
+  await age.selectOption("adult");
+  await age.selectOption("child");
+  await expect(age).toHaveValue("child");
+  await relationship.selectOption("colleague");
+  await relationship.selectOption("friend");
+  await expect(relationship).toHaveValue("friend");
+  await dialog.getByRole("combobox", { name: "Category" }).selectOption("home");
+  await dialog.getByRole("combobox", { name: "Budget" }).selectOption("over2000");
+  await expect(dialog.getByRole("checkbox")).toHaveCount(0);
+  await expect(dialog.locator("details")).toHaveCount(0);
   await dialog.getByRole("button", { name: "Apply filters" }).click();
   await expect(page.locator(".ideas-filter-chip")).toHaveCount(4);
-  await expect(page.locator(".ideas-discovery-caption")).toHaveText("Ceramic mug");
+  await expect(page.locator(".ideas-discovery-caption")).toHaveText("Throw blanket");
   await page.getByRole("button", { name: "Remove Child filter" }).click();
   await expect(page.locator(".ideas-filter-chip")).toHaveCount(3);
   await page.getByRole("button", { name: "Filters" }).click();
   const reopened = page.getByRole("dialog", { name: "Filters" });
-  await expect(reopened.getByRole("checkbox", { name: "Adult" })).toBeChecked();
-  await expect(reopened.getByRole("checkbox", { name: "Child" })).not.toBeChecked();
+  await expect(reopened.getByRole("combobox", { name: "Age" })).toHaveValue("");
+  await expect(reopened.getByRole("combobox", { name: "Relationship" })).toHaveValue("friend");
   await reopened.getByRole("button", { name: "Close", exact: true }).click();
 });
 

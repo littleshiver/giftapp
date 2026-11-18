@@ -304,42 +304,85 @@
   .ideas-reaction { transition: none; }
 }
 
-/* Discover refinement: restore the original warm illustrated surface.
-   Filters remain independent above; image, label and both reactions belong
-   inside one cohesive pastel section. Clamp image height to reserve nav space. */
-.ideas-discover {
-  overflow-x: clip;
-  overflow-y: visible;
+/* Discover · full-bleed organic color field. The stage itself has no shadow;
+   the inset white card is allowed to cast its shadow in every direction. */
+.app-main:has(.ideas-page) { overflow-x: clip; }
+.ideas-discover { overflow: visible; }
+.ideas-filter-toolbar {
+  flex-wrap: nowrap;
+  gap: 9px;
+  margin-bottom: 15px;
+  min-width: 0;
 }
 .ideas-filters-button {
-  background: #fff;
-  color: #323b44;
-  border: 1px solid #e1e4e6;
+  flex: 0 0 auto;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
 }
 .ideas-filter-count {
-  background: #e8ebed;
-  color: #39454f;
+  background: var(--discovery-chip-accent);
+  color: var(--reaction-neutral);
 }
+.ideas-active-filters {
+  flex: 1 1 auto;
+  flex-wrap: nowrap;
+  gap: 7px;
+  min-width: 0;
+  padding-block: 3px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.ideas-active-filters::-webkit-scrollbar { display: none; }
 .ideas-filter-chip {
-  background: #fff;
-  border-color: #e3e5e7;
-  color: #3d4852;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  background: var(--surface);
+  border-color: var(--line);
+  color: var(--reaction-neutral);
 }
-.ideas-filter-toolbar { margin-bottom: 12px; }
 .ideas-swipe-stage {
-  max-width: 500px;
-  width: 100%;
-  padding: 13px 13px 14px;
-  border-radius: 27px;
-  background: linear-gradient(140deg, #fcefdc, #f6e9e7 50%, #e8eff3);
-  box-shadow: 0 7px 24px rgba(45,47,51,.07);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
   isolation: isolate;
+  width: calc(100% + 2 * var(--space));
+  max-width: none;
+  height: clamp(315px, calc(100dvh - 352px), 510px);
+  margin-inline: calc(-1 * var(--space));
+  padding: 25px 17px 18px;
+  border-radius: 43% 23% 0 0 / 7% 4% 0 0;
+  background: linear-gradient(140deg, var(--discovery-peach), var(--discovery-blush) 52%, var(--discovery-blue));
+  box-shadow: none;
+}
+/* Subtle asymmetric dip in the upper edge, not another floating card/shadow. */
+.ideas-swipe-stage::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  top: -28px;
+  left: -8%;
+  width: 116%;
+  height: 40px;
+  border-radius: 0 0 54% 42% / 0 0 100% 100%;
+  transform: rotate(-1deg);
+  background: var(--bg);
+  pointer-events: none;
 }
 .ideas-discovery-card {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
   border: 0;
-  border-radius: 20px;
-  background: #fff;
-  box-shadow: 0 7px 19px rgba(35,38,42,.1);
+  border-radius: 22px;
+  padding: 11px 11px 0;
+  background: var(--surface);
+  overflow: visible;
+  box-shadow: 0 10px 24px rgba(35,38,43,.12);
   transform-origin: 50% 78%;
   transition: transform 260ms cubic-bezier(.18,.68,.28,1);
   will-change: transform;
@@ -356,16 +399,18 @@
   pointer-events: none;
 }
 .ideas-discovery-visual {
-  display: block;
   position: relative;
+  display: block;
   overflow: hidden;
-  background: #e9e7df;
+  border-radius: 14px;
+  background: var(--lavender);
 }
 .ideas-discovery-photo {
+  display: block;
   width: 100%;
-  height: clamp(172px, calc(100dvh - 520px), 335px);
-  min-height: 172px;
-  max-height: 335px;
+  height: clamp(145px, calc(100dvh - 555px), 290px);
+  min-height: 0;
+  max-height: none;
   aspect-ratio: auto;
   object-fit: cover;
   object-position: center;
@@ -376,133 +421,114 @@
   inset: 0;
   display: grid;
   place-items: center;
+  color: var(--surface);
   pointer-events: none;
-  color: white;
   transition: opacity 60ms linear;
 }
-.ideas-swipe-overlay.positive {
-  background: rgba(34,159,100,.82);
-}
-.ideas-swipe-overlay.negative {
-  background: rgba(216,73,86,.79);
-}
-.ideas-swipe-overlay svg {
-  filter: drop-shadow(0 3px 7px rgba(0,0,0,.1));
-}
+.ideas-swipe-overlay.positive { background: var(--reaction-like-overlay); }
+.ideas-swipe-overlay.negative { background: var(--reaction-neutral-overlay); }
+.ideas-swipe-overlay svg { filter: drop-shadow(0 3px 7px rgba(0,0,0,.1)); }
 .ideas-discovery-caption {
-  min-height: 53px;
-  padding: 11px 12px 13px;
+  display: grid;
+  min-height: 44px;
+  place-items: center;
+  padding: 11px 8px 13px;
+  text-align: center;
 }
 .ideas-discovery-caption h2 {
-  font-size: clamp(18px,5.1vw,22px);
+  margin: 0;
+  color: var(--ink-strong);
+  font-size: 14px;
+  line-height: 1.25;
+  font-weight: 750;
+  letter-spacing: -.1px;
 }
 .ideas-reactions {
   position: relative;
   z-index: 1;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
   justify-content: center;
-  gap: 54px;
-  margin: 14px 0 0;
+  gap: clamp(48px, 14vw, 72px);
+  margin: 0;
+  padding-bottom: 2px;
 }
 .ideas-reaction {
-  width: 53px;
-  height: 53px;
-  box-shadow: 0 4px 13px rgba(35,38,43,.1);
-  border: 1px solid rgba(255,255,255,.86);
-}
-.ideas-reaction:disabled {
-  opacity: .5;
-  cursor: default;
-}
-.ideas-dislike { background: rgba(255,255,255,.93); color: #b14e5a; }
-.ideas-like { background: rgba(255,255,255,.93); color: #268552; }
-/* The bottom bar is positioned independently and the reactions are always
-   part of the illustration's colored surface rather than loose fixed CTAs. */
-.ideas-swipe-stage + * { margin-top: 0; }
-.ideas-filter-sheet { gap: 12px; }
-.ideas-filter-dropdown {
-  border: 1px solid #e4e7e9;
-  background: #fff;
-  border-radius: 15px;
-  overflow: hidden;
-}
-.ideas-filter-dropdown summary {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 54px;
-  padding: 13px 14px;
-  list-style: none;
-  cursor: pointer;
-  color: #303b43;
-  font-size: 14px;
-  font-weight: 810;
-}
-.ideas-filter-dropdown summary::-webkit-details-marker { display: none; }
-.ideas-filter-dropdown summary small {
-  margin-left: auto;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  max-width: 48%;
-  color: #72808b;
-  font-size: 12px;
-  font-weight: 660;
-}
-.ideas-filter-dropdown summary svg {
-  flex: 0 0 auto;
-  color: #75818b;
-  transition: transform 180ms ease;
-}
-.ideas-filter-dropdown[open] summary svg { transform: rotate(180deg); }
-.ideas-filter-checks {
   display: grid;
-  gap: 1px;
-  padding: 0 9px 8px;
-  border-top: 1px solid #f0f1f2;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border: 1px solid var(--surface);
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 4px 12px rgba(35,38,43,.08);
 }
-.ideas-filter-check {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  min-height: 45px;
-  padding: 8px 6px;
-  color: #3c4750;
+.ideas-dislike { background: var(--surface); color: var(--reaction-neutral); }
+.ideas-like { background: var(--surface); color: var(--reaction-like); }
+.ideas-reaction:disabled { opacity: .5; cursor: default; }
+
+/* Native one-choice dropdowns: no accordion and no checkbox groups. */
+.ideas-filter-sheet { gap: 16px; }
+.ideas-filter-select-field { display: grid; gap: 8px; min-width: 0; }
+.ideas-filter-select-field > span:first-child {
+  color: var(--reaction-neutral);
   font-size: 13px;
-  font-weight: 680;
+  font-weight: 800;
+}
+.ideas-filter-select-wrap { display: block; position: relative; }
+.ideas-filter-select-wrap select {
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-height: 49px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 42px 12px 14px;
+  background: var(--surface);
+  color: var(--ink-strong);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
   cursor: pointer;
 }
-.ideas-filter-check + .ideas-filter-check { border-top: 1px solid #f1f2f3; }
-.ideas-filter-check input {
-  width: 19px;
-  height: 19px;
-  accent-color: #262c31;
-  margin: 0;
-  flex: 0 0 auto;
+.ideas-filter-select-wrap svg {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--reaction-neutral);
+  pointer-events: none;
 }
-.ideas-filter-footer {
-  gap: 10px;
-  padding-top: 8px;
+.ideas-filter-footer { gap: 10px; padding-top: 9px; }
+.ideas-recipient-anyone {
+  background: var(--discovery-recipient-bg);
+  border-color: var(--line);
 }
-.ideas-recipient-anyone { background: #f5f6f6; border-color: #e8eaeb; }
-.ideas-recipient-anyone-icon { background: #e6e9eb; color: #3c4852; }
-.ideas-recipient-avatar { background: #e6e9eb; color: #3c4852; }
-@media (max-width:360px) {
-  .ideas-swipe-stage { padding: 11px 11px 12px; border-radius: 23px; }
-  .ideas-discovery-card { border-radius: 17px; }
-  .ideas-discovery-photo { height: clamp(158px, calc(100dvh - 530px), 300px); min-height: 158px; }
-  .ideas-reactions { margin-top: 11px; gap: 45px; }
+.ideas-recipient-anyone-icon,
+.ideas-recipient-avatar {
+  background: var(--discovery-chip-accent);
+  color: var(--reaction-neutral);
+}
+@media (max-width: 360px) {
+  .ideas-filter-toolbar { gap: 6px; margin-bottom: 13px; }
+  .ideas-filters-button { min-height: 39px; padding: 8px 11px; }
+  .ideas-swipe-stage {
+    padding: 22px 15px 15px;
+    border-radius: 37% 17% 0 0 / 6% 4% 0 0;
+  }
+  .ideas-discovery-card { padding: 9px 9px 0; border-radius: 19px; }
+  .ideas-discovery-visual { border-radius: 12px; }
+  .ideas-discovery-caption { min-height: 41px; padding: 9px 6px 11px; }
   .ideas-reaction { width: 48px; height: 48px; }
 }
 @media (max-height: 710px) {
-  .ideas-discovery-photo { height: clamp(145px, calc(100dvh - 495px), 250px); min-height: 145px; }
-  .ideas-discovery-caption { min-height: 47px; padding: 10px; }
-  .ideas-swipe-stage { padding: 10px 10px 11px; }
-  .ideas-reactions { margin-top: 10px; }
+  .ideas-discovery-photo { height: clamp(138px, calc(100dvh - 525px), 215px); }
+  .ideas-swipe-stage { padding-top: 20px; padding-bottom: 12px; }
   .ideas-reaction { width: 46px; height: 46px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .ideas-discovery-card, .ideas-discovery-card.is-exiting {
-    transition-duration: 0.01ms;
-  }
-  .ideas-filter-dropdown summary svg { transition: none; }
+  .ideas-discovery-card,
+  .ideas-discovery-card.is-exiting,
+  .ideas-swipe-overlay { transition-duration: 0.01ms; }
 }

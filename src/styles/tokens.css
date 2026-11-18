@@ -30,6 +30,23 @@
   --r-tile: 18px;
   --r-control: 13px;
   --space: 20px;
+  /* Discover surfaces and reactions: one palette for the whole interaction. */
+  --discovery-peach: #fcefdc;
+  --discovery-blush: #f6e9e7;
+  --discovery-blue: #e8eff3;
+  --discovery-chip-accent: #e8ebed;
+  --discovery-recipient-bg: #f5f6f6;
+  --reaction-like: #d24158;
+  --reaction-neutral: #505b66;
+  --reaction-like-overlay: rgba(210, 65, 88, .78);
+  --reaction-neutral-overlay: rgba(80, 91, 102, .8);
+  /* Bottom-nav clearance + 12px gap, shared by every transient toast. */
+  --app-nav-clearance: 84px;
+  --toast-nav-gap: 12px;
+  --toast-success-bg: #e4f2e8;
+  --toast-success-ink: #28714d;
+  --toast-error-bg: #fce8eb;
+  --toast-error-ink: #ab4155;
   font-family:
     "Nunito",
     ui-rounded,
