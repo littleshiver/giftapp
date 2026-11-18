@@ -73,7 +73,10 @@ test("exploring first shows real empty states with no placeholder records", asyn
     "Add a person to an occasion",
   );
   await page.goto("/#/ideas");
-  await page.getByRole("button", { name: "Save idea", exact: true }).click();
+  await page.getByRole("button", { name: "Like idea" }).click();
+  await expect(page.getByRole("dialog", { name: "Save this idea for who?" })).toBeVisible();
+  await page.getByRole("dialog", { name: "Save this idea for who?" })
+    .getByRole("button", { name: /Anyone/ }).click();
   expect((await readData(page)).ideas).toHaveLength(1);
 });
 test("corrupt storage remains recoverable without onboarding overwrite", async ({
