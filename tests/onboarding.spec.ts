@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { fixture, readData, seed } from "./fixtures";
-import { applySetup, nextOccurrence } from "../src/domain/onboarding";
+import { applySetup, nextHanukkah, nextOccurrence } from "../src/domain/onboarding";
 test("new users start empty; onboarding creates explicit plans with zero budgets", async ({
   page,
 }) => {
@@ -111,4 +111,16 @@ test("annual initial dates handle passed birthdays and leap days; setup is addit
   expect(next.people).toEqual(d.people);
   expect(next.events).toEqual(d.events);
   expect(next.gifts).toEqual(d.gifts);
+});
+test("choosing Hanukkah in setup creates its next occasion", () => {
+  expect(nextHanukkah("2026-11-15")).toBe("2026-12-05");
+  expect(nextHanukkah("2026-12-06")).toBe("2027-12-25");
+  const next = applySetup(
+    { people: [], events: [], gifts: [], ideas: [], settings: { birthdayBudget: 0 }, skipped: [] },
+    { name: "", birthday: "", holidays: ["Hanukkah"], budget: 0 },
+    "2026-11-15",
+  );
+  expect(next.events).toMatchObject([
+    { name: "Hanukkah", kind: "holiday", date: "2026-12-05" },
+  ]);
 });
