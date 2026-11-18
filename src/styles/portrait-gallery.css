@@ -481,3 +481,15 @@
 .person-gift-collection {
   padding-top: 0;
 }
+
+/* Gifted cards carry a short past occasion name + date, not a merchandise
+   price. Allow two lines so the event remains identifiable on a 320px phone. */
+.person-gift-collection .gift-card.is-gift .product-caption {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  white-space: normal;
+  line-height: 1.35;
+  min-height: 2.7em;
+  overflow: hidden;
+}
