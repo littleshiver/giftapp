@@ -24,6 +24,7 @@ test("annual birthday plans reuse legacy records and never carry purchased gifts
 test("person birthday with no birth year generates and updates a single linked occasion", async ({ page }) => {
   await seed(page);
   await page.goto("/#/people");
+  await page.getByRole("button", { name: "Create", exact: true }).click();
   await page.getByRole("button", { name: "Add person", exact: true }).click();
   await page.getByLabel("Name", { exact: true }).fill("Jamie");
   await page.getByLabel("Month", { exact: true }).selectOption("11");
@@ -77,7 +78,10 @@ test("group occasion copies one person's saved idea to an independent gift snaps
   await seed(page);
   await page.goto("/#/events/e2");
   await expect(page.locator(".event-recipient-group")).toHaveCount(3);
-  await page.getByRole("button", { name: "Add gift for Anna" }).click();
+  await page.getByRole("button", { name: "Create", exact: true }).click();
+  await page.getByRole("button", { name: "Add gift to occasion" }).click();
+  const recipientPicker = page.getByRole("dialog", { name: "Choose recipient" });
+  await recipientPicker.getByRole("button", { name: "Anna" }).click();
   const picker = page.getByRole("dialog", { name: "Gift for Anna" });
   await expect(picker.getByRole("button", { name: "Use idea Ceramic mug" })).toBeVisible();
   await picker.getByRole("button", { name: "Use idea Ceramic mug" }).click();
@@ -100,7 +104,8 @@ test("single-recipient birthday has no group plan and only accepts the celebrant
   await expect(page.locator(".event-single-gifts")).toBeVisible();
   await expect(page.locator(".event-recipient-groups")).toHaveCount(0);
   await expect(page.locator(".event-person-summary")).toContainText("Anna");
-  await page.getByRole("button", { name: "Add gift", exact: true }).click();
+  await page.getByRole("button", { name: "Create", exact: true }).click();
+  await page.getByRole("button", { name: "Add gift to occasion" }).click();
   await expect(page.getByRole("dialog", { name: "Gift for Anna" })).toBeVisible();
   await page.getByRole("button", { name: "Add a new gift" }).click();
   await expect(page.getByRole("combobox", { name: "For" })).toHaveValue("p1");

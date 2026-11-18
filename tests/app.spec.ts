@@ -39,10 +39,15 @@ test("Home featured gallery: individual gift cards, event link and prefilled add
   await page.goto("/#/");
   await page.getByRole("button", { name: /Dec 31.*New Year/ }).click();
   await expect(page.locator(".focus-head h2")).toHaveText("New Year");
-  await page.getByRole("button", { name: "Add gift to New Year", exact: true }).click();
-  await expect(page).toHaveURL(/#\/events\/e2\?addGift=1$/);
-  await expect(page.getByRole("dialog")).toBeVisible();
+  await expect(page.locator(".focus-gifts .product-add")).toHaveCount(0);
+  await page.getByRole("button", { name: "Create", exact: true }).click();
+  await page.getByRole("button", { name: "Add gift to occasion" }).click();
+  await expect(page.getByRole("dialog", { name: "Add gift" })).toBeVisible();
   await expect(page.getByRole("combobox", { name: "Occasion", exact: true })).toHaveValue("e2");
+  await page.getByRole("button", { name: "Close", exact: true }).click();
+  // Existing deep links from older versions remain supported.
+  await page.goto("/#/events/e2?addGift=1");
+  await expect(page.getByRole("dialog", { name: "Add gift" })).toBeVisible();
   await page.getByRole("button", { name: "Close", exact: true }).click();
   expect(errors).toEqual([]);
 });
@@ -161,6 +166,7 @@ test("calendar, reminders, people editing and contextual gift/idea creation", as
     .getByRole("navigation")
     .getByRole("link", { name: "People", exact: true })
     .click();
+  await page.getByRole("button", { name: "Create", exact: true }).click();
   await page.getByRole("button", { name: "Add person", exact: true }).click();
   await page.getByLabel("Name", { exact: true }).fill("Jamie");
   await page.getByLabel("Wishes & preferences").fill("Books");
@@ -333,6 +339,8 @@ test("occasion/gift CRUD and explicit cascade deletion retain independent ideas"
   await page.goto("/#/events/" + event.id);
   await page.getByRole("button", { name: "Create", exact: true }).click();
   await page.getByRole("button", { name: "Add gift to occasion" }).click();
+  await expect(page.getByRole("dialog", { name: "Gift for Anna" })).toBeVisible();
+  await page.getByRole("button", { name: "Add a new gift" }).click();
   await page.getByLabel("Gift name", { exact: true }).fill("Flowers");
   await page.getByLabel("Price (₽)").fill("100");
   await page.getByRole("button", { name: "Save gift", exact: true }).click();
@@ -399,6 +407,7 @@ test("new recipient assigned to an occasion appears in the gift picker", async (
 }) => {
   await seed(page);
   await page.goto("/#/people");
+  await page.getByRole("button", { name: "Create", exact: true }).click();
   await page.getByRole("button", { name: "Add person", exact: true }).click();
   await page.getByLabel("Name", { exact: true }).fill("Jamie new");
   await page.getByRole("button", { name: "Save person", exact: true }).click();
@@ -440,6 +449,7 @@ test("new recipient assigned to an occasion appears in the gift picker", async (
 test("gift editor adds people only to group occasions and does not invent budgets", async ({ page }) => {
   await seed(page);
   await page.goto("/#/people");
+  await page.getByRole("button", { name: "Create", exact: true }).click();
   await page.getByRole("button", { name: "Add person", exact: true }).click();
   await page.getByLabel("Name", { exact: true }).fill("Rory new");
   await page.getByRole("button", { name: "Save person" }).click();
@@ -449,12 +459,17 @@ test("gift editor adds people only to group occasions and does not invent budget
   await page.goto("/#/events/e1");
   await page.getByRole("button", { name: "Create", exact: true }).click();
   await page.getByRole("button", { name: "Add gift to occasion" }).click();
+  await expect(page.getByRole("dialog", { name: "Gift for Anna" })).toBeVisible();
+  await page.getByRole("button", { name: "Add a new gift" }).click();
   await expect(page.getByRole("combobox", { name: "For" }).locator("option")).toHaveCount(2);
   await page.getByRole("button", { name: "Close" }).click();
 
-  await page.goto("/#/events/e2");
+  // A global add flow still allows explicitly assigning an unlisted
+  // recipient; the event-detail FAB only offers people already in the event.
+  await page.goto("/#/ideas");
   await page.getByRole("button", { name: "Create", exact: true }).click();
   await page.getByRole("button", { name: "Add gift to occasion" }).click();
+  await page.getByRole("combobox", { name: "Occasion" }).selectOption("e2");
   await page.getByRole("combobox", { name: "For" }).selectOption(created.id);
   await expect(page.locator('.section-note[role="status"]'))
     .toContainText("Saving this gift will also add Rory new");
@@ -518,6 +533,7 @@ test("changes in filled preview are temporary and cannot modify the personal bac
   await page.goto("/#/settings");
   await page.getByRole("button", { name: "Filled", exact: true }).click();
   await page.goto("/#/people");
+  await page.getByRole("button", { name: "Create", exact: true }).click();
   await page.getByRole("button", { name: "Add person", exact: true }).click();
   await page.getByLabel("Name", { exact: true }).fill("Temporary tester");
   await page.getByRole("button", { name: "Save person", exact: true }).click();
@@ -888,4 +904,23 @@ test("root page headers omit redundant Givvy overlines and detail pages share a 
   await expect(page.locator(".detail-page-heading .back-link")).toBeVisible();
   await page.goto("/#/people/p1");
   await expect(page.locator(".person-back")).toContainText("Back");
+});
+
+
+test("global FAB is the only add entry point on all main and detail pages", async ({ page }) => {
+  await seed(page);
+  for (const route of ["/", "/ideas", "/people", "/events", "/people/p1", "/events/e1", "/events/e2", "/settings"]) {
+    await page.goto("/#" + route);
+    await expect(page.getByRole("button", { name: "Create", exact: true })).toBeVisible();
+    await expect(page.locator(".people-add, .product-add, .person-add-idea, .event-add-gift, .event-add-recipient")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Add your own idea" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Add person", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Add idea", exact: true })).toHaveCount(0);
+  }
+  // FAB inside a person profile retains the recipient prefill.
+  await page.goto("/#/people/p1");
+  await page.getByRole("button", { name: "Create", exact: true }).click();
+  await page.getByRole("button", { name: "Add gift idea" }).click();
+  await expect(page.getByRole("combobox", { name: "For" })).toHaveValue("p1");
+  await page.getByRole("button", { name: "Close" }).click();
 });

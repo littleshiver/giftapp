@@ -1,7 +1,6 @@
 import { useRef } from "react";
-import { Check, Plus, X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { Empty, IdeaRow, Section, Title } from "../components/UI";
-import { Button } from "../components/Primitives";
 import { useApp } from "../state/AppState";
 import { uid } from "../utils/format";
 // Inline the approved thumbnails so saved discovery photos survive origin changes/backups.
@@ -36,7 +35,7 @@ const suggestions = [
   },
 ];
 export function Ideas() {
-  const { data, commit, notify, ui, setUi, openEditor } = useApp(),
+  const { data, commit, notify, ui, setUi } = useApp(),
     index = ui.suggestionIndex,
     personId = ui.filterPerson,
     start = useRef<number | null>(null),
@@ -137,15 +136,6 @@ export function Ideas() {
             </Empty>
           )}
         </div>
-        <Button
-          variant="secondary"
-          className="button-full"
-          style={{ marginTop: 14 }}
-          onClick={() => openEditor({ type: "idea" })}
-        >
-          <Plus size={16} />
-          Add your own idea
-        </Button>
       </section>
     </>
   );

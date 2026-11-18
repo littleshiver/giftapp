@@ -1,6 +1,6 @@
 import { useEffect, useRef, type CSSProperties } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, ArrowUpRight, CalendarDays, Plus } from "lucide-react";
+import { ArrowRight, ArrowUpRight, CalendarDays } from "lucide-react";
 import { Section, Photo, Product, Empty } from "../components/UI";
 import { HomeBrand } from "../components/HomeBrand";
 import { HomeBudgets } from "../components/HomeBudgets";
@@ -196,16 +196,6 @@ export function Home() {
                   }
                 />
               ))}
-              <div className="product-add">
-                <button
-                  aria-label={`Add gift to ${selected.name}`}
-                  onClick={() =>
-                    navigate(`/events/${selected.id}?addGift=1`)
-                  }
-                >
-                  <Plus size={25} />
-                </button>
-              </div>
             </div>
           </div>
         </section>
