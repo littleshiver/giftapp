@@ -231,8 +231,9 @@ test("Discover filters are in a separate sheet, with removable chips and meaning
   await page.goto("/#/ideas");
   await page.getByRole("button", { name: "Filters" }).click();
   const sheet = page.getByRole("dialog", { name: "Filters" });
-  await sheet.getByRole("button", { name: "Child", exact: true }).click();
-  await sheet.getByRole("button", { name: "Close person", exact: true }).click();
+  await sheet.getByRole("checkbox", { name: "Child", exact: true }).check();
+  await sheet.locator(".ideas-filter-dropdown").nth(1).locator("summary").click();
+  await sheet.getByRole("checkbox", { name: "Close person", exact: true }).check();
   await sheet.getByRole("button", { name: "Apply filters" }).click();
   await expect(sheet).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Remove Child filter" })).toBeVisible();
@@ -354,7 +355,8 @@ test("corrupt data and quota errors never overwrite storage or claim success", a
     };
   });
   await page.getByRole("button", { name: "Save idea", exact: true }).click();
-  await expect(page.getByRole("alert")).toContainText("Changes were not saved");
+  await expect(page.locator(".warning[role=alert]")).toContainText("Changes were not saved");
+  await expect(page.locator(".app-toast.toast-error")).toContainText("Couldn’t save");
   await expect(page.getByRole("dialog")).toBeVisible();
   expect((await readData(page)).ideas[0].name).toBe("Ceramic mug");
 });
@@ -484,6 +486,7 @@ test("new recipient assigned to an occasion appears in the gift picker", async (
 
   // A global Add action must not silently choose a different occasion.
   await page.goto("/#/ideas");
+  await page.getByRole("button", { name: "Saved", exact: true }).click();
   await page.getByRole("button", { name: "Create", exact: true }).click();
   await page.getByRole("button", { name: "Add gift to occasion" }).click();
   await expect(page.getByRole("combobox", { name: "Occasion" })).toHaveValue("");
@@ -527,6 +530,7 @@ test("gift editor adds people only to group occasions and does not invent budget
   // A global add flow still allows explicitly assigning an unlisted
   // recipient; the event-detail FAB only offers people already in the event.
   await page.goto("/#/ideas");
+  await page.getByRole("button", { name: "Saved", exact: true }).click();
   await page.getByRole("button", { name: "Create", exact: true }).click();
   await page.getByRole("button", { name: "Add gift to occasion" }).click();
   await page.getByRole("combobox", { name: "Occasion" }).selectOption("e2");
@@ -971,7 +975,7 @@ test("root page headers omit redundant Givvy overlines and detail pages share a 
 
 test("global FAB is the only add entry point on all main and detail pages", async ({ page }) => {
   await seed(page);
-  for (const route of ["/", "/ideas", "/people", "/events", "/people/p1", "/events/e1", "/events/e2", "/settings"]) {
+  for (const route of ["/", "/people", "/events", "/people/p1", "/events/e1", "/events/e2", "/settings"]) {
     await page.goto("/#" + route);
     await expect(page.getByRole("button", { name: "Create", exact: true })).toBeVisible();
     await expect(page.locator(".people-add, .product-add, .person-add-idea, .event-add-gift, .event-add-recipient")).toHaveCount(0);
@@ -979,6 +983,11 @@ test("global FAB is the only add entry point on all main and detail pages", asyn
     await expect(page.getByRole("button", { name: "Add person", exact: true })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Add idea", exact: true })).toHaveCount(0);
   }
+  await page.goto("/#/ideas");
+  await page.getByRole("button", { name: "Discover", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Create", exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "Saved", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Create", exact: true })).toBeVisible();
   // FAB inside a person profile retains the recipient prefill.
   await page.goto("/#/people/p1");
   await page.getByRole("button", { name: "Create", exact: true }).click();
@@ -1045,4 +1054,84 @@ test("FAB-created gift idea is available under Saved → Anyone and remains edit
   expect((await readData(page)).ideas.find(i => i.name === "A new handmade gift").personId).toBe("");
   await page.getByRole("button", { name: "Edit idea A new handmade gift" }).click();
   await expect(page.getByRole("dialog", { name: "Edit idea" })).toBeVisible();
+});
+
+test("Discover supports drag feedback, snap-back and animated swipe outcomes", async ({ page }) => {
+  await seed(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/#/ideas");
+  const card = page.locator(".ideas-discovery-card");
+  const stage = page.locator(".ideas-swipe-stage");
+  await expect(stage).toHaveCSS("background-image", /linear-gradient/);
+  await expect(page.getByRole("button", { name: "Create", exact: true })).toHaveCount(0);
+  const box = await card.boundingBox();
+  if (!box) throw Error("Missing swipe card bounds");
+  const x = box.x + box.width / 2, y = box.y + box.height / 2;
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x + 50, y, { steps: 6 });
+  const feedback = await card.evaluate((el) => ({
+    direction: el.getAttribute("data-swipe-direction"),
+    opacity: Number(getComputedStyle(el.querySelector(".ideas-swipe-overlay")!).opacity),
+  }));
+  expect(feedback.direction).toBe("right");
+  expect(feedback.opacity).toBeGreaterThan(0.1);
+  await page.mouse.up();
+  await expect(page.locator(".ideas-discovery-caption")).toHaveText("Ceramic mug");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x + 140, y, { steps: 8 });
+  await page.mouse.up();
+  await expect(page.getByRole("dialog", { name: "Save this idea for who?" })).toBeVisible();
+  await page.getByRole("dialog", { name: "Save this idea for who?" })
+    .getByRole("button", { name: "Close", exact: true }).click();
+  await expect(page.locator(".ideas-discovery-caption")).toHaveText("Ceramic mug");
+
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x - 135, y, { steps: 8 });
+  await expect(card).toHaveAttribute("data-swipe-direction", "left");
+  await page.mouse.up();
+  await expect(page.locator(".ideas-discovery-caption")).toHaveText("Throw blanket");
+  expect((await readData(page)).skipped).toContain("discovery:ceramic-mug");
+});
+
+test("Discover dropdowns allow multiple values and chips remove selections independently", async ({ page }) => {
+  await seed(page);
+  await page.goto("/#/ideas");
+  await page.getByRole("button", { name: "Filters" }).click();
+  const dialog = page.getByRole("dialog", { name: "Filters" });
+  await dialog.getByRole("checkbox", { name: "Adult" }).check();
+  await dialog.getByRole("checkbox", { name: "Child" }).check();
+  await dialog.locator(".ideas-filter-dropdown").nth(1).locator("summary").click();
+  await dialog.getByRole("checkbox", { name: "Close person" }).check();
+  await dialog.getByRole("checkbox", { name: "Acquaintance" }).check();
+  await dialog.getByRole("button", { name: "Apply filters" }).click();
+  await expect(page.locator(".ideas-filter-chip")).toHaveCount(4);
+  await expect(page.locator(".ideas-discovery-caption")).toHaveText("Ceramic mug");
+  await page.getByRole("button", { name: "Remove Child filter" }).click();
+  await expect(page.locator(".ideas-filter-chip")).toHaveCount(3);
+  await page.getByRole("button", { name: "Filters" }).click();
+  const reopened = page.getByRole("dialog", { name: "Filters" });
+  await expect(reopened.getByRole("checkbox", { name: "Adult" })).toBeChecked();
+  await expect(reopened.getByRole("checkbox", { name: "Child" })).not.toBeChecked();
+  await reopened.getByRole("button", { name: "Close", exact: true }).click();
+});
+
+test("Saved has the creation FAB and saving a liked idea shows dismissible success toast", async ({ page }) => {
+  await seed(page);
+  await page.goto("/#/ideas");
+  await expect(page.getByRole("button", { name: "Create", exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "Like idea", exact: true }).click();
+  await page.getByRole("dialog", { name: "Save this idea for who?" })
+    .getByRole("button", { name: /Anyone/ }).click();
+  const success = page.locator(".app-toast.toast-success");
+  await expect(success).toContainText("Saved to ideas");
+  await expect(success.getByRole("button", { name: "Dismiss notification" })).toBeVisible();
+  await success.getByRole("button", { name: "Dismiss notification" }).click();
+  await expect(success).toHaveCount(0);
+  await page.getByRole("button", { name: "Saved", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Create", exact: true })).toBeVisible();
 });

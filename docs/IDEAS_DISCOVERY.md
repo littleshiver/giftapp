@@ -4,7 +4,7 @@ Design decision (November 2026), based on the approved third and fourth UI conce
 
 ## Two jobs, one Ideas section
 
-- **Discover** is first and is for finding inspiration. Show one visual idea at a time: one large, attractive image, a short, literal object title, and independent **thumbs down / thumbs up** controls. No "A little inspiration" text, purchase prices or embedded filter panel.
+- **Discover** is first and is for finding inspiration. Show one visual idea at a time: one large, attractive image, a short, literal object title, and independent **X / Heart** controls. No "A little inspiration" text, purchase prices or embedded filter panel.
 - **Saved** is a personal library. Show the existing photo-first Idea/Product component in a two-column grid, including its edit action. Filter by **All** (everything), **Anyone** (unassigned), or a specific person. Do not duplicate FAB creation with a local "Add" button.
 
 ## Discover flow
@@ -18,5 +18,14 @@ Design decision (November 2026), based on the approved third and fourth UI conce
 ## First version and future catalog
 
 - The starter library includes four existing photo assets and short, concrete titles: Ceramic mug, Throw blanket, Art book, Scented candle. This is deliberately a design/interaction prototype, not a mature recommendation engine.
-- Only one hero image per suggestion in this iteration. Moodboards, richer taxonomy, recommendation personalization, image storage strategy, and larger curated catalogs come later, after this flow is approved.
+- One large high-resolution editorial photo per suggestion in this iteration. Moodboards, richer taxonomy, recommendation personalization, image storage strategy, and larger curated catalogs come later, after this flow is approved.
 - The browser backup schema remains version 3, with optional `sourceDiscoveryId`. Existing ideas, event gifts, personal localStorage and backup exports are not modified or cleared.
+
+## Interaction and visual polish
+
+- **Single warm surface:** restore the original Discover pastel gradient around the photo, concise title and both reaction buttons; keep Filters separate above it. The stage's photo height adapts to short mobile screens so the actions stay clear of the fixed bottom navigation.
+- **Gestures:** drag horizontally to rotate and translate the card. Right shows a green overlay + heart, then the card flies right and the existing Anyone/person picker opens; cancellation does not save or skip. Left shows red overlay + X, flies left and persists Skip. Small drags snap back. Mouse/touch and accessible button clicks invoke the same actions.
+- **FAB:** no creation FAB on Discover; the existing FAB appears on Saved (and all previously approved routes) only.
+- **Image quality first:** use four self-contained 1200×1200 high-quality local editorial JPGs for the prototype; optimization/caching strategy is a separate future task.
+- **Filters:** monochrome toolbar trigger; two native expandable dropdown groups with independent checkbox selection (OR within each facet, AND across facets). Each active selection creates a removable chip above the colored stage. Taxonomy remains deliberately small.
+- **Notifications:** one reusable floating toast, success/error/info variants with icon and optional dismiss button; it lives above the bottom nav, away from the main FAB. Successful discovery saves are Success, blocked storage failures are Error. No permanent notification cards in the Discover layout.

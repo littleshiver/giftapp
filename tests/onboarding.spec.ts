@@ -92,7 +92,7 @@ test("corrupt storage remains recoverable without onboarding overwrite", async (
     await page.getByRole("button", { name: "Add person", exact: true }).click();
   await page.getByLabel("Name", { exact: true }).fill("Should not save");
   await page.getByRole("button", { name: "Save person", exact: true }).click();
-  await expect(page.getByRole("status")).toContainText("recovery");
+  await expect(page.locator(".app-toast.toast-error")).toContainText("recovery");
   expect(
     await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3")),
   ).toBe("{bad");
