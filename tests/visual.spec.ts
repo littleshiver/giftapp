@@ -529,7 +529,7 @@ test("Discover / Saved and both standard sheets are mobile-safe at 320 and 390",
     await page.goto("/#/ideas");
     await expect(page.getByRole("button", {name:"Discover",exact:true})).toHaveAttribute("aria-pressed","true");
     await expect(page.locator(".ideas-discovery-photo")).toBeVisible();
-    await expect(page.getByRole("button", {name:"Like idea"})).toBeVisible();
+    await expect(page.getByRole("button", {name:"Like idea",exact:true})).toBeVisible();
     const layout = await page.locator(".ideas-discovery-card").evaluate(async card => {
       const image = card.querySelector("img")!;
       await image.decode();
