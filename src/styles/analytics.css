@@ -1,0 +1,25 @@
+/* Analytics consent: a small card pinned to the top so it never covers the nav or onboarding buttons. */
+.consent-banner {
+  position: fixed;
+  z-index: 90;
+  top: max(10px, env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(calc(100% - 32px), 428px);
+  background: #ffffff;
+  border: 1px solid var(--control-border);
+  border-radius: 18px;
+  box-shadow: 0 14px 38px rgba(35, 42, 50, 0.18);
+  padding: 14px 16px;
+}
+.consent-banner p {
+  margin: 0 0 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ink);
+}
+.consent-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}

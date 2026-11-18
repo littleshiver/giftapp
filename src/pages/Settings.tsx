@@ -6,11 +6,14 @@ import { Button, Field } from "../components/Primitives";
 import { useApp } from "../state/AppState";
 import { useAuth } from "../auth/AuthContext";
 import { decode, downloadJson, exportBackup } from "../persistence/storage";
+import { analyticsAvailable, setConsent } from "../analytics/analytics";
+import { useAnalyticsConsent } from "../analytics/AnalyticsTracker";
 export function Settings() {
   const { data, personalData, previewMode, setPreviewMode, commit, notify, syncStatus } = useApp(),
     [budget, setBudget] = useState(data.settings.birthdayBudget),
     file = useRef<HTMLInputElement>(null),
-    auth = useAuth();
+    auth = useAuth(),
+    analyticsConsent = useAnalyticsConsent();
   useEffect(() => {
     setBudget(data.settings.birthdayBudget);
   }, [previewMode]);
@@ -207,6 +210,23 @@ export function Settings() {
           </>
         )}
       </section>
+      {analyticsAvailable && (
+        <section className="data-card">
+          <h2>Privacy</h2>
+          <label className="checkline" style={{ marginTop: 14 }}>
+            <input
+              type="checkbox"
+              checked={analyticsConsent === "granted"}
+              onChange={(e) => setConsent(e.target.checked ? "granted" : "denied")}
+            />
+            <span>Share anonymous usage stats</span>
+          </label>
+          <p className="section-note">
+            Helps us see which screens and buttons are used. Names, dates,
+            notes and anything you type are never recorded.
+          </p>
+        </section>
+      )}
       <section className="data-card">
         <h2>Holiday preferences</h2>
         <div style={{ marginTop: 14 }}>
