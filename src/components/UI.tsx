@@ -442,7 +442,7 @@ export function PersonRow({person: p}: {person: Person}) {
             aria-label={days === 0 ? "Birthday today" : `Birthday in ${days} days`}
             title={days === 0 ? "Birthday today" : `Birthday in ${days} days`}>
             <Cake size={12} aria-hidden="true"/>
-            {countdown}
+            <span>{countdown}</span>
           </span>
         )}
       </span>
@@ -450,7 +450,7 @@ export function PersonRow({person: p}: {person: Person}) {
         <strong>{p.name}</strong>
         <span className="person-gallery-birthday">
           <Cake size={13} aria-hidden="true"/>
-          {birthday || "Date not set"}
+          <span>{birthday || "Date not set"}</span>
         </span>
       </span>
     </Link>
