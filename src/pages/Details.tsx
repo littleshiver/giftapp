@@ -58,13 +58,21 @@ function GiftGroup({
   const [filter, setFilter] = useState<GiftFilter>("all");
   const visible = filter === "all" ? items : items.filter(g => g.status === filter);
   const spent = bought(items);
+  const recipientIdentity = (
+    <>
+      <PersonAvatar person={person} className="event-person-avatar"/>
+      <strong>{person?.name || "Unknown person"}</strong>
+    </>
+  );
   return (
     <section className="event-person-gifts event-recipient-group" aria-label={`Gifts for ${person?.name ?? "recipient"}`}>
       <div className="event-person-gifts-heading">
-        <span className="event-person-gifts-identity">
-          <PersonAvatar person={person} className="event-person-avatar"/>
-          <strong>{person?.name || "Unknown person"}</strong>
-        </span>
+        {person ? (
+          <Link to={`/people/${person.id}`} className="event-person-gifts-identity"
+            aria-label={`Open ${person.name}'s profile`}>
+            {recipientIdentity}
+          </Link>
+        ) : <span className="event-person-gifts-identity">{recipientIdentity}</span>}
         <span className="event-person-amount">
           <strong>{currency(spent)}</strong>
           {limit !== undefined && <span> / {currency(limit)}</span>}
@@ -95,7 +103,6 @@ export function EventDetail() {
   const budget = eventBudget(event);
   const spent = bought(gifts);
   const isGroup = event.people.length > 1;
-  const isBirthday = event.kind === "birthday" && event.people.length === 1;
   const giftPickerOpen = ui.giftPickerEventId === event.id;
   const activePersonId = giftPersonId || (
     giftPickerOpen && event.people.length === 1 ? event.people[0] : null
@@ -126,36 +133,27 @@ export function EventDetail() {
             <h1>{event.name}</h1>
           </header>
           <div className="event-summary" aria-label="Occasion summary">
-            {!isBirthday && event.people.length > 0 && (
+            {isGroup && (
               <div className="event-summary-recipients">
-                {event.people.length === 1 ? (() => {
-                  const person = data.people.find(p => p.id === event.people[0]);
-                  return (
-                    <Link className="event-person-summary" data-ph="occasion-person"
-                      to={`/people/${event.people[0]}`}>
-                      <PersonAvatar person={person} className="event-person-avatar"/>
-                      <span className="item-body">
-                        <strong>{person?.name || "Unknown person"}</strong>
-                        <small>Recipient</small>
-                      </span>
-                      <ChevronRight size={17} aria-hidden="true"/>
-                    </Link>
-                  );
-                })() : (
-                  <div className="event-recipient-summary" aria-label={`${event.people.length} recipients`}>
-                    <div className="event-recipient-copy">
-                      <strong>{event.people.length} recipients</strong>
-                      <small>{event.people.map(pid => data.people.find(p=>p.id===pid)?.name||"Unknown").join(", ")}</small>
-                    </div>
-                    <div className="event-avatar-stack" aria-hidden="true">
-                      {event.people.slice(0, 5).map(personId => (
-                        <PersonAvatar key={personId} person={data.people.find(p => p.id === personId)}
-                          className="event-stack-avatar"/>
-                      ))}
-                      {event.people.length > 5 && <span className="event-stack-more">+{event.people.length - 5}</span>}
-                    </div>
+                <div className="event-recipient-summary" aria-label={`${event.people.length} recipients`}>
+                  <div className="event-recipient-copy">
+                    <strong>{event.people.length} recipients</strong>
+                    <small>{event.people.map(pid => data.people.find(p=>p.id===pid)?.name||"Unknown").join(", ")}</small>
                   </div>
-                )}
+                  <div className="event-avatar-stack">
+                    {event.people.slice(0, 5).map(personId => {
+                      const person = data.people.find(p => p.id === personId);
+                      return person ? (
+                        <Link key={personId} to={`/people/${personId}`}
+                          className="event-stack-link" aria-label={`Open ${person.name}'s profile`}
+                          title={person.name}>
+                          <PersonAvatar person={person} className="event-stack-avatar"/>
+                        </Link>
+                      ) : <PersonAvatar key={personId} className="event-stack-avatar"/>;
+                    })}
+                    {event.people.length > 5 && <span className="event-stack-more">+{event.people.length - 5}</span>}
+                  </div>
+                </div>
               </div>
             )}
             {event.people.length === 0 && (
