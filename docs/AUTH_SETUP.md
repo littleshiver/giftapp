@@ -38,9 +38,6 @@
      `https://<project-id>.firebaseapp.com/__/auth/handler`.
    - Keys → новый ключ с Sign in with Apple → скачать `.p8`, запомнить Key ID и Team ID.
    - В Firebase: Sign-in method → **Apple** → Services ID, Team ID, Key ID, приватный ключ.
-6. **Ключи в GitHub**: репозиторий → Settings → Secrets and variables → Actions →
-   вкладка **Variables** → добавить `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`,
-   `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_APP_ID` (и по желанию
-   `VITE_FIREBASE_STORAGE_BUCKET`, `VITE_FIREBASE_MESSAGING_SENDER_ID`).
-   Это публичные идентификаторы, не секреты.
-7. Локально: `cp .env.example .env.local`, заполнить те же значения, `npm run dev`.
+6. **Ключи**: конфиг проекта `givvy-f9887` лежит в `.env.production` и `.env.development`
+   (это публичные идентификаторы, не секреты). Для другого проекта переопределите их в
+   `.env.local`.
