@@ -133,11 +133,28 @@ export function Home() {
 
   useEffect(() => {
     if (ui.greetingDismissed) return;
-    const dismissOnScroll = () => {
-      if (window.scrollY > 24) setUi({ greetingDismissed: true });
+    // Scroll restoration and router scrollTo are not user interactions.
+    // Dismiss only after a real wheel, touch or keyboard scroll intention.
+    let userScrolled = false;
+    const onIntent = () => { userScrolled = true; };
+    const onKey = (event: KeyboardEvent) => {
+      if (["ArrowDown", "ArrowUp", "PageDown", "PageUp", " ", "End", "Home"].includes(event.key)) {
+        onIntent();
+      }
     };
+    const dismissOnScroll = () => {
+      if (userScrolled && window.scrollY > 24) setUi({ greetingDismissed: true });
+    };
+    window.addEventListener("wheel", onIntent, { passive: true });
+    window.addEventListener("touchmove", onIntent, { passive: true });
+    window.addEventListener("keydown", onKey);
     window.addEventListener("scroll", dismissOnScroll, { passive: true });
-    return () => window.removeEventListener("scroll", dismissOnScroll);
+    return () => {
+      window.removeEventListener("wheel", onIntent);
+      window.removeEventListener("touchmove", onIntent);
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("scroll", dismissOnScroll);
+    };
   }, [ui.greetingDismissed]);
 
   // The greeting is a welcome on first arrival, not on each client-side
