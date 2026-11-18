@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { LogOut, Mail } from "lucide-react";
 import { Title } from "../components/UI";
 import { Button, Field } from "../components/Primitives";
@@ -85,16 +85,14 @@ export function Account() {
   if (status === "disabled")
     return (
       <>
-        <Title name="Account" subtitle="Sign in to keep your lists safe." />
+        <Title name="Account" subtitle="Sign in to keep your lists safe." back="/settings" />
         <section className="data-card">
           <h2>Sign-in isn't available yet</h2>
           <p>
             Accounts are coming soon. Until then everything you add stays in
             this browser — you can export a backup in Settings.
           </p>
-          <Link className="button-secondary button-full" style={{ marginTop: 14 }} to="/settings">
-            Back to Settings
-          </Link>
+
         </section>
       </>
     );

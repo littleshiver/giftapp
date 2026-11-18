@@ -468,9 +468,11 @@ test("Variant C profile with portrait and preferences at mobile widths", async (
         .map(row => row.getBoundingClientRect());
       return {
         ratio: r.width / r.height,
+        noTopGap: Math.abs(r.top - shell.top) < 1,
         fullBleedPhoto: Math.abs(shell.width - r.width) < 1 && Math.abs(shell.left - r.left) < 1,
         fullBleedWhitePanel: Math.abs(shell.width - panel.width) < 1 && Math.abs(shell.left - panel.left) < 1,
         birthdayAboveWhite: birthday.bottom < panel.top,
+        birthdayCentered: Math.abs((birthday.left + birthday.right) / 2 - (r.left + r.right) / 2) < 1,
         overlap: r.bottom - panel.top,
         columns: getComputedStyle(document.querySelector(".person-gift-guidance")!).gridTemplateColumns.split(" ").length,
         stackedWideRows: rows.length === 2 && rows[1].top > rows[0].bottom &&
@@ -479,6 +481,8 @@ test("Variant C profile with portrait and preferences at mobile widths", async (
       };
     });
     expect(measures.ratio).toBeCloseTo(1, 2);
+    expect(measures.noTopGap).toBe(true);
+    expect(measures.birthdayCentered).toBe(true);
     expect(measures.fullBleedPhoto).toBe(true);
     expect(measures.fullBleedWhitePanel).toBe(true);
     expect(measures.birthdayAboveWhite).toBe(true);
@@ -490,6 +494,28 @@ test("Variant C profile with portrait and preferences at mobile widths", async (
       path: `${dir}/person-variant-c-${width}.png`,
       fullPage: true,
       animations: "disabled",
+    });
+  }
+});
+
+test("Gifted history uses the same gift card and stays compact on mobile", async ({page}, testInfo) => {
+  const dir = testInfo.outputPath("screenshots");
+  await mkdir(dir,{recursive:true});
+  const data = fixture();
+  data.events[0].date = "2026-11-10";
+  await seed(page,data);
+  for (const width of [320,390]) {
+    await page.setViewportSize({width,height:844});
+    await page.goto("/#/people/p1");
+    await page.getByRole("button",{name:"Gifted",exact:true}).click();
+    await expect(page.locator(".person-gift-collection .gift-card")).toHaveCount(1);
+    await expect(page.getByRole("button",{name:"Edit gift Scented candle"})).toBeVisible();
+    await expect(page.locator(".person-gift-collection button.gift-status-icon")).toHaveCount(0);
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+    await page.screenshot({
+      path:`${dir}/person-gifted-${width}.png`,
+      fullPage:true,animations:"disabled"
     });
   }
 });
