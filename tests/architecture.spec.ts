@@ -114,7 +114,7 @@ test("single-recipient birthday has no group plan and only accepts the celebrant
   await expect(page.getByRole("combobox", { name: "For" }).locator("option")).toHaveCount(2);
 });
 
-test("People gallery: generated portraits, next-birthday order and concise occasion hints", async ({page}) => {
+test("People gallery: high-resolution portraits, birthday-only metadata and empty preview", async ({page}) => {
   await seed(page);
   const personal = await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"));
   await page.goto("/#/settings");
@@ -122,12 +122,22 @@ test("People gallery: generated portraits, next-birthday order and concise occas
   await page.goto("/#/people");
   const cards = page.locator(".person-gallery-card");
   await expect(cards).toHaveCount(10);
-  await expect(cards.first()).toContainText("Mira");
-  await expect(cards.first()).toContainText("Nov 28");
+  const mira = cards.filter({has:page.getByText("Mira",{exact:true})});
+  await expect(mira).toContainText("Nov 28");
+  await expect(page.locator(".person-gallery-hint")).toHaveCount(0);
+  await expect(page.locator(".person-gallery-birthday")).toHaveCount(10);
   await expect(page.locator(".demo-person-sprite")).toHaveCount(4);
   await expect(page.locator(".person-gallery-portrait")).toHaveCount(10);
   await expect(page.locator(".people-search")).toHaveCount(0);
-  await cards.first().click();
+  const portraitDimensions = await page.locator(".demo-person-sprite").first().evaluate(async el => {
+    const imageUrl = getComputedStyle(el).backgroundImage.slice(5, -2);
+    const img = new Image();
+    img.src = imageUrl;
+    await img.decode();
+    return [img.naturalWidth, img.naturalHeight];
+  });
+  expect(portraitDimensions).toEqual([1024,1024]);
+  await mira.click();
   await expect(page.locator(".person-profile-photo .demo-person-sprite")).toBeVisible();
   await expect(page.locator(".person-guidance-positive")).toContainText("ceramics");
   await expect(page.locator(".person-guidance-negative")).toContainText("fragrances");
@@ -139,4 +149,34 @@ test("People gallery: generated portraits, next-birthday order and concise occas
   await expect(page.locator(".person-gallery-card")).toHaveCount(0);
   await expect(page.getByText(/Keep your favorite people/)).toBeVisible();
   expect(await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"))).toBe(personal);
+});
+
+test("People birthday badge is compact, only for birthdays within 30 days and keeps equal tile heights", async ({page}) => {
+  const data = fixture();
+  // seed() freezes the browser at 2026-11-15; compute dates against that
+  // same clock instead of the runner's actual current date.
+  const dates = {near:"11-25",far:"01-04"};
+  data.people[0].birthday = dates.near;
+  for(const person of data.people.slice(1)) person.birthday = dates.far;
+  await page.setViewportSize({width:320,height:844});
+  await seed(page,data);
+  await page.goto("/#/people");
+  const cards = page.locator(".person-gallery-card");
+  await expect(cards.first().locator(".person-birthday-countdown")).toContainText("10d");
+  await expect(page.locator(".person-birthday-countdown")).toHaveCount(1);
+  await expect(page.locator(".person-gallery-hint")).toHaveCount(0);
+  const geometry = await page.locator(".people-gallery-grid").evaluate(el => {
+    const cards = [...el.querySelectorAll(".person-gallery-card")];
+    const rects = cards.map(card => card.getBoundingClientRect());
+    return {
+      columns:getComputedStyle(el).gridTemplateColumns.split(" ").length,
+      heights:rects.map(r=>r.height),
+      widths:rects.map(r=>r.width),
+      overflow:document.documentElement.scrollWidth-innerWidth,
+    };
+  });
+  expect(geometry.columns).toBe(3);
+  expect(Math.max(...geometry.heights)-Math.min(...geometry.heights)).toBeLessThanOrEqual(1);
+  expect(Math.max(...geometry.widths)-Math.min(...geometry.widths)).toBeLessThanOrEqual(1);
+  expect(geometry.overflow).toBeLessThanOrEqual(1);
 });

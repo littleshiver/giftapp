@@ -404,11 +404,22 @@ test("filled People gallery and portrait profile visual QA at 320 and 390", asyn
     await page.goto("/#/people");
     await expect(page.locator(".person-gallery-card")).toHaveCount(10);
     await expect(page.locator(".demo-person-sprite")).toHaveCount(4);
+    await expect(page.locator(".person-gallery-hint")).toHaveCount(0);
+    const geometry = await page.locator(".people-gallery-grid").evaluate((grid) => {
+      const columns = getComputedStyle(grid).gridTemplateColumns.split(" ").length;
+      const heights = Array.from(grid.querySelectorAll(".person-gallery-card"))
+        .map(card => card.getBoundingClientRect().height);
+      return {columns, heightDifference:Math.max(...heights)-Math.min(...heights),
+        overflow:document.documentElement.scrollWidth-innerWidth};
+    });
+    expect(geometry.columns).toBe(3);
+    expect(geometry.heightDifference).toBeLessThanOrEqual(1);
+    expect(geometry.overflow).toBeLessThanOrEqual(1);
     await page.screenshot({
       path:`${directory}/people-filled-${width}.png`,
       fullPage:true,animations:"disabled",
     });
-    await page.locator(".person-gallery-card").first().click();
+    await page.locator(".person-gallery-card").filter({has:page.getByText("Mira",{exact:true})}).click();
     await expect(page.locator(".person-profile-photo .demo-person-sprite")).toBeVisible();
     await expect(page.locator(".person-guidance-positive")).toBeVisible();
     await expect(page.locator(".person-guidance-negative")).toBeVisible();

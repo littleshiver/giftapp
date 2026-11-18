@@ -419,46 +419,39 @@ export function PersonAvatar({
 }
 
 /**
- * Small close-knit circles benefit from a photo-first gallery, not CRM rows.
- * A secondary line reflects a concrete upcoming occasion where useful.
+ * Compact, birthday-first portrait tile for a small circle of people.
+ * An approaching birthday is the only supplementary signal; occasion and
+ * shopping data belongs to Events, not the People gallery.
  */
 export function PersonRow({person: p}: {person: Person}) {
-  const {data} = useApp();
-  const from = today();
   const monthDay = birthdayMonthDay(p.birthday);
   const birthday = monthDay ? fmtDate(`2000-${monthDay}`) : "";
-  const nextBirthday = p.birthday ? nextBirthdayDate(p.birthday, from) : "";
-  const birthdayDays = nextBirthday
+  const from = today();
+  const nextBirthday = monthDay ? nextBirthdayDate(p.birthday, from) : "";
+  const days = nextBirthday
     ? Math.round((parseDate(nextBirthday).getTime() - parseDate(from).getTime()) / 86400000)
     : null;
-  const upcoming = data.events
-    .filter((event) => event.enabled && event.date >= from && event.people.includes(p.id))
-    .sort((a,b)=>a.date.localeCompare(b.date))[0];
-  const gifts = upcoming
-    ? data.gifts.filter((gift) => gift.eventId === upcoming.id && gift.personId === p.id)
-    : [];
-  const pending = gifts.filter((gift) => gift.status === "to_buy").length;
-  let hint = "";
-  if (birthdayDays !== null && birthdayDays <= 14) {
-    hint = birthdayDays === 0 ? "Birthday today" : birthdayDays === 1 ? "Birthday tomorrow" : `Birthday in ${birthdayDays} days`;
-  } else if (upcoming) {
-    if (!gifts.length) hint = `${upcoming.name} · choose a gift`;
-    else if (pending) hint = `${upcoming.name} · ${pending} to buy`;
-    else hint = `${upcoming.name} · ready`;
-  } else {
-    const ideasCount = data.ideas.filter((idea) => idea.personId === p.id).length;
-    if (ideasCount) hint = `${ideasCount} saved ${ideasCount === 1 ? "idea" : "ideas"}`;
-  }
+  const comingSoon = days !== null && days >= 0 && days <= 30;
+  const countdown = days === 0 ? "Today" : `${days}d`;
   return (
     <Link className="person-gallery-card" to={`/people/${p.id}`}>
-      <PersonAvatar person={p} className="person-gallery-portrait" />
+      <span className="person-gallery-image">
+        <PersonAvatar person={p} className="person-gallery-portrait" />
+        {comingSoon && (
+          <span className="person-birthday-countdown"
+            aria-label={days === 0 ? "Birthday today" : `Birthday in ${days} days`}
+            title={days === 0 ? "Birthday today" : `Birthday in ${days} days`}>
+            <Cake size={12} aria-hidden="true"/>
+            {countdown}
+          </span>
+        )}
+      </span>
       <span className="person-gallery-info">
         <strong>{p.name}</strong>
         <span className="person-gallery-birthday">
-          <Cake size={14} aria-hidden="true"/>
-          {birthday || "Date not added"}
+          <Cake size={13} aria-hidden="true"/>
+          {birthday || "Date not set"}
         </span>
-        {hint && <span className="person-gallery-hint">{hint}</span>}
       </span>
     </Link>
   );
