@@ -26,7 +26,9 @@ import demoPhotoSheet from "../assets/demo/catalog-hifi.avif";
 
 import { currency, fmtDate } from "../utils/format";
 import { eventBudget } from "../domain/selectors";
-import { birthdayMonthDay } from "../domain/birthdays";
+import { birthdayMonthDay, nextBirthdayDate } from "../domain/birthdays";
+import { today, parseDate } from "../utils/format";
+import demoPersonSheet from "../assets/demo/people-portraits.webp";
 export { Empty } from "./Primitives";
 export function Navigation() {
   return (
@@ -293,30 +295,32 @@ export function Product({
         <button
           type="button"
           className="product-open"
-          aria-label={actionLabel || `${home ? "Open gift" : "Edit"} ${item.name}`}
+          aria-label={actionLabel || `${home ? "View gift" : "Edit"} ${item.name}`}
           onClick={onClick}
         >
           <span className="product-visual" style={{ background: gradientFor(item.name) }}>
             <Photo src={item.image} name={item.name} />
+            {home && <span className="home-gift-placeholder-name" aria-hidden="true">{item.name}</span>}
           </span>
-          <span className="gift-card-copy">
+          {!home && <span className="gift-card-copy">
             <strong className="product-title">{item.name}</strong>
             <span className="product-caption">{caption}</span>
-          </span>
+          </span>}
         </button>
       ) : (
         <div className="product-open">
           <span className="product-visual" style={{ background: gradientFor(item.name) }}>
             <Photo src={item.image} name={item.name} />
+            {home && <span className="home-gift-placeholder-name" aria-hidden="true">{item.name}</span>}
           </span>
-          <span className="gift-card-copy">
+          {!home && <span className="gift-card-copy">
             <strong className="product-title">{item.name}</strong>
             <span className="product-caption">{caption}</span>
-          </span>
+          </span>}
         </div>
       )}
       {gift && <GiftStatus status={gift.status} name={gift.name} onToggle={onToggle || defaultToggle} />}
-      {onClick && showEdit && (
+      {onClick && showEdit && !home && (
         <button type="button" className="gift-card-edit"
           aria-label={`Edit ${gift ? "gift" : "idea"} ${item.name}`}
           title="Edit"
@@ -383,30 +387,65 @@ export function PersonAvatar({
   const tone = [...key].reduce((sum, char) => sum + char.charCodeAt(0), 0) % palette.length;
   return (
     <span className={`person-avatar ${className}`} style={{ background: palette[tone] }} aria-hidden="true">
-      {person?.photo
-        ? <img src={person.photo} alt="" loading="lazy"/>
-        : <span>{person?.name?.[0]?.toUpperCase() || "?"}</span>}
+      {person?.photo?.startsWith("demo-person:") ? (
+        <span className="demo-person-sprite"
+          style={{
+            backgroundImage: `url("${demoPersonSheet}")`,
+            backgroundSize: "200% 200%",
+            backgroundPosition: `${Number(person.photo.slice(12)) % 2 ? 100 : 0}% ${Number(person.photo.slice(12)) >= 2 ? 100 : 0}%`,
+          }}
+        />
+      ) : person?.photo ? (
+        <img src={person.photo} alt="" loading="lazy"/>
+      ) : (
+        <span>{person?.name?.[0]?.toUpperCase() || "?"}</span>
+      )}
     </span>
   );
 }
 
-export function PersonRow({
-  person: p,
-  index: _index = 0,
-}: {
-  person: Person;
-  index?: number;
-}) {
+/**
+ * Small close-knit circles benefit from a photo-first gallery, not CRM rows.
+ * A secondary line reflects a concrete upcoming occasion where useful.
+ */
+export function PersonRow({person: p}: {person: Person}) {
+  const {data} = useApp();
+  const from = today();
   const monthDay = birthdayMonthDay(p.birthday);
   const birthday = monthDay ? fmtDate(`2000-${monthDay}`) : "";
+  const nextBirthday = p.birthday ? nextBirthdayDate(p.birthday, from) : "";
+  const birthdayDays = nextBirthday
+    ? Math.round((parseDate(nextBirthday).getTime() - parseDate(from).getTime()) / 86400000)
+    : null;
+  const upcoming = data.events
+    .filter((event) => event.enabled && event.date >= from && event.people.includes(p.id))
+    .sort((a,b)=>a.date.localeCompare(b.date))[0];
+  const gifts = upcoming
+    ? data.gifts.filter((gift) => gift.eventId === upcoming.id && gift.personId === p.id)
+    : [];
+  const pending = gifts.filter((gift) => gift.status === "to_buy").length;
+  let hint = "";
+  if (birthdayDays !== null && birthdayDays <= 14) {
+    hint = birthdayDays === 0 ? "Birthday today" : birthdayDays === 1 ? "Birthday tomorrow" : `Birthday in ${birthdayDays} days`;
+  } else if (upcoming) {
+    if (!gifts.length) hint = `${upcoming.name} · choose a gift`;
+    else if (pending) hint = `${upcoming.name} · ${pending} to buy`;
+    else hint = `${upcoming.name} · ready`;
+  } else {
+    const ideasCount = data.ideas.filter((idea) => idea.personId === p.id).length;
+    if (ideasCount) hint = `${ideasCount} saved ${ideasCount === 1 ? "idea" : "ideas"}`;
+  }
   return (
-    <Link className="person-list-item" to={`/people/${p.id}`}>
-      <PersonAvatar person={p} className="item-photo item-avatar" />
-      <span className="item-body">
+    <Link className="person-gallery-card" to={`/people/${p.id}`}>
+      <PersonAvatar person={p} className="person-gallery-portrait" />
+      <span className="person-gallery-info">
         <strong>{p.name}</strong>
-        <small>{birthday ? `Birthday · ${birthday}` : "Birthday not set"}</small>
+        <span className="person-gallery-birthday">
+          <Cake size={14} aria-hidden="true"/>
+          {birthday || "Date not added"}
+        </span>
+        {hint && <span className="person-gallery-hint">{hint}</span>}
       </span>
-      <ChevronRight size={19} aria-hidden="true" />
     </Link>
   );
 }
