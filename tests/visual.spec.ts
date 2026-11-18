@@ -661,6 +661,8 @@ test("Discover color field is full bleed, curved and mat-framed at phone widths"
         leftGap: Math.abs(stage.left - shell.left),
         rightGap: Math.abs(stage.right - shell.right),
         height: stage.height,
+        stageBottom: stage.bottom,
+        viewportBottom: innerHeight,
         imageInset: image.left - card.left,
         imageAspect: image.width / image.height,
         cardWidth: card.width,
@@ -675,7 +677,8 @@ test("Discover color field is full bleed, curved and mat-framed at phone widths"
     });
     expect(metrics.leftGap).toBeLessThanOrEqual(1);
     expect(metrics.rightGap).toBeLessThanOrEqual(1);
-    expect(metrics.height).toBeLessThanOrEqual(510);
+    // The background fills the viewport rather than stopping at a fixed 510px.
+    expect(Math.abs(metrics.stageBottom - metrics.viewportBottom)).toBeLessThanOrEqual(2);
     expect(metrics.imageInset).toBeGreaterThanOrEqual(8);
     expect(metrics.imageAspect).toBeGreaterThan(0.99);
     expect(metrics.imageAspect).toBeLessThan(1.01);
