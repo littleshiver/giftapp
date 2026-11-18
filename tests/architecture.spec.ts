@@ -113,3 +113,30 @@ test("single-recipient birthday has no group plan and only accepts the celebrant
   await expect(page.getByRole("combobox", { name: "For" })).toHaveValue("p1");
   await expect(page.getByRole("combobox", { name: "For" }).locator("option")).toHaveCount(2);
 });
+
+test("People gallery: generated portraits, next-birthday order and concise occasion hints", async ({page}) => {
+  await seed(page);
+  const personal = await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"));
+  await page.goto("/#/settings");
+  await page.getByRole("button", {name:"Filled",exact:true}).click();
+  await page.goto("/#/people");
+  const cards = page.locator(".person-gallery-card");
+  await expect(cards).toHaveCount(10);
+  await expect(cards.first()).toContainText("Mira");
+  await expect(cards.first()).toContainText("Nov 28");
+  await expect(page.locator(".demo-person-sprite")).toHaveCount(4);
+  await expect(page.locator(".person-gallery-portrait")).toHaveCount(10);
+  await expect(page.locator(".people-search")).toHaveCount(0);
+  await cards.first().click();
+  await expect(page.locator(".person-profile-photo .demo-person-sprite")).toBeVisible();
+  await expect(page.locator(".person-guidance-positive")).toContainText("ceramics");
+  await expect(page.locator(".person-guidance-negative")).toContainText("fragrances");
+  await expect(page.getByRole("heading",{name:"About"})).toHaveCount(0);
+  await expect(page.locator(".person-ideas .gift-card")).toHaveCount(1);
+  await page.goto("/#/settings");
+  await page.getByRole("button", {name:"Empty",exact:true}).click();
+  await page.goto("/#/people");
+  await expect(page.locator(".person-gallery-card")).toHaveCount(0);
+  await expect(page.getByText(/Keep your favorite people/)).toBeVisible();
+  expect(await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"))).toBe(personal);
+});
