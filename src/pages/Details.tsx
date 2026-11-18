@@ -123,7 +123,6 @@ export function EventDetail() {
 
         <div className="event-overview-panel">
           <header className="event-identity">
-            <p className="event-identity-type">{isBirthday ? "Birthday" : "Occasion"}</p>
             <h1>{event.name}</h1>
           </header>
           <div className="event-summary" aria-label="Occasion summary">
