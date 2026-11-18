@@ -96,14 +96,14 @@ export function Ideas() {
           <h3>{item.name}</h3>
           <p>{item.detail}</p>
           <div className="idea-actions">
-            <button
+            <button data-ph="idea-skip"
               className="round-action"
               aria-label="Skip idea"
               onClick={skip}
             >
               <X size={20} />
             </button>
-            <button
+            <button data-ph="idea-save"
               className="round-action main"
               aria-label="Save idea"
               onClick={save}
@@ -117,7 +117,7 @@ export function Ideas() {
         <Section title="Saved ideas" />
         <div className="filter-row" aria-label="Filter ideas by person">
           {[{ id: "all", name: "All" }, ...data.people].map((p) => (
-            <button
+            <button data-ph="ideas-filter-person"
               key={p.id}
               className={`filter-pill ${personId === p.id ? "active" : ""}`}
               aria-pressed={personId === p.id}

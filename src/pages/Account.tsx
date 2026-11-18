@@ -115,7 +115,7 @@ export function Account() {
             Your people, occasions, gifts and ideas are saved to your account
             and available on any device where you sign in.
           </p>
-          <Button
+          <Button data-ph="account-sign-out"
             variant="secondary"
             className="button-full"
             style={{ marginTop: 16 }}
@@ -143,7 +143,7 @@ export function Account() {
       )}
       <section className="data-card account-card">
         <div className="account-providers">
-          <Button
+          <Button data-ph="account-google"
             variant="outline"
             className="button-full"
             disabled={busy || status === "loading"}
@@ -153,7 +153,7 @@ export function Account() {
             Continue with Google
           </Button>
           {appleEnabled && (
-          <Button
+          <Button data-ph="account-apple"
             className="button-full account-apple"
             disabled={busy || status === "loading"}
             onClick={() => run(signInWithApple)}
@@ -188,13 +188,13 @@ export function Account() {
           </Field>
           {error && <p className="warning" role="alert">{error}</p>}
           {info && <p className="section-note" role="status">{info}</p>}
-          <Button className="button-full" disabled={busy || status === "loading"}>
+          <Button data-ph={mode === "sign-in" ? "account-email-sign-in" : "account-email-sign-up"} className="button-full" disabled={busy || status === "loading"}>
             <Mail size={16} />
             {mode === "sign-in" ? "Sign in" : "Create account"}
           </Button>
         </form>
         {mode === "sign-in" && (
-          <button
+          <button data-ph="account-forgot-password"
             type="button"
             className="ghostbutton button-full"
             disabled={busy}
@@ -206,7 +206,7 @@ export function Account() {
             Forgot password?
           </button>
         )}
-        <button
+        <button data-ph="account-switch-mode"
           type="button"
           className="ghostbutton button-full"
           onClick={() => {

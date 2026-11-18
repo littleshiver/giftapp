@@ -41,7 +41,7 @@ export function Navigation() {
           { to: "/events", name: "Events", Icon: CalendarDays },
           { to: "/settings", name: "Settings", Icon: Settings },
         ].map(({ to, name, Icon }) => (
-          <NavLink
+          <NavLink data-ph={`nav-${name.toLowerCase()}`}
             key={to}
             to={to}
             end={to === "/"}
@@ -89,7 +89,7 @@ export function CreateMenu() {
             { type: "event", label: "Add occasion", Icon: CalendarDays },
             { type: "person", label: "Add person", Icon: UsersRound },
           ].map(({ type, label, Icon }) => (
-            <button
+            <button data-ph={`create-${type}`}
               key={type}
               onClick={() => {
                 setOpen(false);
@@ -128,7 +128,7 @@ export function CreateMenu() {
           ))}
         </div>
       )}
-      <button
+      <button data-ph="create-menu-toggle"
         className="fab"
         aria-expanded={open}
         aria-controls="create-menu"
@@ -152,7 +152,7 @@ export function BackLink({
 }) {
   const destination = to === "/people" ? "People" : to === "/events" ? "Events" : "previous page";
   return (
-    <Link to={to} className={`back-link back-navigation ${className}`}
+    <Link data-ph={`back-to-${destination.split(" ")[0].toLowerCase()}`} to={to} className={`back-link back-navigation ${className}`}
       aria-label={label || `Back to ${destination}`}>
       <ChevronLeft size={20} strokeWidth={2} aria-hidden="true" />
     </Link>
@@ -269,7 +269,7 @@ export function GiftStatus({
   const className = `gift-status-icon ${purchased ? "is-bought" : "is-to-buy"}`;
   const content = <Icon size={18} strokeWidth={2.5} aria-hidden="true" />;
   return onToggle ? (
-    <button type="button" className={className}
+    <button data-ph="gift-status-toggle" type="button" className={className}
       aria-label={`Mark ${name} as ${purchased ? "To buy" : "Bought"}`}
       aria-pressed={purchased}
       title={`${description} · tap to change`}
@@ -325,7 +325,7 @@ export function Product({
   return (
     <article className={`product-card gift-card ${home ? "home-product" : ""} ${gift ? "is-gift" : "is-idea"}`}>
       {onClick ? (
-        <button
+        <button data-ph={home ? "home-gift-open" : "gift-card-open"}
           type="button"
           className="product-open"
           aria-label={actionLabel || `${home ? "View gift" : "Edit"} ${item.name}`}
@@ -355,7 +355,7 @@ export function Product({
       {gift && <GiftStatus status={gift.status} name={gift.name}
         onToggle={statusReadOnly ? undefined : (onToggle || defaultToggle)} />}
       {onClick && showEdit && !home && (
-        <button type="button" className="gift-card-edit"
+        <button data-ph="gift-card-edit" type="button" className="gift-card-edit"
           aria-label={`Edit ${gift ? "gift" : "idea"} ${item.name}`}
           title="Edit"
           onClick={onClick}>
@@ -392,7 +392,7 @@ export function BudgetBar({
 }
 export function EventRow({ event: e }: { event: Event }) {
   return (
-    <Link className="event-list-item" to={`/events/${e.id}`}>
+    <Link data-ph="occasion-list-item" className="event-list-item" to={`/events/${e.id}`}>
       <span className="item-photo">
         <Photo src={e.image} birthday={e.kind === "birthday"} />
       </span>
@@ -454,7 +454,7 @@ export function PersonRow({person: p}: {person: Person}) {
   const comingSoon = days !== null && days >= 0 && days <= 30;
   const countdown = days === 0 ? "Today" : `${days}d`;
   return (
-    <Link className="person-gallery-card" to={`/people/${p.id}`}>
+    <Link data-ph="person-card" className="person-gallery-card" to={`/people/${p.id}`}>
       <span className="person-gallery-image">
         <PersonAvatar person={p} className="person-gallery-portrait" />
         {comingSoon && (
@@ -479,7 +479,7 @@ export function PersonRow({person: p}: {person: Person}) {
 export function IdeaRow({ idea: i }: { idea: Idea }) {
   const { data, openEditor } = useApp();
   return (
-    <button
+    <button data-ph="idea-list-item"
       className="idea-list-item"
       onClick={() => openEditor({ type: "idea", id: i.id })}
     >
@@ -506,7 +506,7 @@ export function AddGift({
 }) {
   const { openEditor } = useApp();
   return (
-    <button
+    <button data-ph="add-gift"
       className="section-link"
       onClick={() => openEditor({ type: "gift", eventId, personId })}
     >

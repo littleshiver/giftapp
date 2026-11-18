@@ -80,14 +80,14 @@ export function EventDetail() {
             <p className="event-summary-kicker">{isBirthday ? "Birthday" : "Occasion"}</p>
             <p className="event-summary-date"><CalendarDays size={17} aria-hidden="true" />{fullDate(event.date)}</p>
           </div>
-          <Button variant="outline" onClick={() => openEditor({type: "event", id: event.id})}>
+          <Button data-ph="occasion-edit" variant="outline" onClick={() => openEditor({type: "event", id: event.id})}>
             <Pencil size={16} aria-hidden="true"/> Edit
           </Button>
         </div>
         {!isGroup && event.people.length === 1 && (() => {
           const person = data.people.find((item) => item.id === event.people[0]);
           return (
-            <Link className="event-person-summary" to={`/people/${event.people[0]}`}>
+            <Link data-ph="occasion-person" className="event-person-summary" to={`/people/${event.people[0]}`}>
               <PersonAvatar person={person} className="event-person-avatar" />
               <span className="item-body">
                 <strong>{person?.name || "Unknown person"}</strong>
@@ -120,7 +120,7 @@ export function EventDetail() {
             return (
               <div key={personId} className="event-recipient-group">
                 <div className="event-recipient-group-top">
-                  <Link className="icontext event-recipient-name" to={`/people/${personId}`}>
+                  <Link data-ph="occasion-recipient" className="icontext event-recipient-name" to={`/people/${personId}`}>
                     <PersonAvatar person={person} className="event-person-avatar" />
                     <span className="item-body">
                       <strong>{person?.name || "Unknown person"}</strong>
@@ -162,7 +162,7 @@ export function EventDetail() {
               const person = data.people.find((candidate) => candidate.id === personId);
               if (!person) return null;
               return (
-                <button type="button" className="gift-recipient-option" key={person.id}
+                <button data-ph="gift-picker-recipient" type="button" className="gift-recipient-option" key={person.id}
                   onClick={() => setGiftPersonId(person.id)}>
                   <PersonAvatar person={person} className="event-person-avatar" />
                   <span className="item-body"><strong>{person.name}</strong></span>
@@ -190,7 +190,7 @@ export function EventDetail() {
               </div>
             </>
           ) : <p className="gift-picker-intro">No ideas saved for {selectedPerson.name} yet. You can add a new gift.</p>}
-          <Button className="button-full gift-picker-new" onClick={() => {
+          <Button data-ph="gift-picker-new" className="button-full gift-picker-new" onClick={() => {
             closeGiftPicker();
             openEditor({type: "gift", eventId: event.id, personId: selectedPerson.id});
           }}>
@@ -226,7 +226,7 @@ export function PersonDetail() {
         <div className="person-profile-cover">
           <PersonAvatar person={person} className="person-profile-photo" />
           <BackLink to="/people" className="person-photo-action person-photo-back" />
-          <button type="button" className="person-photo-action person-photo-edit"
+          <button data-ph="person-edit" type="button" className="person-photo-action person-photo-edit"
             aria-label="Edit person" onClick={() => openEditor({type:"person", id:person.id})}>
             <Pencil size={16} strokeWidth={2} aria-hidden="true"/>
           </button>
@@ -270,11 +270,11 @@ export function PersonDetail() {
       )}
       <section className="section person-ideas" aria-label="Gift collections">
         <div className="pill-tabs person-collection-tabs" role="group" aria-label="Gift collections">
-          <button type="button" className={`pill-tab ${collection === "ideas" ? "is-active" : ""}`}
+          <button data-ph="person-tab-ideas" type="button" className={`pill-tab ${collection === "ideas" ? "is-active" : ""}`}
             aria-pressed={collection === "ideas"} onClick={() => setCollection("ideas")}>
             Gift ideas
           </button>
-          <button type="button" className={`pill-tab ${collection === "gifted" ? "is-active" : ""}`}
+          <button data-ph="person-tab-gifted" type="button" className={`pill-tab ${collection === "gifted" ? "is-active" : ""}`}
             aria-pressed={collection === "gifted"} onClick={() => setCollection("gifted")}>
             Gifted
           </button>

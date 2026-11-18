@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowRight, Check } from "lucide-react";
 import { Button, Field } from "../components/Primitives";
 import { useApp } from "../state/AppState";
 import { useAuth } from "../auth/AuthContext";
 import { applySetup, holidays, type SetupDraft } from "../domain/onboarding";
+import { track } from "../analytics/analytics";
 export function Onboarding() {
   const { data, commit, notify } = useApp(),
     auth = useAuth(),
@@ -22,11 +23,16 @@ export function Onboarding() {
       budget: data.settings.birthdayBudget,
     }),
     [error, setError] = useState("");
+  // Funnel events for analytics (no form contents are sent).
+  useEffect(() => {
+    if (!preview) track("onboarding_step_viewed", { step: step + 1 });
+  }, [step, preview]);
   const change = (patch: Partial<SetupDraft>) =>
     setDraft((d) => ({ ...d, ...patch }));
   const finish = () => {
     try {
       if (commit(applySetup(data, draft))) {
+        if (!preview) track("onboarding_completed", { added_birthday: Boolean(draft.birthday) });
         notify("Your preferences were added ✓");
         navigate("/");
       }
@@ -55,11 +61,11 @@ export function Onboarding() {
               Keep people, occasions and good ideas in one calm little place.
             </p>
           </div>
-          <Button className="button-full" onClick={() => setStep(1)}>
+          <Button data-ph="onboarding-get-started" className="button-full" onClick={() => setStep(1)}>
             Get started
             <ArrowRight size={17} />
           </Button>
-          <Button
+          <Button data-ph={preview ? "onboarding-back-to-settings" : "onboarding-explore-first"}
             variant="secondary"
             className="button-full"
             style={{ marginTop: 10 }}
@@ -70,14 +76,16 @@ export function Onboarding() {
                   ...data,
                   settings: { ...data.settings, onboardingComplete: true },
                 })
-              )
+              ) {
+                track("onboarding_skipped");
                 navigate("/");
+              }
             }}
           >
             {preview ? "Back to Settings" : "Explore first"}
           </Button>
           {!preview && auth.status === "guest" && (
-            <Link
+            <Link data-ph="onboarding-have-account"
               className="ghostbutton button-full"
               style={{ marginTop: 10 }}
               to="/account?next=/onboarding"
@@ -111,7 +119,7 @@ export function Onboarding() {
               <span>{name}</span>
             </label>
           ))}
-          <Button
+          <Button data-ph="onboarding-step2-continue"
             className="button-full"
             style={{ marginTop: 20 }}
             onClick={() => setStep(2)}
@@ -119,7 +127,7 @@ export function Onboarding() {
             Continue
             <ArrowRight size={16} />
           </Button>
-          <button
+          <button data-ph="onboarding-step2-back"
             className="ghostbutton button-full"
             onClick={() => setStep(0)}
           >
@@ -154,11 +162,11 @@ export function Onboarding() {
               onChange={(e) => change({ birthday: e.target.value })}
             />
           </Field>
-          <Button className="button-full">
+          <Button data-ph="onboarding-step3-continue" className="button-full">
             Continue
             <ArrowRight size={16} />
           </Button>
-          <button
+          <button data-ph="onboarding-step3-back"
             className="ghostbutton button-full"
             type="button"
             onClick={() => setStep(1)}
@@ -195,11 +203,11 @@ export function Onboarding() {
               {error}
             </p>
           )}
-          <Button className="button-full">
+          <Button data-ph="onboarding-finish" className="button-full">
             Finish setup
             <Check size={17} />
           </Button>
-          <button
+          <button data-ph="onboarding-step4-back"
             className="ghostbutton button-full"
             type="button"
             onClick={() => setStep(2)}

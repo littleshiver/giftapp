@@ -34,7 +34,7 @@ export function Settings() {
                 }`
               : "You're using Givvy as a guest. Sign in to keep your lists safe — everything you've added stays."}
           </p>
-          <Link className="button-secondary button-full" style={{ marginTop: 14 }} to="/account">
+          <Link data-ph="settings-account" className="button-secondary button-full" style={{ marginTop: 14 }} to="/account">
             <UserRound size={16} />
             {auth.status === "signed-in" ? "Manage account" : "Sign in or create account"}
           </Link>
@@ -51,7 +51,7 @@ export function Settings() {
             ["empty", "Empty"],
             ["filled", "Filled"],
           ] as const).map(([mode, label]) => (
-            <button
+            <button data-ph={`settings-preview-${mode}`}
               key={mode}
               type="button"
               className={`preview-mode-button ${previewMode === mode ? "is-active" : ""}`}
@@ -62,7 +62,7 @@ export function Settings() {
             </button>
           ))}
         </div>
-        <button className="preview-return-personal" type="button"
+        <button data-ph="settings-preview-my-data" className="preview-return-personal" type="button"
           aria-pressed={previewMode === "my"}
           onClick={() => setPreviewMode("my")}>
           {previewMode === "my" ? "Viewing my data" : "Return to my data"}
@@ -113,7 +113,7 @@ export function Settings() {
               onChange={(e) => setBudget(Number(e.target.value))}
             />
           </Field>
-          <Button className="button-full">Save preferences</Button>
+          <Button data-ph="settings-save-preferences" className="button-full">Save preferences</Button>
         </form>
       </section>
       <section className="data-card">
@@ -124,7 +124,7 @@ export function Settings() {
             ? " and the reusable UI component library."
             : ". Preview adds preferences only when you finish."}
         </p>
-        <Link
+        <Link data-ph="settings-preview-onboarding"
           className="button-secondary button-full"
           style={{ marginTop: 14 }}
           to="/onboarding?preview=1"
@@ -133,7 +133,7 @@ export function Settings() {
           Preview onboarding
         </Link>
         {import.meta.env.DEV && (
-          <Link
+          <Link data-ph="settings-component-library"
             className="button-outline button-full"
             style={{ marginTop: 10 }}
             to="/components"
@@ -151,11 +151,11 @@ export function Settings() {
             : "Your real data stays in this browser. Export before changing browsers or devices. Preview content is never included in your backup."}
         </p>
         <div className="button-row" style={{ marginTop: 14 }}>
-          <Button variant="secondary" onClick={() => exportBackup(personalData)}>
+          <Button data-ph="settings-export-json" variant="secondary" onClick={() => exportBackup(personalData)}>
             <Download size={16} />
             Export JSON
           </Button>
-          <Button variant="secondary" disabled={previewMode !== "my"} onClick={() => file.current?.click()}>
+          <Button data-ph="settings-import-json" variant="secondary" disabled={previewMode !== "my"} onClick={() => file.current?.click()}>
             <Upload size={16} />
             Import JSON
           </Button>
@@ -195,7 +195,7 @@ export function Settings() {
               This backup includes the original pre-upgrade snapshot and
               per-item history. Previous browser storage keys remain untouched.
             </p>
-            <Button
+            <Button data-ph="settings-export-original"
               variant="outline"
               style={{ marginTop: 10 }}
               onClick={() =>

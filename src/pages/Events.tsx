@@ -50,7 +50,7 @@ function MonthEventCard({
   index: number;
 }) {
   return (
-    <Link
+    <Link data-ph="calendar-occasion"
       to={`/events/${event.id}`}
       className="calendar-event-card"
       style={occasionTone(index)}
@@ -107,13 +107,13 @@ function ReminderEventRow({
             {parseDate(event.date).toLocaleDateString("en-US", { month: "short" }).toUpperCase()}
           </small>
         </span>
-        <Link className="reminder-event-info" to={`/events/${event.id}`}>
+        <Link data-ph="reminder-occasion" className="reminder-event-info" to={`/events/${event.id}`}>
           <strong>{event.name}</strong>
           <small className={active ? "is-on" : ""}>
             {active ? reminderLabel(current) : "No reminder"}
           </small>
         </Link>
-        <button
+        <button data-ph="reminder-toggle"
           type="button"
           className={`reminder-toggle ${active ? "is-on" : ""}`}
           aria-label={`Set reminder for ${event.name}`}
@@ -199,7 +199,7 @@ export function Events() {
       <div className="events-mode-row">
         <div className="pill-tabs" role="group" aria-label="Events view">
           {(["calendar", "reminders"] as const).map((view) => (
-            <button
+            <button data-ph={`events-tab-${view}`}
               key={view}
               type="button"
               className={`pill-tab ${mode === view ? "is-active" : ""}`}
@@ -216,7 +216,7 @@ export function Events() {
         <>
           <div className="calendar-card">
             <div className="calendar-top">
-              <button
+              <button data-ph="calendar-prev-month"
                 type="button"
                 className="cal-arrow"
                 aria-label="Previous month"
@@ -225,7 +225,7 @@ export function Events() {
                 <ChevronLeft size={19} />
               </button>
               <strong>{monthName(month)}</strong>
-              <button
+              <button data-ph="calendar-next-month"
                 type="button"
                 className="cal-arrow"
                 aria-label="Next month"
@@ -249,7 +249,7 @@ export function Events() {
                 const ds = iso(date);
                 const marks = byDate.get(ds) ?? [];
                 return (
-                  <button
+                  <button data-ph="calendar-day"
                     type="button"
                     key={ds}
                     aria-label={ds}
@@ -282,7 +282,7 @@ export function Events() {
                 </p>
               </div>
               {activeDate && (
-                <button type="button" className="calendar-show-all" onClick={() => setFilteredDate(null)}>
+                <button data-ph="calendar-show-all" type="button" className="calendar-show-all" onClick={() => setFilteredDate(null)}>
                   Show all
                 </button>
               )}
@@ -337,7 +337,7 @@ export function Events() {
           <Section title="Gifts needing attention" />
           <p className="section-note">Some saved gifts have an unavailable occasion or recipient. You can edit them without losing their details.</p>
           {unlinkedGifts.map((gift) => (
-            <button type="button" key={gift.id} className="event-repair-item"
+            <button data-ph="repair-gift" type="button" key={gift.id} className="event-repair-item"
               onClick={() => openEditor({type: "gift", id: gift.id})}
               aria-label={`Repair ${gift.name}`}>
               <span>{gift.name}</span><ChevronRight size={17}/>
@@ -354,7 +354,7 @@ export function Events() {
             {reminderOptions.map((option) => {
               const chosen = (reminderEvent.reminderDays ?? null) === option.value;
               return (
-                <button
+                <button data-ph={`reminder-option-${option.value ?? "off"}`}
                   type="button"
                   key={option.value ?? "off"}
                   className={`reminder-sheet-option ${chosen ? "is-selected" : ""}`}

@@ -322,7 +322,7 @@ export function EditorSheet() {
                       />
                     </label>
                     {p?.photo && !removePersonPhoto && !chosenPhotoUrl && (
-                      <button className="person-photo-remove" type="button"
+                      <button data-ph="person-photo-remove" className="person-photo-remove" type="button"
                         onClick={() => setRemovePersonPhoto(true)}>Remove photo</button>
                     )}
                   </div>
@@ -607,7 +607,7 @@ export function EditorSheet() {
               />
             </Field>
             {type === "idea" && idea && (
-              <Button
+              <Button data-ph="idea-add-to-occasion"
                 type="button"
                 variant="secondary"
                 className="button-full"
@@ -664,12 +664,12 @@ export function EditorSheet() {
           </p>
         )}
         <div className="sheet-cta">
-          <Button className="button-full" type="submit" disabled={busy}>
+          <Button data-ph={`editor-save-${type}`} className="button-full" type="submit" disabled={busy}>
             <Check size={17} />
             {busy ? "Saving…" : `Save ${type}`}
           </Button>
           {id && (
-            <Button
+            <Button data-ph={`editor-delete-${type}`}
               type="button"
               variant="secondary"
               className="button-full button-danger"
