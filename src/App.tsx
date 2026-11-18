@@ -9,6 +9,7 @@ import { Events } from "./pages/Events";
 import { People } from "./pages/People";
 import { Ideas } from "./pages/Ideas";
 import { Settings } from "./pages/Settings";
+import { Account } from "./pages/Account";
 import { EventDetail, PersonDetail } from "./pages/Details";
 import { useApp } from "./state/AppState";
 export function App() {
@@ -73,6 +74,7 @@ export function App() {
             <Route path="/ideas" element={<Ideas />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/onboarding" element={<Onboarding />} />
+            <Route path="/account" element={<Account />} />
             {import.meta.env.DEV && (
               <Route path="/components" element={<Components />} />
             )}

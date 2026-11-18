@@ -472,3 +472,14 @@
 @media (prefers-reduced-motion:reduce) {
   .gift-card .gift-status-icon, .gift-card .gift-card-edit { transition: none; }
 }
+
+/* Account / sign-in */
+.account-card form { margin-top: 4px; }
+.account-providers { display: grid; gap: 10px; }
+.account-providers .button-outline,
+.account-providers .button-primary { gap: 10px; }
+.account-apple { background: #111; color: #fff; border-color: #111; }
+.account-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0 12px; color: var(--muted, #8a8580); font-size: 13px; }
+.account-divider::before, .account-divider::after { content: ""; flex: 1; height: 1px; background: currentColor; opacity: .25; }
+.account-card .ghostbutton { margin-top: 8px; }
+.account-notice { margin-bottom: 14px; }
