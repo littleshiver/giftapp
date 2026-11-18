@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import { Check, ChevronRight, SlidersHorizontal, ThumbsDown, ThumbsUp, UsersRound, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ChevronDown, ChevronRight, Heart, SlidersHorizontal, UsersRound, X } from "lucide-react";
 import type { Idea } from "../domain/models";
 import { Empty, PersonAvatar, Product, Title } from "../components/UI";
 import { Button, Sheet } from "../components/Primitives";
@@ -7,14 +7,14 @@ import { useApp } from "../state/AppState";
 import { uid } from "../utils/format";
 // Inline the source images: saving a suggestion must work offline, survive a
 // GitHub Pages rebuild and export/import without depending on a remote URL.
-import artbook from "../assets/discovery/artbook.jpg?inline";
-import blanket from "../assets/discovery/blanket.jpg?inline";
-import mug from "../assets/discovery/mug.jpg?inline";
-import candle from "../assets/discovery/candle.jpg?inline";
+import artbook from "../assets/discovery/artbook-hires.jpg?inline";
+import blanket from "../assets/discovery/blanket-hires.jpg?inline";
+import mug from "../assets/discovery/mug-hires.jpg?inline";
+import candle from "../assets/discovery/candle-hires.jpg?inline";
 
-type Audience = "any" | "adult" | "child";
-type Relationship = "any" | "close" | "acquaintance";
-type DiscoveryFilters = { audience: Audience; relationship: Relationship };
+type Audience = "adult" | "child";
+type Relationship = "close" | "acquaintance";
+type DiscoveryFilters = { audiences: Audience[]; relationships: Relationship[] };
 type Suggestion = {
   id: string;
   name: string;
@@ -41,32 +41,75 @@ const suggestions: Suggestion[] = [
     note: "Atmospheric gifts for the home",
     audiences: ["adult"], relationships: ["close", "acquaintance"] },
 ];
-const initialFilters: DiscoveryFilters = { audience: "any", relationship: "any" };
+const initialFilters: DiscoveryFilters = { audiences: [], relationships: [] };
+const audienceLabels: Record<Audience, string> = { adult: "Adult", child: "Child" };
+const relationshipLabels: Record<Relationship, string> = {
+  close: "Close person", acquaintance: "Acquaintance",
+};
 
 export function Ideas() {
   const { data, commit, notify, ui, setUi, openEditor } = useApp();
-  const [tab, setTab] = useState<"discover" | "saved">("discover");
+  const tab = ui.ideasTab;
   const [filters, setFilters] = useState<DiscoveryFilters>(initialFilters);
   const [draftFilters, setDraftFilters] = useState<DiscoveryFilters>(initialFilters);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [likedId, setLikedId] = useState<string | null>(null);
-  const touchStart = useRef<number | null>(null);
+  const dragStart = useRef<{ x: number; y: number } | null>(null);
+  const [dragX, setDragX] = useState(0);
+  const [exiting, setExiting] = useState<"left" | "right" | null>(null);
+  const exitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (exitTimer.current) clearTimeout(exitTimer.current);
+  }, []);
+  const isAnimating = exiting !== null;
 
   const hasSeen = (id: string) => data.skipped.includes(id) ||
     data.ideas.some(idea => idea.sourceDiscoveryId === id);
   const remaining = suggestions.filter(item =>
     !hasSeen(item.id) &&
-    (filters.audience === "any" || item.audiences.includes(filters.audience)) &&
-    (filters.relationship === "any" || item.relationships.includes(filters.relationship)),
+    (!filters.audiences.length || item.audiences.some(value => filters.audiences.includes(value))) &&
+    (!filters.relationships.length || item.relationships.some(value => filters.relationships.includes(value))),
   );
   const suggestion = remaining[0];
   const liked = suggestions.find(item => item.id === likedId);
 
-  const dismissSuggestion = () => {
-    if (!suggestion || data.skipped.includes(suggestion.id)) return;
-    if (!commit({ ...data, skipped: [...data.skipped, suggestion.id] })) return;
-    notify("Not for you — we'll remember that");
+  const dismissSuggestion = (id: string) => {
+    if (data.skipped.includes(id)) return;
+    if (commit({ ...data, skipped: [...data.skipped, id] })) {
+      notify("Not for you — we'll remember", "info");
+    } else {
+      notify("Couldn't skip idea", "error");
+    }
   };
+  const reactToIdea = (direction: "left" | "right") => {
+    if (!suggestion || exiting) return;
+    const id = suggestion.id;
+    dragStart.current = null;
+    setExiting(direction);
+    setDragX((direction === "right" ? 1 : -1) * Math.max(520, window.innerWidth + 90));
+    if (exitTimer.current) clearTimeout(exitTimer.current);
+    exitTimer.current = setTimeout(() => {
+      setExiting(null);
+      setDragX(0);
+      if (direction === "right") setLikedId(id);
+      else dismissSuggestion(id);
+    }, 280);
+  };
+  const releaseDrag = () => {
+    const x = dragX;
+    dragStart.current = null;
+    if (Math.abs(x) > 85) reactToIdea(x > 0 ? "right" : "left");
+    else setDragX(0);
+  };
+  const toggleDraft = <T extends Audience | Relationship>(
+    field: "audiences" | "relationships", value: T,
+  ) => setDraftFilters(current => {
+    const currentItems = current[field] as T[];
+    const nextItems = currentItems.includes(value)
+      ? currentItems.filter(item => item !== value)
+      : [...currentItems, value];
+    return { ...current, [field]: nextItems };
+  });
   const saveFor = (personId: string) => {
     if (!liked || data.ideas.some(idea => idea.sourceDiscoveryId === liked.id)) {
       setLikedId(null);
@@ -84,11 +127,13 @@ export function Ideas() {
     };
     if (commit({ ...data, ideas: [...data.ideas, idea] })) {
       setLikedId(null);
-      notify("Saved to ideas ✓");
+      notify("Saved to ideas", "success");
+    } else {
+      notify("Couldn't save this idea", "error");
     }
   };
   const openFilters = () => {
-    setDraftFilters({ ...filters });
+    setDraftFilters({ audiences: [...filters.audiences], relationships: [...filters.relationships] });
     setFiltersOpen(true);
   };
   const savedPerson = ui.filterPerson;
