@@ -377,7 +377,10 @@ test("shared gift card stays consistent in group occasions and the saved-idea pi
       path: `${directory}/event-group-${width}.png`,
       fullPage: true, animations: "disabled",
     });
-    await page.getByRole("button", { name: "Add gift for Anna" }).click();
+    await page.getByRole("button", { name: "Create", exact: true }).click();
+    await page.getByRole("button", { name: "Add gift to occasion" }).click();
+    await page.getByRole("dialog", { name: "Choose recipient" })
+      .getByRole("button", { name: "Anna" }).click();
     const chooser = page.getByRole("dialog", { name: "Gift for Anna" });
     await expect(chooser.locator(".gift-card.is-idea")).toHaveCount(1);
     await expect(chooser.locator(".gift-status-icon")).toHaveCount(0);
