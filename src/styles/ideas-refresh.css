@@ -304,14 +304,20 @@
   .ideas-reaction { transition: none; }
 }
 
-/* Discover · full-bleed organic color field. The stage itself has no shadow;
-   the inset white card is allowed to cast its shadow in every direction. */
-.app-main:has(.ideas-page) { overflow-x: clip; }
+/* Discover — full-bleed wave, the exact vector profile from Home.
+   The colored shape lives UNDER the contents; no gray pseudo-element
+   can cover the filters, and no overflow clipping can cut card shadows. */
+.app-main:has(.ideas-discover) {
+  overflow-x: clip;
+  padding-bottom: 0;
+}
 .ideas-discover { overflow: visible; }
 .ideas-filter-toolbar {
+  position: relative;
+  z-index: 1;
   flex-wrap: nowrap;
   gap: 9px;
-  margin-bottom: 15px;
+  margin-bottom: 12px;
   min-width: 0;
 }
 .ideas-filters-button {
@@ -345,44 +351,43 @@
 }
 .ideas-swipe-stage {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 12px;
   isolation: isolate;
+  display: block;
   width: calc(100% + 2 * var(--space));
   max-width: none;
-  height: clamp(315px, calc(100dvh - 352px), 510px);
+  height: auto;
+  min-height: max(0px, calc(100dvh - var(--discover-stage-top, 240px)));
   margin-inline: calc(-1 * var(--space));
-  padding: 25px 17px 18px;
-  border-radius: 43% 23% 0 0 / 7% 4% 0 0;
-  background: linear-gradient(140deg, var(--discovery-peach), var(--discovery-blush) 52%, var(--discovery-blue));
+  padding: clamp(57px, 8.2dvh, 77px) 14px max(22px, env(safe-area-inset-bottom));
+  border: 0;
+  border-radius: 0;
+  background: none;
   box-shadow: none;
 }
-/* Subtle asymmetric dip in the upper edge, not another floating card/shadow. */
-.ideas-swipe-stage::before {
-  content: "";
+.ideas-stage-wave {
   position: absolute;
-  z-index: 0;
-  top: -28px;
-  left: -8%;
-  width: 116%;
-  height: 40px;
-  border-radius: 0 0 54% 42% / 0 0 100% 100%;
-  transform: rotate(-1deg);
-  background: var(--bg);
+  z-index: -1;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
+  overflow: visible;
 }
+.ideas-swipe-stage::before { content: none; }
 .ideas-discovery-card {
   position: relative;
   z-index: 1;
-  flex: 0 0 auto;
+  display: block;
+  flex: none;
+  width: min(300px, calc(100% - 64px), max(180px, calc(100dvh - var(--discover-stage-top, 240px) - 295px)));
+  margin-inline: auto;
+  padding: 12px 12px 0;
   border: 0;
   border-radius: 22px;
-  padding: 11px 11px 0;
   background: var(--surface);
   overflow: visible;
-  box-shadow: 0 10px 24px rgba(35,38,43,.12);
+  box-shadow: 0 10px 27px rgba(35,38,43,.14), 0 2px 7px rgba(35,38,43,.04);
   transform-origin: 50% 78%;
   transition: transform 260ms cubic-bezier(.18,.68,.28,1);
   will-change: transform;
@@ -390,10 +395,7 @@
   user-select: none;
   -webkit-user-select: none;
 }
-.ideas-discovery-card.is-dragging:not(.is-exiting) {
-  transition: none;
-  cursor: grabbing;
-}
+.ideas-discovery-card.is-dragging:not(.is-exiting) { transition: none; cursor: grabbing; }
 .ideas-discovery-card.is-exiting {
   transition: transform 280ms cubic-bezier(.27,.5,.42,1);
   pointer-events: none;
@@ -401,17 +403,19 @@
 .ideas-discovery-visual {
   position: relative;
   display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
   overflow: hidden;
-  border-radius: 14px;
+  border-radius: 13px;
   background: var(--lavender);
 }
 .ideas-discovery-photo {
   display: block;
   width: 100%;
-  height: clamp(145px, calc(100dvh - 555px), 290px);
+  height: 100%;
+  aspect-ratio: 1 / 1;
   min-height: 0;
   max-height: none;
-  aspect-ratio: auto;
   object-fit: cover;
   object-position: center;
   pointer-events: none;
@@ -430,9 +434,9 @@
 .ideas-swipe-overlay svg { filter: drop-shadow(0 3px 7px rgba(0,0,0,.1)); }
 .ideas-discovery-caption {
   display: grid;
-  min-height: 44px;
+  min-height: 51px;
   place-items: center;
-  padding: 11px 8px 13px;
+  padding: 10px 8px 17px;
   text-align: center;
 }
 .ideas-discovery-caption h2 {
@@ -447,12 +451,12 @@
   position: relative;
   z-index: 1;
   display: flex;
-  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  gap: clamp(48px, 14vw, 72px);
-  margin: 0;
-  padding-bottom: 2px;
+  gap: clamp(46px, 14vw, 72px);
+  width: 100%;
+  margin: 14px 0 0;
+  padding-bottom: 0;
 }
 .ideas-reaction {
   display: grid;
@@ -468,7 +472,7 @@
 .ideas-like { background: var(--surface); color: var(--reaction-like); }
 .ideas-reaction:disabled { opacity: .5; cursor: default; }
 
-/* Native one-choice dropdowns: no accordion and no checkbox groups. */
+/* Native single-choice dropdowns, shared compact bottom sheet. */
 .ideas-filter-sheet { gap: 16px; }
 .ideas-filter-select-field { display: grid; gap: 8px; min-width: 0; }
 .ideas-filter-select-field > span:first-child {
@@ -501,30 +505,25 @@
   pointer-events: none;
 }
 .ideas-filter-footer { gap: 10px; padding-top: 9px; }
-.ideas-recipient-anyone {
-  background: var(--discovery-recipient-bg);
-  border-color: var(--line);
-}
-.ideas-recipient-anyone-icon,
-.ideas-recipient-avatar {
+.ideas-recipient-anyone { background: var(--discovery-recipient-bg); border-color: var(--line); }
+.ideas-recipient-anyone-icon, .ideas-recipient-avatar {
   background: var(--discovery-chip-accent);
   color: var(--reaction-neutral);
 }
 @media (max-width: 360px) {
-  .ideas-filter-toolbar { gap: 6px; margin-bottom: 13px; }
+  .ideas-filter-toolbar { gap: 6px; margin-bottom: 10px; }
   .ideas-filters-button { min-height: 39px; padding: 8px 11px; }
-  .ideas-swipe-stage {
-    padding: 22px 15px 15px;
-    border-radius: 37% 17% 0 0 / 6% 4% 0 0;
-  }
-  .ideas-discovery-card { padding: 9px 9px 0; border-radius: 19px; }
+  .ideas-swipe-stage { padding-top: 53px; }
+  .ideas-discovery-card { padding: 10px 10px 0; border-radius: 19px; }
   .ideas-discovery-visual { border-radius: 12px; }
-  .ideas-discovery-caption { min-height: 41px; padding: 9px 6px 11px; }
+  .ideas-discovery-caption { min-height: 44px; padding: 9px 6px 15px; }
+  .ideas-reactions { margin-top: 12px; }
   .ideas-reaction { width: 48px; height: 48px; }
 }
 @media (max-height: 710px) {
-  .ideas-discovery-photo { height: clamp(138px, calc(100dvh - 525px), 215px); }
-  .ideas-swipe-stage { padding-top: 20px; padding-bottom: 12px; }
+  .ideas-swipe-stage { padding-top: 49px; }
+  .ideas-discovery-card { width: min(270px, calc(100% - 64px), max(173px, calc(100dvh - var(--discover-stage-top, 240px) - 295px))); }
+  .ideas-reactions { margin-top: 11px; }
   .ideas-reaction { width: 46px; height: 46px; }
 }
 @media (prefers-reduced-motion: reduce) {
