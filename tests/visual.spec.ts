@@ -305,12 +305,8 @@ test("calendar QA: four occasions, chosen date and quiet month", async ({ page }
     : testInfo.outputPath("screenshots");
   await mkdir(directory, { recursive: true });
   await expect(page.locator(".calendar-event-card")).toHaveCount(4);
-  await expect(page.locator(".calendar-event-card")).toContainText([
-    "1 gift to buy",
-    "All gifts bought",
-    "No gifts planned yet",
-    "2 gifts to buy",
-  ]);
+  await expect(page.locator(".calendar-event-card")).toHaveCount(4);
+  await expect(page.locator(".calendar-event-status")).toHaveCount(0);
   await page.locator(".calendar-event-card img").evaluateAll((images) =>
     Promise.all(images.map((img) => (img as HTMLImageElement).decode().catch(() => {}))),
   );
@@ -345,7 +341,7 @@ test("Events screen: date-first cards and equal-width Calendar/Reminders switch"
   const card = page.locator(".calendar-event-card").first();
   const textOrder = await card.locator(".calendar-event-body").evaluate((body) =>
     Array.from(body.children).map((el) => el.className || el.tagName.toLowerCase()));
-  expect(textOrder).toEqual(["calendar-event-date", "strong", "calendar-event-status"]);
+  expect(textOrder).toEqual(["calendar-event-date", "strong"]);
   const measure = await page.locator(".events-mode-row").evaluate((row) => {
     const outer = row.getBoundingClientRect();
     const tabs = row.querySelector(".pill-tabs")!.getBoundingClientRect();
