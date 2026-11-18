@@ -68,7 +68,11 @@ interface State {
   editor: Editor | null;
   openEditor: (e: Editor) => void;
   closeEditor: () => void;
-  notify: (s: string, tone?: "success" | "error" | "info") => void;
+  notify: (
+    s: string,
+    tone?: "success" | "error" | "info",
+    options?: { persistent?: boolean },
+  ) => void;
   warning: string;
 }
 const Context = createContext<State | null>(null);
@@ -187,12 +191,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
     } catch { /* Preview still works without session storage. */ }
   };
   const [editor, setEditor] = useState<Editor | null>(null),
-    [toast, setToast] = useState<{ message: string; tone: "success" | "error" | "info" } | null>(null);
+    [toast, setToast] = useState<{
+      message: string;
+      tone: "success" | "error" | "info";
+      persistent: boolean;
+    } | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const notify = (s: string, tone: "success" | "error" | "info" = "info") => {
-    setToast({ message: s, tone });
+  const notify = (
+    s: string,
+    tone: "success" | "error" | "info" = "info",
+    options?: { persistent?: boolean },
+  ) => {
+    // Transient feedback is hands-free; actionable/error notices persist
+    // with an explicit dismiss control. Any caller can override the default.
+    const persistent = options?.persistent ?? tone === "error";
     clearTimeout(timer.current);
-    timer.current = setTimeout(() => setToast(null), 3500);
+    setToast({ message: s, tone, persistent });
+    if (!persistent) timer.current = setTimeout(() => setToast(null), 3500);
   };
   useEffect(() => () => clearTimeout(timer.current), []);
   const commit = (next: AppData, recovery = false) => {
@@ -271,17 +286,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     >
       {children}
       {toast && (
-        <div key={toast.message + toast.tone} role={toast.tone === "error" ? "alert" : "status"}
+        <div key={toast.message + toast.tone + toast.persistent} role={toast.tone === "error" ? "alert" : "status"}
           className={`toast app-toast toast-${toast.tone}`}>
           <span className="app-toast-symbol" aria-hidden="true">
             {toast.tone === "success" ? <CheckCircle2 size={20}/> :
               toast.tone === "error" ? <AlertCircle size={20}/> : <Info size={20}/>}
           </span>
           <span className="app-toast-message">{toast.message}</span>
-          <button type="button" className="app-toast-dismiss" aria-label="Dismiss notification"
-            onClick={() => { clearTimeout(timer.current); setToast(null); }}>
-            ×
-          </button>
+          {toast.persistent && (
+            <button type="button" className="app-toast-dismiss" aria-label="Dismiss notification"
+              onClick={() => { clearTimeout(timer.current); setToast(null); }}>
+              ×
+            </button>
+          )}
         </div>
       )}
     </Context.Provider>

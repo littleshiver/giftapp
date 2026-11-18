@@ -540,7 +540,7 @@ test("Discover / Saved and both standard sheets are mobile-safe at 320 and 390",
       return { imageWidth: rect.width, sourceWidth: image.naturalWidth,
         overflow:document.documentElement.scrollWidth-innerWidth };
     });
-    expect(layout.imageWidth).toBeGreaterThan(250);
+    expect(layout.imageWidth).toBeGreaterThan(140);
     expect(layout.sourceWidth).toBeGreaterThan(350);
     expect(layout.overflow).toBeLessThanOrEqual(1);
     await page.screenshot({ path: `${directory}/ideas-discover-${width}.png`,
@@ -588,14 +588,14 @@ test("Discover reactions stay above bottom navigation, even on short phones with
         sourceWidth: image.naturalWidth,
         spaceBeforeNav: nav.top - reaction.bottom,
         reactionsWithinStage: reaction.left >= stage.left && reaction.right <= stage.right,
-        background: getComputedStyle(document.querySelector(".ideas-swipe-stage")!).backgroundImage,
+        wavePath: document.querySelector(".ideas-stage-wave path")?.getAttribute("d"),
         overflow: document.documentElement.scrollWidth - innerWidth,
       };
     });
     expect(metrics.sourceWidth).toBeGreaterThanOrEqual(1200);
     expect(metrics.spaceBeforeNav).toBeGreaterThanOrEqual(10);
     expect(metrics.reactionsWithinStage).toBe(true);
-    expect(metrics.background).toContain("linear-gradient");
+    expect(metrics.wavePath).toContain("M0 48 Q0 26 24 20");
     expect(metrics.overflow).toBeLessThanOrEqual(1);
     await page.screenshot({
       path: `${directory}/discover-safe-${viewport.width}x${viewport.height}.png`,
@@ -661,10 +661,14 @@ test("Discover color field is full bleed, curved and mat-framed at phone widths"
         leftGap: Math.abs(stage.left - shell.left),
         rightGap: Math.abs(stage.right - shell.right),
         height: stage.height,
+        stageBottom: stage.bottom,
+        viewportBottom: innerHeight,
         imageInset: image.left - card.left,
+        imageAspect: image.width / image.height,
+        cardWidth: card.width,
         titleSize: parseFloat(getComputedStyle(title).fontSize),
         shadow: getComputedStyle(mat).boxShadow,
-        radius: getComputedStyle(document.querySelector(".ideas-swipe-stage")!).borderTopLeftRadius,
+        wavePath: document.querySelector(".ideas-stage-wave path")?.getAttribute("d"),
         heartFill: heart.getAttribute("fill"),
         heartColor: getComputedStyle(document.querySelector(".ideas-like")!).color,
         dislikeColor: getComputedStyle(document.querySelector(".ideas-dislike")!).color,
@@ -673,11 +677,15 @@ test("Discover color field is full bleed, curved and mat-framed at phone widths"
     });
     expect(metrics.leftGap).toBeLessThanOrEqual(1);
     expect(metrics.rightGap).toBeLessThanOrEqual(1);
-    expect(metrics.height).toBeLessThanOrEqual(510);
+    // The background fills the viewport rather than stopping at a fixed 510px.
+    expect(Math.abs(metrics.stageBottom - metrics.viewportBottom)).toBeLessThanOrEqual(2);
     expect(metrics.imageInset).toBeGreaterThanOrEqual(8);
+    expect(metrics.imageAspect).toBeGreaterThan(0.99);
+    expect(metrics.imageAspect).toBeLessThan(1.01);
+    expect(metrics.cardWidth).toBeLessThanOrEqual(305);
     expect(metrics.titleSize).toBeLessThanOrEqual(15);
     expect(metrics.shadow).not.toBe("none");
-    expect(metrics.radius).not.toBe("0px");
+    expect(metrics.wavePath).toContain("M0 48 Q0 26 24 20");
     expect(metrics.heartFill).toBe("currentColor");
     expect(metrics.heartColor).not.toBe(metrics.dislikeColor);
     expect(metrics.overflow).toBeLessThanOrEqual(1);

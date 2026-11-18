@@ -1061,7 +1061,7 @@ test("Discover supports drag feedback, snap-back and animated swipe outcomes", a
   await page.goto("/#/ideas");
   const card = page.locator(".ideas-discovery-card");
   const stage = page.locator(".ideas-swipe-stage");
-  await expect(stage).toHaveCSS("background-image", /linear-gradient/);
+  await expect(stage.locator(".ideas-stage-wave path")).toHaveCount(1);
   await expect(page.getByRole("button", { name: "Create", exact: true })).toHaveCount(0);
   const box = await card.boundingBox();
   if (!box) throw Error("Missing swipe card bounds");
@@ -1126,7 +1126,7 @@ test("Discover filters are exclusive dropdowns; four removable chips preserve in
   await reopened.getByRole("button", { name: "Close", exact: true }).click();
 });
 
-test("Saved has the creation FAB and saving a liked idea shows dismissible success toast", async ({ page }) => {
+test("Saved has the FAB and ephemeral save success has no redundant dismiss button", async ({ page }) => {
   await seed(page);
   await page.goto("/#/ideas");
   await expect(page.getByRole("button", { name: "Create", exact: true })).toHaveCount(0);
@@ -1135,9 +1135,8 @@ test("Saved has the creation FAB and saving a liked idea shows dismissible succe
     .getByRole("button", { name: /Anyone/ }).click();
   const success = page.locator(".app-toast.toast-success");
   await expect(success).toContainText("Saved to ideas");
-  await expect(success.getByRole("button", { name: "Dismiss notification" })).toBeVisible();
-  await success.getByRole("button", { name: "Dismiss notification" }).click();
-  await expect(success).toHaveCount(0);
+  await expect(success.getByRole("button", { name: "Dismiss notification" })).toHaveCount(0);
+  // A failure is actionable and stays until manually dismissed.
   await page.getByRole("button", { name: "Saved", exact: true }).click();
   await expect(page.getByRole("button", { name: "Create", exact: true })).toBeVisible();
 });

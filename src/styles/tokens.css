@@ -34,6 +34,10 @@
   --discovery-peach: #fcefdc;
   --discovery-blush: #f6e9e7;
   --discovery-blue: #e8eff3;
+  /* Increased color separation keeps the same Home wave legible. */
+  --discover-wave-top: #f8d5aa;
+  --discover-wave-middle: #f5e0df;
+  --discover-wave-bottom: #d5e7f1;
   --discovery-chip-accent: #e8ebed;
   --discovery-recipient-bg: #f5f6f6;
   --reaction-like: #d24158;
