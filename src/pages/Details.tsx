@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { UsersRound, Edit3, Plus, ChevronLeft, ChevronRight, Cake, CalendarDays } from "lucide-react";
+import { UsersRound, Edit3, Plus, Minus, ChevronLeft, ChevronRight, Cake, CalendarDays } from "lucide-react";
 import { birthdayMonthDay } from "../domain/birthdays";
 import {
   Empty,
@@ -205,74 +205,62 @@ export function PersonDetail() {
   const { id } = useParams();
   const { data, openEditor } = useApp();
   const person = data.people.find((candidate) => candidate.id === id);
-  if (!person) return <Title name="Person not found" back="/people" />;
+  if (!person) return <Title name="Person not found" back="/people"/>;
   const ideas = data.ideas.filter((idea) => idea.personId === person.id);
-  const interests = (person.interests || "").split(",").map((item) => item.trim()).filter(Boolean);
   const birthday = birthdayMonthDay(person.birthday);
-  const hasPreferences = interests.length || person.likes || person.avoid || person.note;
+  // Existing separate interest tags and free-form wishes both describe
+  // what is good to gift; show them together without erasing legacy data.
+  const positive = [person.interests?.trim(), person.likes?.trim()].filter(Boolean).join(" · ");
+  const negative = person.avoid?.trim() || "";
 
   return (
     <div className="person-detail">
       <Link className="ghostbutton back-link person-back" to="/people">
         <ChevronLeft size={16} aria-hidden="true"/> Back
       </Link>
-      <div className="person-profile-hero">
+      <section className="person-profile-hero" aria-label={`Profile of ${person.name}`}>
         <PersonAvatar person={person} className="person-profile-photo" />
         <div className="person-profile-info">
-          <h1 className="title-xl">{person.name}</h1>
-          {birthday ? (
-            <p className="person-profile-birthday">
-              <Cake size={15} aria-hidden="true"/>
-              Birthday · {fmtDate(`2000-${birthday}`)}
-            </p>
-          ) : <p className="person-profile-birthday">Birthday not set</p>}
-        </div>
-        <Button variant="outline" className="person-edit-button" aria-label="Edit person"
-          onClick={() => openEditor({ type: "person", id: person.id })}>
-          <Edit3 size={16} /> <span>Edit person</span>
-        </Button>
-      </div>
-      <section className="section person-preferences" aria-labelledby="person-about-heading">
-        <div className="section-top">
-          <h2 id="person-about-heading">About</h2>
-        </div>
-        <div className="person-preferences-card">
-          {hasPreferences ? (
-            <>
-              {interests.length > 0 && (
-                <div className="person-preference">
-                  <h3>Interests</h3>
-                  <div className="person-interest-tags">
-                    {interests.map((interest, i) => (
-                      <span className="person-interest-tag" key={i}>{interest}</span>
-                    ))}
+          <div className="person-profile-title-row">
+            <h1 className="title-xl">{person.name}</h1>
+            <Button variant="outline" className="person-edit-button"
+              aria-label="Edit person" onClick={() => openEditor({ type:"person", id:person.id })}>
+              <Edit3 size={17} aria-hidden="true" />
+            </Button>
+          </div>
+          <p className="person-profile-birthday">
+            <Cake size={15} aria-hidden="true"/>
+            {birthday ? fmtDate(`2000-${birthday}`) : "Birthday not set"}
+          </p>
+          {(positive || negative) ? (
+            <div className="person-gift-guidance">
+              {positive && (
+                <div className="person-guidance person-guidance-positive">
+                  <div className="person-guidance-heading">
+                    <Plus size={15} aria-hidden="true"/>
+                    <strong>Good gifts</strong>
                   </div>
+                  <p>{positive}</p>
                 </div>
               )}
-              {person.likes && (
-                <div className="person-preference">
-                  <h3>Wishes & preferences</h3>
-                  <p>{person.likes}</p>
+              {negative && (
+                <div className="person-guidance person-guidance-negative">
+                  <div className="person-guidance-heading">
+                    <Minus size={15} aria-hidden="true"/>
+                    <strong>Avoid gifting</strong>
+                  </div>
+                  <p>{negative}</p>
                 </div>
               )}
-              {person.avoid && (
-                <div className="person-preference">
-                  <h3>Things to avoid</h3>
-                  <p>{person.avoid}</p>
-                </div>
-              )}
-              {person.note && (
-                <div className="person-preference">
-                  <h3>Notes</h3>
-                  <p>{person.note}</p>
-                </div>
-              )}
-            </>
+            </div>
           ) : (
-            <p className="person-preferences-empty">What do they love? Add interests, wishes or little things to remember.</p>
+            <p className="person-guidance-empty">Add what they love and what to avoid.</p>
           )}
         </div>
       </section>
+      {person.note && (
+        <p className="person-profile-note">{person.note}</p>
+      )}
       <section className="section person-ideas" aria-labelledby="person-ideas-heading">
         <div className="section-top">
           <h2 id="person-ideas-heading">Gift ideas</h2>
@@ -281,13 +269,12 @@ export function PersonDetail() {
           <div className="smallcards-grid">
             {ideas.map((idea) => (
               <Product key={idea.id} item={idea}
-                onClick={() => openEditor({ type: "idea", id: idea.id })} />
+                onClick={() => openEditor({ type:"idea", id:idea.id })}/>
             ))}
           </div>
         ) : (
           <Empty>No ideas saved for {person.name} yet.</Empty>
         )}
-
       </section>
     </div>
   );

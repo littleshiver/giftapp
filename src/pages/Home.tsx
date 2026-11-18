@@ -191,9 +191,8 @@ export function Home() {
                   item={g}
                   person={selected.people.length > 1}
                   home
-                  onClick={() =>
-                    navigate(`/events/${selected.id}?gift=${encodeURIComponent(g.id)}`)
-                  }
+                  showEdit={false}
+                  onClick={() => navigate(`/events/${selected.id}`)}
                 />
               ))}
             </div>

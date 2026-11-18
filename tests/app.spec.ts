@@ -19,17 +19,17 @@ test("Home featured gallery: individual gift cards, event link and prefilled add
 
   // The featured panel is no longer a giant click target.
   await expect(page.locator(".focus-card")).not.toHaveAttribute("role", "link");
-  await expect(page.locator(".focus-gifts .product-title")).toHaveCount(3);
-  await expect(page.locator(".focus-gifts .product-caption")).toHaveCount(3);
+  await expect(page.locator(".focus-gifts .product-title")).toHaveCount(0);
+  await expect(page.locator(".focus-gifts .product-caption")).toHaveCount(0);
+  await expect(page.locator(".focus-gifts .gift-card-edit")).toHaveCount(0);
   await page.locator(".focus-date").click();
   await expect(page).toHaveURL(/\/(?:#\/)?$/);
 
-  // Each image deep-links to its own gift editor on the correct occasion.
-  await page.getByRole("button", { name: "Open gift Scented candle" }).click();
-  await expect(page).toHaveURL(/#\/events\/e1\?gift=g1$/);
-  await expect(page.getByRole("dialog")).toBeVisible();
-  await expect(page.getByLabel("Gift name", { exact: true })).toHaveValue("Scented candle");
-  await page.getByRole("button", { name: "Close", exact: true }).click();
+  // A Home gift is a visual reminder, not a shortcut into editing.
+  await page.getByRole("button", { name: "View gift Scented candle" }).click();
+  await expect(page).toHaveURL(/#\/events\/e1$/);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Edit gift Scented candle" })).toBeVisible();
 
   await page.goto("/#/");
   await page.getByRole("link", { name: "Open Anna's birthday occasion" }).click();
@@ -169,7 +169,7 @@ test("calendar, reminders, people editing and contextual gift/idea creation", as
   await page.getByRole("button", { name: "Create", exact: true }).click();
   await page.getByRole("button", { name: "Add person", exact: true }).click();
   await page.getByLabel("Name", { exact: true }).fill("Jamie");
-  await page.getByLabel("Wishes & preferences").fill("Books");
+  await page.getByLabel("Good gifts").fill("Books");
   await page.getByRole("button", { name: "Save person", exact: true }).click();
   await page.getByRole("link", { name: /Jamie/ }).click();
   await expect(page.getByText("Books", { exact: true })).toBeVisible();
@@ -492,7 +492,7 @@ test("empty and filled previews never overwrite personal storage or photo data",
   await seed(page);
   const savedBefore = await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"));
   await page.goto("/#/settings");
-  await expect(page.getByRole("button", { name: "My data" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "Viewing my data" })).toHaveAttribute("aria-pressed", "true");
   await page.getByRole("button", { name: "Filled", exact: true }).click();
   await expect(page.getByRole("button", { name: "Filled", exact: true })).toHaveAttribute("aria-pressed", "true");
   await page.goto("/#/");
@@ -517,7 +517,7 @@ test("empty and filled previews never overwrite personal storage or photo data",
   await page.goto("/#/");
   await expect(page.getByText("Add your first occasion to start planning.")).toBeVisible();
   await page.goto("/#/settings");
-  await page.getByRole("button", { name: "My data", exact: true }).click();
+  await page.getByRole("button", { name: "Return to my data", exact: true }).click();
   await page.goto("/#/");
   await expect(page.getByText("Anna's birthday", { exact: true }).first()).toBeVisible();
   expect(await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"))).toBe(savedBefore);
@@ -541,7 +541,7 @@ test("changes in filled preview are temporary and cannot modify the personal bac
 
   await page.goto("/#/settings");
   await expect(page.getByRole("button", { name: "Import JSON" })).toBeDisabled();
-  await page.getByRole("button", { name: "My data", exact: true }).click();
+  await page.getByRole("button", { name: "Return to my data", exact: true }).click();
   await page.goto("/#/people");
   await expect(page.getByText("Temporary tester")).toHaveCount(0);
   expect(await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"))).toBe(savedBefore);
@@ -695,8 +695,8 @@ test("selecting an upcoming occasion smoothly aligns that card to the leading ed
 
 test("gift sheet previews its existing image and the replacement before saving", async ({ page }) => {
   await seed(page);
-  await page.goto("/#/");
-  await page.getByRole("button", { name: "Open gift Scented candle" }).click();
+  await page.goto("/#/events/e1");
+  await page.getByRole("button", { name: "Edit Scented candle", exact: true }).click();
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
   const existing = dialog.locator(".photo-upload-preview img");
@@ -716,8 +716,8 @@ test("gift sheet previews its existing image and the replacement before saving",
     saved.gifts.find((g: {id: string}) => g.id === "g1").image
   );
   await dialog.getByRole("button", { name: "Close" }).click();
-  await page.goto("/#/");
-  await page.getByRole("button", { name: "Open gift Scented candle" }).click();
+  await page.goto("/#/events/e1");
+  await page.getByRole("button", { name: "Edit Scented candle", exact: true }).click();
   await expect(page.getByRole("dialog").getByText("Current photo")).toBeVisible();
   await expect(page.getByRole("dialog").getByText("replacement.jpg")).toHaveCount(0);
 });
@@ -725,8 +725,8 @@ test("demo gift photo appears in the editor rather than a broken image", async (
   await seed(page);
   await page.goto("/#/settings");
   await page.getByRole("button", { name: "Filled", exact: true }).click();
-  await page.goto("/#/");
-  await page.locator(".focus-gifts .home-product button").first().click();
+  await page.goto("/#/events/demo-birthday");
+  await page.getByRole("button", { name: "Edit Portable pink blender", exact: true }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
   await expect(page.getByRole("dialog").locator(".photo-upload-preview .demo-product-sprite")).toBeVisible();
 });
@@ -763,7 +763,7 @@ test("composed Home uses date-first occasion cards, centered logo and separate b
   expect(geometry.titleTop - geometry.countBottom).toBeGreaterThan(3);
   expect(geometry.titleHeight).toBeGreaterThan(20);
   expect(geometry.centerOffset).toBeLessThan(19);
-  await expect(page.locator(".focus-gifts .product-title")).toHaveCount(3);
+  await expect(page.locator(".focus-gifts .product-title")).toHaveCount(0);
   const wavePath = await page.locator(".focus-wave path").getAttribute("d");
   expect(wavePath).toContain("L400 500 L0 500 Z");
 });
@@ -879,9 +879,10 @@ test("one gift card design separates purchase status and editing on Home and Eve
 
   await page.goto("/#/");
   const homeCandle = page.locator(".focus-gifts .gift-card").filter({
-    has: page.getByRole("button", { name: "Open gift Scented candle" }),
+    has: page.getByRole("button", { name: "View gift Scented candle" }),
   });
-  await expect(homeCandle.locator(".gift-card-edit")).toHaveCount(1);
+  await expect(homeCandle.locator(".gift-card-edit")).toHaveCount(0);
+  await expect(homeCandle.locator(".gift-card-copy")).toHaveCount(0);
   await expect(homeCandle.locator(".gift-status-icon.is-to-buy")).toHaveCount(1);
   await homeCandle.getByRole("button", { name: "Mark Scented candle as Bought" }).click();
   await expect(homeCandle.locator(".gift-status-icon.is-bought")).toBeVisible();
@@ -923,4 +924,32 @@ test("global FAB is the only add entry point on all main and detail pages", asyn
   await page.getByRole("button", { name: "Add gift idea" }).click();
   await expect(page.getByRole("combobox", { name: "For" })).toHaveValue("p1");
   await page.getByRole("button", { name: "Close" }).click();
+});
+
+test("Home gift image is a reminder only, with right-hand status and text fallback for missing photo", async ({page}) => {
+  const data = fixture();
+  data.gifts[0].image = "";
+  await seed(page, data);
+  const home = page.locator(".focus-gifts .home-product").filter({
+    has: page.getByRole("button",{name:"View gift Scented candle"}),
+  });
+  await expect(home.locator(".product-title, .product-caption, .gift-card-edit")).toHaveCount(0);
+  await expect(home.locator(".home-gift-placeholder-name")).toHaveText("Scented candle");
+  const fallbackVisible = await home.locator(".home-gift-placeholder-name")
+    .evaluate((el) => getComputedStyle(el).display);
+  expect(fallbackVisible).toBe("flex");
+  const geometry = await home.evaluate((el) => {
+    const image = el.querySelector(".product-visual")!.getBoundingClientRect();
+    const status = el.querySelector(".gift-status-icon")!.getBoundingClientRect();
+    return { rightGap: image.right - status.right, leftGap: status.left - image.left, size: status.width };
+  });
+  expect(geometry.rightGap).toBeGreaterThanOrEqual(5);
+  expect(geometry.rightGap).toBeLessThanOrEqual(14);
+  expect(geometry.leftGap).toBeGreaterThan(80);
+  expect(geometry.size).toBeLessThanOrEqual(34);
+  await home.getByRole("button",{name:"Mark Scented candle as To buy"}).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await home.getByRole("button",{name:"View gift Scented candle"}).click();
+  await expect(page).toHaveURL(/#\/events\/e1$/);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
 });
