@@ -35,11 +35,39 @@ export function emptyDemo(): AppData {
   };
 }
 export function filledDemo(): AppData {
+  // Four generated portrait headshots, plus deliberately portrait-free
+  // entries to QA both the photo gallery and pastel fallback states.
   const people = [
-    { id: "demo-mira", name: "Mira", birthday: "1997-11-28", note: "Loves handmade ceramics", likes: "Ceramics, books, warm colors" },
-    { id: "demo-denis", name: "Denis", birthday: "1993-02-17", note: "Interested in useful gadgets", likes: "Tech, coffee, music" },
-    { id: "demo-sasha", name: "Sasha", birthday: "1996-06-14", note: "", likes: "Home decor and small thoughtful gifts" },
-    { id: "demo-alex", name: "Alex", birthday: "", note: "", likes: "Computers and stationery" },
+    {id:"demo-mira",name:"Mira",birthday:"1997-11-28",photo:"demo-person:0",
+      likes:"Handmade ceramics, art books, warm neutral colors and little home comforts.",
+      avoid:"Strong fragrances and synthetic fabrics.",note:""},
+    {id:"demo-denis",name:"Denis",birthday:"1993-02-17",photo:"demo-person:1",
+      likes:"Useful gadgets, quality coffee tools, headphones and music.",
+      avoid:"Novelty mugs, clutter and gimmicky accessories.",note:""},
+    {id:"demo-sasha",name:"Sasha",birthday:"1996-06-14",photo:"demo-person:2",
+      likes:"Plants, cozy textiles, beautiful stationery and film photography.",
+      avoid:"Very bright colors and heavily scented candles.",note:""},
+    {id:"demo-alex",name:"Alex",birthday:"1995-12-12",photo:"demo-person:3",
+      likes:"Mechanical keyboards, science fiction, board games and sketchbooks.",
+      avoid:"Random gaming merch and oversized desk decorations.",note:""},
+    {id:"demo-katya",name:"Katya",birthday:"1995-08-13",photo:"",
+      likes:"Travel journals, prints, independent bookstores and theater.",
+      avoid:"Generic souvenirs.",note:""},
+    {id:"demo-elena",name:"Elena",birthday:"1968-05-06",photo:"",
+      likes:"Garden plants, tea sets and handmade linens.",
+      avoid:"Heavy perfumes.",note:""},
+    {id:"demo-nora",name:"Nora",birthday:"1999-01-24",photo:"",
+      likes:"Craft kits, watercolor supplies and exhibitions.",
+      avoid:"Plastic decorations.",note:""},
+    {id:"demo-max",name:"Max",birthday:"1991-03-05",photo:"",
+      likes:"Cycling equipment, espresso accessories and podcasts.",
+      avoid:"Scented products.",note:""},
+    {id:"demo-leo",name:"Leo",birthday:"2001-07-21",photo:"",
+      likes:"Vinyl records, music gear and unusual books.",
+      avoid:"Clothes without checking the size.",note:""},
+    {id:"demo-emma",name:"Emma",birthday:"1992-09-17",photo:"",
+      likes:"Cooking classes, fresh flowers and paper goods.",
+      avoid:"Strongly perfumed beauty sets.",note:""},
   ];
   const events: Event[] = [
     {
