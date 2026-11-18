@@ -146,11 +146,11 @@ export function Ideas() {
       <Title name="Ideas" />
       <div className="pill-tabs ideas-mode-tabs" role="group" aria-label="Ideas views">
         <button type="button" className={`pill-tab ${tab === "discover" ? "is-active" : ""}`}
-          aria-pressed={tab === "discover"} onClick={() => setTab("discover")}>
+          aria-pressed={tab === "discover"} onClick={() => setUi({ ideasTab: "discover" })}>
           Discover
         </button>
         <button type="button" className={`pill-tab ${tab === "saved" ? "is-active" : ""}`}
-          aria-pressed={tab === "saved"} onClick={() => setTab("saved")}>
+          aria-pressed={tab === "saved"} onClick={() => setUi({ ideasTab: "saved" })}>
           Saved
         </button>
       </div>
@@ -161,59 +161,81 @@ export function Ideas() {
             <button className="ideas-filters-button" type="button" onClick={openFilters}>
               <SlidersHorizontal size={17} aria-hidden="true" />
               Filters
-              {(filters.audience !== "any" || filters.relationship !== "any") &&
+              {filters.audiences.length + filters.relationships.length > 0 && (
                 <span className="ideas-filter-count" aria-label="Filters active">
-                  {Number(filters.audience !== "any") + Number(filters.relationship !== "any")}
-                </span>}
+                  {filters.audiences.length + filters.relationships.length}
+                </span>
+              )}
             </button>
-            {(filters.audience !== "any" || filters.relationship !== "any") && (
+            {filters.audiences.length + filters.relationships.length > 0 && (
               <div className="ideas-active-filters" aria-label="Active filters">
-                {filters.audience !== "any" && (
-                  <button type="button" className="ideas-filter-chip"
-                    onClick={() => setFilters(current => ({ ...current, audience: "any" }))}
-                    aria-label={`Remove ${filters.audience === "adult" ? "Adult" : "Child"} filter`}>
-                    {filters.audience === "adult" ? "Adult" : "Child"}
-                    <X size={13} aria-hidden="true"/>
+                {filters.audiences.map(value => (
+                  <button key={value} type="button" className="ideas-filter-chip"
+                    aria-label={`Remove ${audienceLabels[value]} filter`}
+                    onClick={() => setFilters(current => ({
+                      ...current, audiences: current.audiences.filter(item => item !== value),
+                    }))}>
+                    {audienceLabels[value]} <X size={13} aria-hidden="true" />
                   </button>
-                )}
-                {filters.relationship !== "any" && (
-                  <button type="button" className="ideas-filter-chip"
-                    onClick={() => setFilters(current => ({ ...current, relationship: "any" }))}
-                    aria-label={`Remove ${filters.relationship === "close" ? "Close person" : "Acquaintance"} filter`}>
-                    {filters.relationship === "close" ? "Close person" : "Acquaintance"}
-                    <X size={13} aria-hidden="true"/>
+                ))}
+                {filters.relationships.map(value => (
+                  <button key={value} type="button" className="ideas-filter-chip"
+                    aria-label={`Remove ${relationshipLabels[value]} filter`}
+                    onClick={() => setFilters(current => ({
+                      ...current, relationships: current.relationships.filter(item => item !== value),
+                    }))}>
+                    {relationshipLabels[value]} <X size={13} aria-hidden="true"/>
                   </button>
-                )}
+                ))}
               </div>
             )}
           </div>
 
           {suggestion ? (
             <div className="ideas-swipe-stage">
-              <article className="ideas-discovery-card"
-                onTouchStart={e => { touchStart.current = e.touches[0]?.clientX ?? null; }}
-                onTouchEnd={e => {
-                  if (touchStart.current === null) return;
-                  const distance = e.changedTouches[0].clientX - touchStart.current;
-                  touchStart.current = null;
-                  if (distance > 85) setLikedId(suggestion.id);
-                  else if (distance < -85) dismissSuggestion();
+              <article className={`ideas-discovery-card ${exiting ? "is-exiting" : ""} ${dragX ? "is-dragging" : ""}`}
+                data-swipe-direction={dragX > 0 ? "right" : dragX < 0 ? "left" : "none"}
+                style={{
+                  transform: `translate3d(${dragX}px, 0, 0) rotate(${dragX / 24}deg)`,
+                  touchAction: "pan-y",
                 }}
-                onTouchCancel={() => { touchStart.current = null; }}
-                style={{ touchAction: "pan-y" }}>
-                <img className="ideas-discovery-photo" src={suggestion.image} alt={suggestion.name}/>
+                onPointerDown={e => {
+                  if (isAnimating || liked || (e.pointerType === "mouse" && e.button !== 0)) return;
+                  dragStart.current = { x: e.clientX, y: e.clientY };
+                  e.currentTarget.setPointerCapture(e.pointerId);
+                }}
+                onPointerMove={e => {
+                  if (!dragStart.current || isAnimating) return;
+                  const deltaX = e.clientX - dragStart.current.x;
+                  const deltaY = e.clientY - dragStart.current.y;
+                  if (Math.abs(deltaX) < 8 && Math.abs(deltaY) < 8) return;
+                  if (Math.abs(deltaY) > Math.abs(deltaX) * 1.3 && !dragX) return;
+                  setDragX(Math.max(-170, Math.min(170, deltaX)));
+                }}
+                onPointerUp={releaseDrag}
+                onPointerCancel={() => { dragStart.current = null; setDragX(0); }}>
+                <div className="ideas-discovery-visual">
+                  <img className="ideas-discovery-photo" src={suggestion.image} alt={suggestion.name} draggable={false}/>
+                  <div className={`ideas-swipe-overlay ${dragX >= 0 ? "positive" : "negative"}`}
+                    style={{ opacity: Math.min(0.85, Math.abs(dragX) / 150) }} aria-hidden="true">
+                    {dragX >= 0 ? <Heart size={65} strokeWidth={2.2} fill="currentColor"/> :
+                      <X size={72} strokeWidth={2.4}/>}
+                  </div>
+                </div>
                 <div className="ideas-discovery-caption">
                   <h2>{suggestion.name}</h2>
                 </div>
               </article>
               <div className="ideas-reactions" role="group" aria-label="React to gift idea">
                 <button type="button" className="ideas-reaction ideas-dislike"
-                  aria-label="Dislike idea" title="Not for me" onClick={dismissSuggestion}>
-                  <ThumbsDown size={27} strokeWidth={1.9} aria-hidden="true"/>
+                  aria-label="Dislike idea" title="Skip this idea" disabled={isAnimating}
+                  onClick={() => reactToIdea("left")}>
+                  <X size={27} strokeWidth={2.6} aria-hidden="true"/>
                 </button>
                 <button type="button" className="ideas-reaction ideas-like"
-                  aria-label="Like idea" title="I like this idea" onClick={() => setLikedId(suggestion.id)}>
-                  <ThumbsUp size={27} strokeWidth={1.9} aria-hidden="true"/>
+                  aria-label="Like idea" title="Save this idea" disabled={isAnimating}
+                  onClick={() => reactToIdea("right")}>
+                  <Heart size={27} strokeWidth={2.1} aria-hidden="true"/>
                 </button>
               </div>
             </div>
