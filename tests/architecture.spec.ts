@@ -153,14 +153,9 @@ test("People gallery: high-resolution portraits, birthday-only metadata and empt
 
 test("People birthday badge is compact, only for birthdays within 30 days and keeps equal tile heights", async ({page}) => {
   const data = fixture();
-  const dates = await page.evaluate(() => {
-    const dateAhead = (days: number) => {
-      const day = new Date();
-      day.setDate(day.getDate() + days);
-      return `${String(day.getMonth()+1).padStart(2,"0")}-${String(day.getDate()).padStart(2,"0")}`;
-    };
-    return {near:dateAhead(10),far:dateAhead(50)};
-  });
+  // seed() freezes the browser at 2026-11-15; compute dates against that
+  // same clock instead of the runner's actual current date.
+  const dates = {near:"11-25",far:"01-04"};
   data.people[0].birthday = dates.near;
   for(const person of data.people.slice(1)) person.birthday = dates.far;
   await page.setViewportSize({width:320,height:844});
