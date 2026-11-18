@@ -392,3 +392,39 @@ test("shared gift card stays consistent in group occasions and the saved-idea pi
     await chooser.getByRole("button", { name: "Close", exact: true }).click();
   }
 });
+
+test("filled People gallery and portrait profile visual QA at 320 and 390", async ({page}, testInfo) => {
+  const directory = testInfo.outputPath("screenshots");
+  await mkdir(directory, {recursive:true});
+  await seed(page);
+  await page.goto("/#/settings");
+  await page.getByRole("button", {name:"Filled",exact:true}).click();
+  for(const width of [320,390]){
+    await page.setViewportSize({width,height:844});
+    await page.goto("/#/people");
+    await expect(page.locator(".person-gallery-card")).toHaveCount(10);
+    await expect(page.locator(".demo-person-sprite")).toHaveCount(4);
+    await page.screenshot({
+      path:`${directory}/people-filled-${width}.png`,
+      fullPage:true,animations:"disabled",
+    });
+    await page.locator(".person-gallery-card").first().click();
+    await expect(page.locator(".person-profile-photo .demo-person-sprite")).toBeVisible();
+    await expect(page.locator(".person-guidance-positive")).toBeVisible();
+    await expect(page.locator(".person-guidance-negative")).toBeVisible();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth-innerWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+    await page.screenshot({
+      path:`${directory}/person-filled-${width}.png`,
+      fullPage:true,animations:"disabled",
+    });
+  }
+  await page.goto("/#/settings");
+  await page.getByRole("button", {name:"Empty",exact:true}).click();
+  await page.goto("/#/people");
+  await expect(page.locator(".person-gallery-card")).toHaveCount(0);
+  await page.screenshot({
+    path:`${directory}/people-empty-390.png`,
+    fullPage:true,animations:"disabled",
+  });
+});
