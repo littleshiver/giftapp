@@ -549,7 +549,7 @@ test("Discover / Saved and both standard sheets are mobile-safe at 320 and 390",
       fullPage:true, animations:"disabled" });
     await page.getByRole("dialog",{name:"Filters"}).getByRole("button",{name:"Close"}).click();
 
-    await page.getByRole("button",{name:"Like idea"}).click();
+    await page.getByRole("button",{name:"Like idea",exact:true}).click();
     const picker = page.getByRole("dialog",{name:"Save this idea for who?"});
     await expect(picker.getByRole("button",{name:/Anyone/})).toBeVisible();
     await expect(picker.getByRole("button",{name:"Anna"})).toBeVisible();
