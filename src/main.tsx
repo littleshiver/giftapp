@@ -14,6 +14,7 @@ import "./styles/portrait-gallery.css";
 import "./styles/ideas-refresh.css";
 import "./styles/notifications.css";
 import "./styles/analytics.css";
+import "./styles/home-polish.css";
 initAnalytics();
 createRoot(document.getElementById("root")!).render(
   <HashRouter>
