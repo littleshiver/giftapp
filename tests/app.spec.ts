@@ -134,7 +134,7 @@ test("birthday has exactly one recipient; budgets and assigned gifts remain even
   await seed(page, data);
   await expect(page.locator(".home-budget-warning")).toContainText("7 400 ₽ over budget");
   await page.goto("/#/events/e1");
-  await expect(page.locator(".event-summary-budget")).toContainText("7 400 ₽");
+  await expect(page.locator(".event-summary-budget")).toContainText("1 900 ₽");
   await expect(page.locator(".event-person-summary")).toContainText("Anna");
   await page.getByRole("button", { name: "Edit", exact: true }).click();
   await expect(page.getByLabel("Include Anna")).toBeDisabled();
@@ -617,7 +617,7 @@ test("calendar shows whole month first, filters by day and restores month view",
   await expect(page.locator(".calendar-agenda-heading h2")).toHaveText("November events");
   await expect(page.locator(".calendar-event-card")).toHaveCount(1);
   await expect(page.locator(".calendar-event-card")).toContainText("Anna's birthday");
-  await expect(page.locator(".calendar-event-card")).toContainText("2 gifts to buy");
+  await expect(page.locator(".calendar-event-card .calendar-event-status")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Add occasion", exact: true })).toHaveCount(0);
 
   // The initial date is an outline for Today, but never an active filter.
@@ -639,7 +639,7 @@ test("calendar shows whole month first, filters by day and restores month view",
   await expect(page.locator(".calendar-top strong")).toHaveText("December 2026");
   await expect(page.locator(".calendar-agenda-heading h2")).toHaveText("December events");
   await expect(page.locator(".calendar-event-card")).toContainText("New Year");
-  await expect(page.locator(".calendar-event-card")).toContainText("1 gift to buy");
+  await expect(page.locator(".calendar-event-card .calendar-event-status")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Show all" })).toHaveCount(0);
 });
 
@@ -670,7 +670,7 @@ test("calendar marker colors and gift statuses reflect actual enabled events", a
     els.map((e) => getComputedStyle(e).getPropertyValue("--calendar-event-tint").trim())
   );
   expect(new Set(tints).size).toBe(3);
-  await expect(page.getByRole("link", { name: /Tea meetup/ })).toContainText("No gifts planned yet");
+  await expect(page.getByRole("link", { name: /Tea meetup/ })).toContainText("Tea meetup");
 
   await page.getByRole("button", { name: "2026-11-28" }).click();
   await expect(page.locator(".calendar-event-card")).toHaveCount(2);
@@ -965,7 +965,7 @@ test("root page headers omit redundant Givvy overlines and detail pages share a 
     await expect(page.locator("main .page-heading .overline")).toHaveCount(0);
   }
   await page.goto("/#/events/e1");
-  await expect(page.locator(".detail-page-heading .back-link")).toBeVisible();
+  await expect(page.locator(".event-hero-back")).toBeVisible();
   await page.goto("/#/people/p1");
   await expect(page.getByRole("link", { name: "Back to People" })).toBeVisible();
   await expect(page.locator(".person-photo-back")).toBeVisible();
@@ -1206,4 +1206,66 @@ test("Scrolling Coming up chooses the nearest centered occasion without snap-bac
   // Taps still directly select and bring the chosen tile back into view.
   await page.locator(".occasion-chip").first().click();
   await expect(page.locator(".focus-head h2")).toHaveText("Anna's birthday");
+});
+
+
+test("Event hero shows contextual cover, date, navigation and spent-only budget", async ({page}) => {
+  await seed(page);
+  await page.goto("/#/events/e1");
+  await expect(page.locator(".event-hero img")).toBeVisible();
+  await expect(page.locator(".event-hero-date")).toContainText("November");
+  await expect(page.locator(".event-identity h1")).toHaveText("Anna's birthday");
+  await expect(page.locator(".event-person-summary")).toContainText("Anna");
+  const budget = page.locator(".event-summary-budget");
+  await expect(budget).toContainText("1 900 ₽");
+  await expect(budget).toContainText("10 000 ₽");
+  const progress = budget.getByRole("progressbar");
+  await expect(progress).toHaveAttribute("aria-valuenow","1900");
+  await expect(progress).toHaveAttribute("aria-valuemax","10000");
+  await page.getByRole("button",{name:"To buy",exact:true}).click();
+  await expect(page.locator(".event-single-gifts .event-gift-entry")).toHaveCount(2);
+  await page.getByRole("button",{name:"Bought",exact:true}).click();
+  await expect(page.locator(".event-single-gifts .event-gift-entry")).toHaveCount(1);
+});
+
+test("Multi-person Event filters each recipient independently and scrolls 3+ gifts", async ({page}) => {
+  const data = fixture();
+  data.gifts.push(
+    {...data.gifts[1], id:"g5", eventId:"e2", personId:"p1",name:"Soft blanket"},
+    {...data.gifts[2], id:"g6", eventId:"e2", personId:"p1",name:"Another art book"},
+    {...data.gifts[1], id:"g7", eventId:"e2", personId:"p1",name:"Warm socks"},
+  );
+  await seed(page,data);
+  await page.goto("/#/events/e2");
+  const recipients = page.locator(".event-recipient-group");
+  await expect(recipients).toHaveCount(3);
+  await expect(page.locator(".event-avatar-stack .event-stack-avatar")).toHaveCount(3);
+  const anna = recipients.first();
+  await expect(anna.locator(".event-gift-entry")).toHaveCount(3);
+  await expect(anna.locator(".event-gift-shelf")).toHaveAttribute("data-scrollable","true");
+  const row = anna.locator(".event-gift-shelf");
+  const dimensions = await row.evaluate(el=>({
+    client:el.clientWidth, content:el.scrollWidth,
+    overflow:getComputedStyle(el).overflowX,
+  }));
+  expect(dimensions.content).toBeGreaterThan(dimensions.client);
+  expect(dimensions.overflow).toBe("auto");
+  await anna.getByRole("button",{name:"Bought",exact:true}).click();
+  await expect(anna.locator(".event-gift-entry")).toHaveCount(0);
+  const denis = recipients.nth(1);
+  await expect(denis.locator(".event-gift-entry")).toHaveCount(1);
+  await anna.getByRole("button",{name:"All",exact:true}).click();
+  await expect(anna.locator(".event-gift-entry")).toHaveCount(3);
+});
+
+test("Occasion cover presets map holidays, birthdays and other occasions correctly", async ({page}) => {
+  const data = fixture();
+  data.events[0].image = "";
+  data.events[1].image = "";
+  data.events[2].image = "";
+  await seed(page,data);
+  for(const [route,srcPart] of [["e1","1511348398635"],["e2","1766393030565"],["e3","1721775999121"]]) {
+    await page.goto(`/#/events/${route}`);
+    await expect(page.locator(".event-hero-image")).toHaveAttribute("src",new RegExp(srcPart));
+  }
 });

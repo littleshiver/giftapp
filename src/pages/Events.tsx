@@ -6,7 +6,7 @@ import { Sheet } from "../components/Primitives";
 import { OccasionArt } from "../components/OccasionArt";
 import { useApp } from "../state/AppState";
 import { associationValid, enabledEvents } from "../domain/selectors";
-import type { AppData, Event, ReminderDays } from "../domain/models";
+import type { Event, ReminderDays } from "../domain/models";
 import {
   fmtDate,
   iso,
@@ -32,21 +32,11 @@ function occasionTone(index: number): CSSProperties {
   } as CSSProperties;
 }
 
-function giftStatus(data: AppData, event: Event): string {
-  const gifts = data.gifts.filter((g) => g.eventId === event.id);
-  if (!gifts.length) return "No gifts planned yet";
-  const remaining = gifts.filter((g) => g.status !== "bought").length;
-  if (!remaining) return "All gifts bought";
-  return `${remaining} ${remaining === 1 ? "gift" : "gifts"} to buy`;
-}
-
 function MonthEventCard({
   event,
-  data,
   index,
 }: {
   event: Event;
-  data: AppData;
   index: number;
 }) {
   return (
@@ -61,7 +51,6 @@ function MonthEventCard({
       <span className="calendar-event-body">
         <span className="calendar-event-date">{fmtDate(event.date)}</span>
         <strong>{event.name}</strong>
-        <span className="calendar-event-status">{giftStatus(data, event)}</span>
       </span>
       <ChevronRight size={18} strokeWidth={1.9} className="calendar-event-chevron" aria-hidden="true" />
     </Link>
@@ -293,7 +282,6 @@ export function Events() {
                   <MonthEventCard
                     key={event.id}
                     event={event}
-                    data={data}
                     index={monthEvents.indexOf(event)}
                   />
                 ))}
