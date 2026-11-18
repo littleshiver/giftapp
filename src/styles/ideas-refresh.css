@@ -1,0 +1,305 @@
+/* Ideas · Givvy's existing page title, pill-tabs, gift cards and Sheet.
+   Discovery owns its own simple photo/reaction composition; filters are
+   outside the card and the saved catalog uses Product, never a new tile. */
+.ideas-page {
+  min-width: 0;
+}
+.ideas-mode-tabs {
+  width: 100%;
+  max-width: none;
+  margin-bottom: 21px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-radius: 17px;
+}
+.ideas-mode-tabs .pill-tab {
+  width: 100%;
+  min-height: 43px;
+  padding: 10px 13px;
+  border-radius: 13px;
+  font-size: 13px;
+  font-weight: 825;
+}
+.ideas-mode-tabs .pill-tab.is-active {
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(32,39,46,.105);
+}
+.ideas-discover,
+.ideas-saved {
+  min-width: 0;
+}
+.ideas-filter-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-bottom: 16px;
+}
+.ideas-filters-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 42px;
+  padding: 9px 13px;
+  border: 1px solid #e5e5ed;
+  border-radius: 14px;
+  background: #f2edf6;
+  color: #4b3e60;
+  font-size: 13px;
+  font-weight: 805;
+  cursor: pointer;
+}
+.ideas-filter-count {
+  display: grid;
+  place-items: center;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 4px;
+  border-radius: 10px;
+  background: #d7c5e5;
+  color: #422d59;
+  font-size: 11px;
+}
+.ideas-active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  min-width: 0;
+}
+.ideas-filter-chip {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  min-height: 36px;
+  max-width: 100%;
+  padding: 7px 10px;
+  border-radius: 50px;
+  border: 1px solid #e5e8eb;
+  background: #fff;
+  color: #515b65;
+  font-size: 12px;
+  font-weight: 745;
+}
+.ideas-filter-chip svg {
+  flex: 0 0 auto;
+}
+.ideas-swipe-stage {
+  max-width: 500px;
+  margin: 0 auto;
+}
+.ideas-discovery-card {
+  background: #fff;
+  overflow: hidden;
+  border-radius: 25px;
+  box-shadow: 0 9px 26px rgba(38,42,47,.075);
+  border: 1px solid rgba(88,99,108,.07);
+  isolation: isolate;
+}
+.ideas-discovery-photo {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1.05 / 1;
+  object-fit: cover;
+  object-position: center;
+  background: var(--lavender);
+}
+.ideas-discovery-caption {
+  display: grid;
+  min-height: 67px;
+  place-items: center;
+  padding: 15px 14px 17px;
+  text-align: center;
+}
+.ideas-discovery-caption h2 {
+  margin: 0;
+  font-size: clamp(19px, 5.4vw, 24px);
+  font-weight: 850;
+  line-height: 1.2;
+  letter-spacing: -.45px;
+  color: var(--ink-strong);
+}
+.ideas-reactions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(42px, 15vw, 88px);
+  margin: 20px 0 28px;
+}
+.ideas-reaction {
+  display: grid;
+  place-items: center;
+  width: 61px;
+  height: 61px;
+  border: 1px solid rgba(215,217,219,.7);
+  border-radius: 50%;
+  box-shadow: 0 5px 16px rgba(34,38,42,.075);
+  cursor: pointer;
+}
+.ideas-dislike {
+  background: #fae5e8;
+  color: #ad4a62;
+}
+.ideas-like {
+  background: #dff1e4;
+  color: #277649;
+}
+.ideas-reaction:active {
+  transform: scale(.96);
+}
+.ideas-filter-chip:focus-visible,
+.ideas-filters-button:focus-visible,
+.ideas-reaction:focus-visible,
+.ideas-filter-choice:focus-visible,
+.ideas-recipient-option:focus-visible,
+.ideas-review-skipped:focus-visible {
+  outline: 3px solid #5987ac;
+  outline-offset: 3px;
+}
+.ideas-discover-empty {
+  display: grid;
+  max-width: 500px;
+  margin: 25px auto 0;
+  gap: 12px;
+  justify-items: stretch;
+}
+.ideas-review-skipped {
+  display: inline-flex;
+  justify-self: center;
+  justify-content: center;
+  align-items: center;
+  min-height: 42px;
+  padding: 9px 15px;
+  border: 1px solid #dadfe3;
+  border-radius: 13px;
+  background: #fff;
+  font-weight: 760;
+  font-size: 12px;
+  color: #47535f;
+}
+.ideas-people-filters {
+  padding: 2px 0 14px;
+  margin-bottom: 2px;
+}
+.ideas-saved-grid {
+  padding-bottom: 20px;
+  gap: 17px 12px;
+}
+.ideas-filter-sheet {
+  display: grid;
+  gap: 22px;
+}
+.ideas-filter-fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.ideas-filter-fieldset legend {
+  padding: 0 0 11px;
+  color: #424c54;
+  font-size: 14px;
+  font-weight: 825;
+}
+.ideas-filter-choices {
+  display: grid;
+  gap: 7px;
+}
+.ideas-filter-choice {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  border-radius: 13px;
+  padding: 10px 14px;
+  border: 1px solid #e5e9ec;
+  background: #f8f9fa;
+  text-align: left;
+  color: #313c45;
+  font-size: 13px;
+  font-weight: 730;
+}
+.ideas-filter-choice.is-selected {
+  background: #edf1f4;
+  border-color: #aebfca;
+}
+.ideas-filter-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 9px;
+  padding-top: 7px;
+}
+.ideas-filter-footer .button-outline,
+.ideas-filter-footer .button-primary {
+  min-width: 0;
+  flex: 1;
+}
+.ideas-recipient-sheet {
+  display: grid;
+  gap: 9px;
+  padding-bottom: 4px;
+}
+.ideas-recipient-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 65px;
+  padding: 10px 13px;
+  border-radius: 16px;
+  border: 1px solid #e9ecee;
+  box-shadow: 0 3px 10px rgba(40,45,52,.04);
+  background: #fff;
+  color: #27343e;
+  text-align: left;
+  cursor: pointer;
+}
+.ideas-recipient-anyone {
+  background: #f2edf7;
+  border-color: #eee3f4;
+}
+.ideas-recipient-anyone-icon,
+.ideas-recipient-avatar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 43px;
+  width: 43px;
+  height: 43px;
+  border-radius: 14px;
+  background: #e3d5ec;
+  color: #6c4984;
+  font-weight: 830;
+}
+.ideas-recipient-text {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+.ideas-recipient-text strong {
+  font-size: 14px;
+  font-weight: 815;
+}
+.ideas-recipient-text small {
+  font-size: 12px;
+  color: #707982;
+  font-weight: 600;
+}
+.ideas-recipient-chevron {
+  flex: 0 0 19px;
+  color: #82909a;
+}
+@media (max-width: 360px) {
+  .ideas-mode-tabs { margin-bottom: 17px; }
+  .ideas-filter-toolbar { gap: 6px; margin-bottom: 13px; }
+  .ideas-filters-button { min-height: 39px; padding: 8px 11px; }
+  .ideas-filter-chip { min-height: 33px; padding: 6px 9px; font-size: 11px; }
+  .ideas-discovery-caption { min-height: 59px; padding: 13px 12px; }
+  .ideas-reactions { margin: 16px 0 22px; }
+  .ideas-reaction { width: 55px; height: 55px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ideas-reaction { transition: none; }
+}

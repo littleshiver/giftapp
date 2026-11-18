@@ -11,6 +11,7 @@ import "./styles/reminders.css";
 import "./styles/people-events.css";
 import "./styles/design-refresh.css";
 import "./styles/portrait-gallery.css";
+import "./styles/ideas-refresh.css";
 import "./styles/analytics.css";
 initAnalytics();
 createRoot(document.getElementById("root")!).render(

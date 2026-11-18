@@ -519,3 +519,52 @@ test("Gifted history uses the same gift card and stays compact on mobile", async
     });
   }
 });
+
+test("Discover / Saved and both standard sheets are mobile-safe at 320 and 390", async ({ page }, testInfo) => {
+  const directory = testInfo.outputPath("screenshots");
+  await mkdir(directory, { recursive: true });
+  await seed(page);
+  for (const width of [320, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto("/#/ideas");
+    // The app intentionally remembers the selected tab while the route stays
+    // mounted; switch back explicitly for the second viewport iteration.
+    await page.getByRole("button", {name:"Discover",exact:true}).click();
+    await expect(page.getByRole("button", {name:"Discover",exact:true})).toHaveAttribute("aria-pressed","true");
+    await expect(page.locator(".ideas-discovery-photo")).toBeVisible();
+    await expect(page.getByRole("button", {name:"Like idea",exact:true})).toBeVisible();
+    const layout = await page.locator(".ideas-discovery-card").evaluate(async card => {
+      const image = card.querySelector("img")!;
+      await image.decode();
+      const rect = image.getBoundingClientRect();
+      return { imageWidth: rect.width, sourceWidth: image.naturalWidth,
+        overflow:document.documentElement.scrollWidth-innerWidth };
+    });
+    expect(layout.imageWidth).toBeGreaterThan(250);
+    expect(layout.sourceWidth).toBeGreaterThan(350);
+    expect(layout.overflow).toBeLessThanOrEqual(1);
+    await page.screenshot({ path: `${directory}/ideas-discover-${width}.png`,
+      fullPage:true, animations:"disabled" });
+
+    await page.getByRole("button",{name:"Filters"}).click();
+    await expect(page.getByRole("dialog",{name:"Filters"})).toBeVisible();
+    await page.screenshot({ path: `${directory}/ideas-filters-${width}.png`,
+      fullPage:true, animations:"disabled" });
+    await page.getByRole("dialog",{name:"Filters"}).getByRole("button",{name:"Close",exact:true}).click();
+
+    await page.getByRole("button",{name:"Like idea",exact:true}).click();
+    const picker = page.getByRole("dialog",{name:"Save this idea for who?"});
+    await expect(picker.getByRole("button",{name:/Anyone/})).toBeVisible();
+    await expect(picker.getByRole("button",{name:"Anna"})).toBeVisible();
+    await page.screenshot({ path: `${directory}/ideas-choose-recipient-${width}.png`,
+      fullPage:true, animations:"disabled" });
+    await picker.getByRole("button",{name:"Close",exact:true}).click();
+
+    await page.getByRole("button",{name:"Saved",exact:true}).click();
+    await expect(page.locator(".ideas-saved-grid .gift-card.is-idea")).toHaveCount(1);
+    await expect(page.locator(".ideas-saved-grid .gift-status-icon")).toHaveCount(0);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+    await page.screenshot({ path: `${directory}/ideas-saved-${width}.png`,
+      fullPage:true, animations:"disabled" });
+  }
+});

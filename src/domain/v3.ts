@@ -40,6 +40,8 @@ export interface Idea {
   note: string;
   image: string;
   link?: string;
+  /** Stable catalog origin for a discovery idea; never required for manual ideas. */
+  sourceDiscoveryId?: string;
   migration?: { original: Record<string, unknown> };
   [key: string]: unknown;
 }
