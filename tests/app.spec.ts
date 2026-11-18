@@ -190,7 +190,7 @@ test("Discover like opens the recipient sheet, a canceled like does not save, an
   await expect(page.locator(".ideas-filters-button")).toBeVisible();
   await expect(page.locator(".ideas-discovery-card .ideas-filters-button")).toHaveCount(0);
 
-  await page.getByRole("button", { name: "Like idea" }).click();
+  await page.getByRole("button", { name: "Like idea", exact: true }).click();
   const chooser = page.getByRole("dialog", { name: "Save this idea for who?" });
   await expect(chooser.getByRole("button", { name: /Anyone/ })).toBeVisible();
   await expect(chooser.getByRole("button", { name: "Anna" })).toBeVisible();
@@ -198,7 +198,7 @@ test("Discover like opens the recipient sheet, a canceled like does not save, an
   await expect(page.locator(".ideas-discovery-caption")).toHaveText("Ceramic mug");
   expect((await readData(page)).ideas).toHaveLength(1);
 
-  await page.getByRole("button", { name: "Like idea" }).click();
+  await page.getByRole("button", { name: "Like idea", exact: true }).click();
   await page.getByRole("dialog", { name: "Save this idea for who?" })
     .getByRole("button", { name: /Anyone/ }).click();
   expect((await readData(page)).ideas.at(-1)).toMatchObject({
@@ -250,7 +250,7 @@ test("Discover filters are in a separate sheet, with removable chips and meaning
 test("Discover liking a suggestion for a person uses their Saved filter and avoids repeated recommendations", async ({ page }) => {
   await seed(page);
   await page.goto("/#/ideas");
-  await page.getByRole("button", { name: "Like idea" }).click();
+  await page.getByRole("button", { name: "Like idea", exact: true }).click();
   await page.getByRole("dialog", { name: "Save this idea for who?" })
     .getByRole("button", { name: "Mira" }).click();
   const added = (await readData(page)).ideas.at(-1);
