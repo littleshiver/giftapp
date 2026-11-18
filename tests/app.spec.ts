@@ -135,7 +135,9 @@ test("birthday has exactly one recipient; budgets and assigned gifts remain even
   await expect(page.locator(".home-budget-warning")).toContainText("7 400 ₽ over budget");
   await page.goto("/#/events/e1");
   await expect(page.locator(".event-summary-budget")).toContainText("1 900 ₽");
-  await expect(page.locator(".event-person-summary")).toContainText("Anna");
+  // Birthday is already anchored to one person: no duplicate recipient card.
+  await expect(page.locator(".event-person-summary")).toHaveCount(0);
+  await expect(page.locator(".event-overview-panel .event-summary-budget")).toBeVisible();
   await page.getByRole("button", { name: "Edit", exact: true }).click();
   await expect(page.getByLabel("Include Anna")).toBeDisabled();
   await page.getByLabel("Budget for Anna").fill("");
@@ -1264,8 +1266,54 @@ test("Occasion cover presets map holidays, birthdays and other occasions correct
   data.events[1].image = "";
   data.events[2].image = "";
   await seed(page,data);
-  for(const [route,srcPart] of [["e1","1511348398635"],["e2","1766393030565"],["e3","1721775999121"]]) {
+  for(const [route,kind] of [["e1","birthday"],["e2","winter"],["e3","romantic"]]) {
     await page.goto(`/#/events/${route}`);
-    await expect(page.locator(".event-hero-image")).toHaveAttribute("src",new RegExp(srcPart));
+    await expect(page.locator(".event-hero-image")).toHaveAttribute("src",/givvy-event-covers.*\.avif/);
+    await expect(page.locator(".event-hero-image")).toHaveAttribute("data-cover-kind",kind);
+    const loaded = await page.locator(".event-hero-image").evaluate((el) =>
+      (el as HTMLImageElement).complete && (el as HTMLImageElement).naturalWidth > 0);
+    expect(loaded).toBe(true);
   }
+});
+
+
+test("Event hero uses one overlapping profile-style panel on 390px and 320px screens", async ({page}) => {
+  await seed(page);
+  for(const width of [390,320]){
+    await page.setViewportSize({width,height:780});
+    await page.goto("/#/events/e1");
+    const geometry=await page.evaluate(()=>{
+      const hero=document.querySelector(".event-overview .event-hero")!.getBoundingClientRect();
+      const panel=document.querySelector(".event-overview-panel")!.getBoundingClientRect();
+      const style=getComputedStyle(document.querySelector(".event-overview .event-hero")!);
+      return {heroBottom:hero.bottom,panelTop:panel.top,
+        heroLeft:hero.left,panelLeft:panel.left,
+        heroRight:hero.right,panelRight:panel.right,
+        lowerRadius:style.borderBottomLeftRadius};
+    });
+    expect(geometry.heroBottom-geometry.panelTop).toBeGreaterThanOrEqual(24);
+    expect(geometry.heroBottom-geometry.panelTop).toBeLessThanOrEqual(30);
+    expect(Math.abs(geometry.heroLeft-geometry.panelLeft)).toBeLessThan(1);
+    expect(Math.abs(geometry.heroRight-geometry.panelRight)).toBeLessThan(1);
+    expect(geometry.lowerRadius).toBe("0px");
+    await expect(page.locator(".event-overview-panel .event-identity h1")).toHaveText("Anna's birthday");
+    await expect(page.locator(".event-overview-panel .event-summary-budget")).toHaveCount(1);
+    await expect(page.locator(".event-overview-panel .event-summary-recipients")).toHaveCount(0);
+  }
+});
+test("Multi-recipient event has left-hand count, right-hand avatars and one summary sheet", async ({page})=>{
+  await seed(page);
+  await page.goto("/#/events/e2");
+  const panel=page.locator(".event-overview-panel");
+  await expect(panel).toHaveCount(1);
+  await expect(panel.locator(".event-recipient-copy")).toContainText("3 recipients");
+  await expect(panel.locator(".event-avatar-stack .event-stack-avatar")).toHaveCount(3);
+  const horizontal=await panel.locator(".event-recipient-summary").evaluate((el)=>{
+    const count=el.querySelector(".event-recipient-copy")!.getBoundingClientRect();
+    const avatars=el.querySelector(".event-avatar-stack")!.getBoundingClientRect();
+    return {countRight:count.right,avatarLeft:avatars.left};
+  });
+  expect(horizontal.countRight).toBeLessThanOrEqual(horizontal.avatarLeft+1);
+  await expect(panel.locator(".event-summary-budget")).toHaveCount(1);
+  await expect(page.locator(".event-recipient-group")).toHaveCount(3);
 });

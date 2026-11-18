@@ -28,3 +28,4 @@ createRoot(document.getElementById("root")!).render(
 );
 
 import "./styles/event-detail-v2.css";
+import "./styles/event-overview-polish.css";

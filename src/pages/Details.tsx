@@ -109,56 +109,72 @@ export function EventDetail() {
   const unassigned = gifts.filter(gift => !event.people.includes(gift.personId));
   return (
     <div className="event-detail event-detail-v2">
-      <section className="event-hero" aria-label={`Cover for ${event.name}`}>
-        {event.image ? <Photo src={event.image} name={event.name}/> : <EventCover event={event}/>}
-        <div className="event-hero-shade" aria-hidden="true"/>
-        <BackLink to="/events" className="event-hero-action event-hero-back"/>
-        <button data-ph="occasion-edit" type="button" className="event-hero-action event-hero-edit"
-          aria-label="Edit" onClick={() => openEditor({type:"event",id:event.id})}>
-          <Pencil size={17} aria-hidden="true"/>
-        </button>
-        <span className="event-hero-date">{fullDate(event.date)}</span>
-      </section>
-      <section className="event-identity">
-        <p className="event-identity-type">{isBirthday ? "Birthday" : "Occasion"}</p>
-        <h1>{event.name}</h1>
-      </section>
-      <section className="event-summary" aria-label="Occasion summary">
-        <div className="event-summary-recipients">
-          {event.people.length === 1 ? (() => {
-            const person = data.people.find(p => p.id === event.people[0]);
-            return (
-              <Link className="event-person-summary" data-ph="occasion-person"
-                to={`/people/${event.people[0]}`}>
-                <PersonAvatar person={person} className="event-person-avatar"/>
-                <span className="item-body"><strong>{person?.name || "Unknown person"}</strong>
-                  <small>{isBirthday ? "Birthday person" : "Recipient"}</small></span>
-                <ChevronRight size={17} aria-hidden="true"/>
-              </Link>
-            );
-          })() : event.people.length > 1 ? (
-            <div className="event-recipient-summary" aria-label={`${event.people.length} recipients`}>
-              <div className="event-avatar-stack">
-                {event.people.slice(0, 5).map(personId => (
-                  <PersonAvatar key={personId} person={data.people.find(p => p.id === personId)}
-                    className="event-stack-avatar"/>
-                ))}
-                {event.people.length > 5 && <span className="event-stack-more">+{event.people.length - 5}</span>}
-              </div>
-              <div><strong>Recipients</strong><small>{event.people.map(pid => data.people.find(p=>p.id===pid)?.name||"Unknown").join(", ")}</small></div>
-            </div>
-          ) : <p className="event-recipient-empty">Add recipients to this occasion to start planning gifts.</p>}
+      <section className="event-overview" aria-label="Occasion overview">
+        <div className="event-hero" aria-label={`Cover for ${event.name}`}>
+          {event.image ? <Photo src={event.image} name={event.name}/> : <EventCover event={event}/>}
+          <div className="event-hero-shade" aria-hidden="true"/>
+          <BackLink to="/events" className="event-hero-action event-hero-back"/>
+          <button data-ph="occasion-edit" type="button" className="event-hero-action event-hero-edit"
+            aria-label="Edit" onClick={() => openEditor({type:"event",id:event.id})}>
+            <Pencil size={17} aria-hidden="true"/>
+          </button>
+          <span className="event-hero-date">{fullDate(event.date)}</span>
         </div>
-        <div className="event-summary-budget" role="group" aria-label="Occasion budget">
-          <div className="event-budget-head">
-            <span>Budget</span>
-            <span><strong>{currency(spent)}</strong> <small>of {currency(budget)} spent</small></span>
+
+        <div className="event-overview-panel">
+          <header className="event-identity">
+            <p className="event-identity-type">{isBirthday ? "Birthday" : "Occasion"}</p>
+            <h1>{event.name}</h1>
+          </header>
+          <div className="event-summary" aria-label="Occasion summary">
+            {!isBirthday && event.people.length > 0 && (
+              <div className="event-summary-recipients">
+                {event.people.length === 1 ? (() => {
+                  const person = data.people.find(p => p.id === event.people[0]);
+                  return (
+                    <Link className="event-person-summary" data-ph="occasion-person"
+                      to={`/people/${event.people[0]}`}>
+                      <PersonAvatar person={person} className="event-person-avatar"/>
+                      <span className="item-body">
+                        <strong>{person?.name || "Unknown person"}</strong>
+                        <small>Recipient</small>
+                      </span>
+                      <ChevronRight size={17} aria-hidden="true"/>
+                    </Link>
+                  );
+                })() : (
+                  <div className="event-recipient-summary" aria-label={`${event.people.length} recipients`}>
+                    <div className="event-recipient-copy">
+                      <strong>{event.people.length} recipients</strong>
+                      <small>{event.people.map(pid => data.people.find(p=>p.id===pid)?.name||"Unknown").join(", ")}</small>
+                    </div>
+                    <div className="event-avatar-stack" aria-hidden="true">
+                      {event.people.slice(0, 5).map(personId => (
+                        <PersonAvatar key={personId} person={data.people.find(p => p.id === personId)}
+                          className="event-stack-avatar"/>
+                      ))}
+                      {event.people.length > 5 && <span className="event-stack-more">+{event.people.length - 5}</span>}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            {event.people.length === 0 && (
+              <p className="event-recipient-empty">Add recipients to this occasion to start planning gifts.</p>
+            )}
+            <div className="event-summary-budget" role="group" aria-label="Occasion budget">
+              <div className="event-budget-head">
+                <span>Budget</span>
+                <span><strong>{currency(spent)}</strong> <small>of {currency(budget)} spent</small></span>
+              </div>
+              <div className="event-budget-track" role="progressbar" aria-label="Budget spent"
+                aria-valuemin={0} aria-valuemax={Math.max(budget, 1)}
+                aria-valuenow={Math.min(spent,Math.max(budget,1))}>
+                <span style={{width:`${budget ? Math.min(100,spent/budget*100) : spent ? 100 : 0}%`}}/>
+              </div>
+              {spent > budget && <p className="event-budget-warning">{currency(spent-budget)} over budget</p>}
+            </div>
           </div>
-          <div className="event-budget-track" role="progressbar" aria-label="Budget spent"
-            aria-valuemin={0} aria-valuemax={Math.max(budget, 1)} aria-valuenow={Math.min(spent,Math.max(budget,1))}>
-            <span style={{width:`${budget ? Math.min(100,spent/budget*100) : spent ? 100 : 0}%`}}/>
-          </div>
-          {spent > budget && <p className="event-budget-warning">{currency(spent-budget)} over budget</p>}
         </div>
       </section>
 
