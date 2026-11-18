@@ -261,3 +261,25 @@
   .person-gallery-info { padding: 10px 9px 12px; }
   .person-gallery-hint { font-size: 10px; }
 }
+
+/* Empty / Filled is the primary design preview switch. Personal data stays
+   available without competing as an equal third demo state. */
+.preview-demo-switch {
+  grid-template-columns: repeat(2,minmax(0,1fr));
+}
+.preview-return-personal {
+  display: inline-flex;
+  margin-top: 10px;
+  padding: 6px 0;
+  border: 0;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 740;
+  color: #61717a;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.preview-return-personal:focus-visible {
+  outline: 3px solid #5987ac;
+  outline-offset: 3px;
+}
