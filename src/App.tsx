@@ -13,7 +13,7 @@ import { Account } from "./pages/Account";
 import { EventDetail, PersonDetail } from "./pages/Details";
 import { useApp } from "./state/AppState";
 export function App() {
-  const { data, editor, warning, upgradeNotice, closeEditor, openEditor, syncStatus } = useApp(),
+  const { data, editor, ui, warning, upgradeNotice, closeEditor, openEditor, syncStatus } = useApp(),
     location = useLocation();
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -93,7 +93,7 @@ export function App() {
           <>
             <Navigation />
             {/* Account is a settings screen: no "add" action there. */}
-            {location.pathname !== "/account" && <CreateMenu />}
+            {location.pathname !== "/account" && !(location.pathname === "/ideas" && ui.ideasTab === "discover") && <CreateMenu />}
           </>
         )}
       </div>
