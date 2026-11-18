@@ -603,3 +603,31 @@ test("Discover reactions stay above bottom navigation, even on short phones with
     });
   }
 });
+
+test("Multiple removable filters never cover Discover reactions on a 320px short screen", async ({page}, testInfo) => {
+  const dir = testInfo.outputPath("screenshots");
+  await mkdir(dir, {recursive:true});
+  await seed(page);
+  await page.setViewportSize({width:320,height:667});
+  await page.goto("/#/ideas");
+  await page.getByRole("button",{name:"Filters"}).click();
+  const sheet = page.getByRole("dialog",{name:"Filters"});
+  await sheet.getByRole("checkbox",{name:"Adult"}).check();
+  await sheet.getByRole("checkbox",{name:"Child"}).check();
+  await sheet.locator(".ideas-filter-dropdown").nth(1).locator("summary").click();
+  await sheet.getByRole("checkbox",{name:"Close person"}).check();
+  await sheet.getByRole("checkbox",{name:"Acquaintance"}).check();
+  await sheet.getByRole("button",{name:"Apply filters"}).click();
+  await expect(page.locator(".ideas-filter-chip")).toHaveCount(4);
+  await expect(page.locator(".ideas-discovery-card")).toBeVisible();
+  const gap = await page.evaluate(() => {
+    const nav = document.querySelector(".bottom-nav")!.getBoundingClientRect();
+    const actions = document.querySelector(".ideas-reactions")!.getBoundingClientRect();
+    return nav.top - actions.bottom;
+  });
+  expect(gap).toBeGreaterThanOrEqual(8);
+  await page.screenshot({
+    path:`${dir}/discover-four-filters-320x667.png`,
+    fullPage:true,animations:"disabled",
+  });
+});
