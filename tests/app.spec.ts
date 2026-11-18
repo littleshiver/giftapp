@@ -1088,9 +1088,15 @@ test("Discover supports drag feedback, snap-back and animated swipe outcomes", a
     .getByRole("button", { name: "Close", exact: true }).click();
   await expect(page.locator(".ideas-discovery-caption")).toHaveText("Ceramic mug");
 
-  await page.mouse.move(x, y);
+  // After a long like gesture the card can return with a new transform;
+  // use fresh bounds rather than a coordinate captured before the animation.
+  const returned = await card.boundingBox();
+  if (!returned) throw Error("Missing returned swipe card bounds");
+  const finalX = returned.x + returned.width / 2;
+  const finalY = returned.y + returned.height / 2;
+  await page.mouse.move(finalX, finalY);
   await page.mouse.down();
-  await page.mouse.move(x - 135, y, { steps: 8 });
+  await page.mouse.move(finalX - 135, finalY, { steps: 8 });
   await expect(card).toHaveAttribute("data-swipe-direction", "left");
   await page.mouse.up();
   await expect(page.locator(".ideas-discovery-caption")).toHaveText("Throw blanket");
