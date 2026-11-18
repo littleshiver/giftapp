@@ -1055,3 +1055,83 @@ test("FAB-created gift idea is available under Saved → Anyone and remains edit
   await page.getByRole("button", { name: "Edit idea A new handmade gift" }).click();
   await expect(page.getByRole("dialog", { name: "Edit idea" })).toBeVisible();
 });
+
+test("Discover supports drag feedback, snap-back and animated swipe outcomes", async ({ page }) => {
+  await seed(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/#/ideas");
+  const card = page.locator(".ideas-discovery-card");
+  const stage = page.locator(".ideas-swipe-stage");
+  await expect(stage).toHaveCSS("background-image", /linear-gradient/);
+  await expect(page.getByRole("button", { name: "Create", exact: true })).toHaveCount(0);
+  const box = await card.boundingBox();
+  if (!box) throw Error("Missing swipe card bounds");
+  const x = box.x + box.width / 2, y = box.y + box.height / 2;
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x + 50, y, { steps: 6 });
+  const feedback = await card.evaluate((el) => ({
+    direction: el.getAttribute("data-swipe-direction"),
+    opacity: Number(getComputedStyle(el.querySelector(".ideas-swipe-overlay")!).opacity),
+  }));
+  expect(feedback.direction).toBe("right");
+  expect(feedback.opacity).toBeGreaterThan(0.1);
+  await page.mouse.up();
+  await expect(page.locator(".ideas-discovery-caption")).toHaveText("Ceramic mug");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x + 140, y, { steps: 8 });
+  await page.mouse.up();
+  await expect(page.getByRole("dialog", { name: "Save this idea for who?" })).toBeVisible();
+  await page.getByRole("dialog", { name: "Save this idea for who?" })
+    .getByRole("button", { name: "Close", exact: true }).click();
+  await expect(page.locator(".ideas-discovery-caption")).toHaveText("Ceramic mug");
+
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x - 135, y, { steps: 8 });
+  await expect(card).toHaveAttribute("data-swipe-direction", "left");
+  await page.mouse.up();
+  await expect(page.locator(".ideas-discovery-caption")).toHaveText("Throw blanket");
+  expect((await readData(page)).skipped).toContain("discovery:ceramic-mug");
+});
+
+test("Discover dropdowns allow multiple values and chips remove selections independently", async ({ page }) => {
+  await seed(page);
+  await page.goto("/#/ideas");
+  await page.getByRole("button", { name: "Filters" }).click();
+  const dialog = page.getByRole("dialog", { name: "Filters" });
+  await dialog.getByRole("checkbox", { name: "Adult" }).check();
+  await dialog.getByRole("checkbox", { name: "Child" }).check();
+  await dialog.locator(".ideas-filter-dropdown").nth(1).locator("summary").click();
+  await dialog.getByRole("checkbox", { name: "Close person" }).check();
+  await dialog.getByRole("checkbox", { name: "Acquaintance" }).check();
+  await dialog.getByRole("button", { name: "Apply filters" }).click();
+  await expect(page.locator(".ideas-filter-chip")).toHaveCount(4);
+  await expect(page.locator(".ideas-discovery-caption")).toHaveText("Ceramic mug");
+  await page.getByRole("button", { name: "Remove Child filter" }).click();
+  await expect(page.locator(".ideas-filter-chip")).toHaveCount(3);
+  await page.getByRole("button", { name: "Filters" }).click();
+  const reopened = page.getByRole("dialog", { name: "Filters" });
+  await expect(reopened.getByRole("checkbox", { name: "Adult" })).toBeChecked();
+  await expect(reopened.getByRole("checkbox", { name: "Child" })).not.toBeChecked();
+  await reopened.getByRole("button", { name: "Close", exact: true }).click();
+});
+
+test("Saved has the creation FAB and saving a liked idea shows dismissible success toast", async ({ page }) => {
+  await seed(page);
+  await page.goto("/#/ideas");
+  await expect(page.getByRole("button", { name: "Create", exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "Like idea", exact: true }).click();
+  await page.getByRole("dialog", { name: "Save this idea for who?" })
+    .getByRole("button", { name: /Anyone/ }).click();
+  const success = page.locator(".app-toast.toast-success");
+  await expect(success).toContainText("Saved to ideas");
+  await expect(success.getByRole("button", { name: "Dismiss notification" })).toBeVisible();
+  await success.getByRole("button", { name: "Dismiss notification" }).click();
+  await expect(success).toHaveCount(0);
+  await page.getByRole("button", { name: "Saved", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Create", exact: true })).toBeVisible();
+});
