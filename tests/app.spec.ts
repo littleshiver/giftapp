@@ -904,7 +904,8 @@ test("root page headers omit redundant Givvy overlines and detail pages share a 
   await page.goto("/#/events/e1");
   await expect(page.locator(".detail-page-heading .back-link")).toBeVisible();
   await page.goto("/#/people/p1");
-  await expect(page.locator(".person-back")).toContainText("Back");
+  await expect(page.getByRole("link", { name: "Back to People" })).toBeVisible();
+  await expect(page.locator(".person-photo-back")).toBeVisible();
 });
 
 
