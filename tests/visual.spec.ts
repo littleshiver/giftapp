@@ -547,7 +547,7 @@ test("Discover / Saved and both standard sheets are mobile-safe at 320 and 390",
     await expect(page.getByRole("dialog",{name:"Filters"})).toBeVisible();
     await page.screenshot({ path: `${directory}/ideas-filters-${width}.png`,
       fullPage:true, animations:"disabled" });
-    await page.getByRole("dialog",{name:"Filters"}).getByRole("button",{name:"Close"}).click();
+    await page.getByRole("dialog",{name:"Filters"}).getByRole("button",{name:"Close",exact:true}).click();
 
     await page.getByRole("button",{name:"Like idea",exact:true}).click();
     const picker = page.getByRole("dialog",{name:"Save this idea for who?"});
@@ -555,7 +555,7 @@ test("Discover / Saved and both standard sheets are mobile-safe at 320 and 390",
     await expect(picker.getByRole("button",{name:"Anna"})).toBeVisible();
     await page.screenshot({ path: `${directory}/ideas-choose-recipient-${width}.png`,
       fullPage:true, animations:"disabled" });
-    await picker.getByRole("button",{name:"Close"}).click();
+    await picker.getByRole("button",{name:"Close",exact:true}).click();
 
     await page.getByRole("button",{name:"Saved",exact:true}).click();
     await expect(page.locator(".ideas-saved-grid .gift-card.is-idea")).toHaveCount(1);
