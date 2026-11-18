@@ -1333,3 +1333,76 @@ test("Multi-recipient event has left-hand count, right-hand avatars and one summ
   await expect(panel.locator(".event-summary-budget")).toHaveCount(1);
   await expect(page.locator(".event-recipient-group")).toHaveCount(3);
 });
+
+
+test("Event and People date pills share geometry, centering, and appearance", async ({ page }) => {
+  await seed(page);
+  await page.goto("/#/events/e1");
+  const eventStyle = await page.locator(".event-hero-date").evaluate((el) => {
+    const rect = el.getBoundingClientRect();
+    const cover = document.querySelector(".event-hero")!.getBoundingClientRect();
+    const css = getComputedStyle(el);
+    return {
+      height: rect.height, pillCenter: rect.left + rect.width / 2,
+      coverCenter: cover.left + cover.width / 2, background: css.backgroundColor,
+      padding: css.padding, radius: css.borderRadius,
+      fontSize: css.fontSize, fontWeight: css.fontWeight, bottomGap: cover.bottom - rect.bottom,
+    };
+  });
+  expect(Math.abs(eventStyle.pillCenter - eventStyle.coverCenter)).toBeLessThan(1);
+  await page.goto("/#/people/p1");
+  const personStyle = await page.locator(".person-profile-birthday").evaluate((el) => {
+    const rect = el.getBoundingClientRect();
+    const cover = document.querySelector(".person-profile-cover")!.getBoundingClientRect();
+    const css = getComputedStyle(el);
+    return {
+      height: rect.height, pillCenter: rect.left + rect.width / 2,
+      coverCenter: cover.left + cover.width / 2, background: css.backgroundColor,
+      padding: css.padding, radius: css.borderRadius,
+      fontSize: css.fontSize, fontWeight: css.fontWeight, bottomGap: cover.bottom - rect.bottom,
+    };
+  });
+  expect(Math.abs(personStyle.pillCenter - personStyle.coverCenter)).toBeLessThan(1);
+  for (const key of ["height", "background", "padding", "radius", "fontSize", "fontWeight", "bottomGap"] as const) {
+    expect(eventStyle[key], key).toBe(personStyle[key]);
+  }
+});
+
+test("Multi-recipient headings and avatar portraits open the matching People profile", async ({ page }) => {
+  await seed(page);
+  await page.goto("/#/events/e2");
+
+  const summary = page.locator(".event-overview-panel");
+  await expect(summary.locator(".event-summary-recipients")).toHaveCount(1);
+  await expect(summary.locator(".event-stack-link")).toHaveCount(3);
+  await expect(summary.locator(".event-recipient-summary")).toContainText("3 recipients");
+
+  const topBorder = await summary.locator(".event-summary-recipients").evaluate(el => getComputedStyle(el).borderTopWidth);
+  const budgetBorder = await summary.locator(".event-summary-budget").evaluate(el => getComputedStyle(el).borderTopWidth);
+  expect(topBorder).toBe("0px");
+  expect(budgetBorder).not.toBe("0px");
+
+  const groupBorders = await page.locator(".event-recipient-group").evaluateAll(
+    elements => elements.map(el => getComputedStyle(el).borderBottomWidth),
+  );
+  expect(groupBorders).toEqual(["0px", "0px", "0px"]);
+
+  await page.locator(".event-stack-link[aria-label=\"Open Denis's profile\"]").click();
+  await expect(page).toHaveURL(/#\/people\/p2$/);
+  await expect(page.locator(".person-profile-identity h1")).toHaveText("Denis");
+
+  await page.goto("/#/events/e2");
+  await page.locator(".event-recipient-group").first().getByRole("link", { name: "Open Anna's profile" }).click();
+  await expect(page).toHaveURL(/#\/people\/p1$/);
+  await expect(page.locator(".person-profile-identity h1")).toHaveText("Anna");
+});
+
+test("Single-recipient occasions show person only beside gifts, not in overview", async ({ page }) => {
+  await seed(page);
+  for(const id of ["e1", "e3"]) {
+    await page.goto(`/#/events/${id}`);
+    await expect(page.locator(".event-overview-panel .event-summary-recipients")).toHaveCount(0);
+    await expect(page.locator(".event-overview-panel .event-summary-budget")).toHaveCount(1);
+    await expect(page.locator(".event-single-gifts .event-person-gifts-identity")).toHaveCount(1);
+  }
+});
