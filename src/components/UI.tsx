@@ -56,7 +56,7 @@ export function Navigation() {
   );
 }
 export function CreateMenu() {
-  const { openEditor, ui } = useApp(),
+  const { openEditor, ui, setUi, data, notify } = useApp(),
     [open, setOpen] = useState(false),
     location = useLocation(),
     root = useRef<HTMLDivElement>(null);
@@ -91,14 +91,32 @@ export function CreateMenu() {
               key={type}
               onClick={() => {
                 setOpen(false);
-                const eventId = location.pathname.startsWith("/events/")
+                const onEventDetail = location.pathname.startsWith("/events/");
+                const eventId = onEventDetail
                   ? location.pathname.split("/")[2]
                   : location.pathname === "/"
                     ? ui.selectedEvent
                     : undefined;
+                const personId = location.pathname.startsWith("/people/")
+                  ? location.pathname.split("/")[2]
+                  : undefined;
+                // For an existing occasion, FAB Add gift opens the same
+                // per-recipient saved-idea picker previously shown by inline
+                // Add gift buttons. Other routes still use the global editor.
+                if (type === "gift" && onEventDetail && eventId) {
+                  const event = data.events.find((value) => value.id === eventId);
+                  if (event && !event.people.length) {
+                    notify("Add a recipient to this occasion first.");
+                    openEditor({ type: "event", id: eventId });
+                  } else if (event) {
+                    setUi({ giftPickerEventId: eventId });
+                  }
+                  return;
+                }
                 openEditor({
                   type: type as "idea" | "gift" | "event" | "person",
                   eventId,
+                  personId: type === "idea" ? personId : undefined,
                 });
               }}
             >
