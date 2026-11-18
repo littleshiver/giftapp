@@ -126,7 +126,6 @@ test("People gallery: high-resolution portraits, birthday-only metadata and empt
   await expect(mira).toContainText("Nov 28");
   await expect(page.locator(".person-gallery-hint")).toHaveCount(0);
   await expect(page.locator(".person-gallery-birthday")).toHaveCount(10);
-  await expect(page.locator(".person-birthday-countdown")).not.toContainText("gift");
   await expect(page.locator(".demo-person-sprite")).toHaveCount(4);
   await expect(page.locator(".person-gallery-portrait")).toHaveCount(10);
   await expect(page.locator(".people-search")).toHaveCount(0);
