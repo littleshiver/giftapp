@@ -1161,7 +1161,8 @@ test("Home greeting waves once, collapses after scrolling and returns only on fu
   await seed(page);
   await expect(page.locator(".home-greeting")).toContainText("Hi, Polina");
   await expect(page.locator(".home-greeting")).not.toHaveClass(/is-dismissed/);
-  await page.evaluate(() => window.scrollTo(0, 200));
+  await page.mouse.wheel(0, 450);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(24);
   await expect(page.locator(".home-greeting")).toHaveClass(/is-dismissed/);
   await page.goto("/#/people");
   await page.goto("/#/");
