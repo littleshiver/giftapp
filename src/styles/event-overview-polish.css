@@ -1,3 +1,25 @@
+/* The five real photo presets live in one five-row AVIF sprite.
+   The window clips exactly one row while preserving regular image fallback. */
+.event-detail-v2 .event-overview .event-hero .event-cover-frame {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.event-detail-v2 .event-overview .event-hero .event-cover-frame > img.event-hero-image {
+  position: absolute;
+  display: block;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 500%;
+  max-width: none;
+  object-fit: fill;
+  object-position: center;
+  pointer-events: none;
+}
+
 /* Event cover and content now share the People profile's one-sheet language.
    Keep this scoped: gift filters, gift shelf, budgets and data model unchanged. */
 .event-detail-v2 .event-overview {
