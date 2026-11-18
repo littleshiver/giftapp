@@ -290,3 +290,47 @@ test("Variant C retains empty and one-sided preferences without blank panels", a
   await expect(page.locator(".person-guidance-empty")).toBeVisible();
   await expect(page.locator(".person-ideas .gift-card")).toHaveCount(1);
 });
+
+test("Gifted segment derives only bought gifts from past occasions, then edits/deletes through shared sheet", async ({page}) => {
+  const data = fixture();
+  data.events[0].date = "2026-11-10"; // past relative to frozen Nov 15
+  data.gifts.push({
+    ...data.gifts[0], id:"future-bought", name:"Future present",
+    eventId:"e2", personId:"p1", status:"bought",
+  });
+  await seed(page,data);
+  await page.goto("/#/people/p1");
+  await expect(page.getByRole("button",{name:"Gift ideas", exact:true})).toHaveAttribute("aria-pressed","true");
+  await expect(page.locator(".person-gift-collection .gift-card")).toHaveCount(1);
+  await page.getByRole("button",{name:"Gifted",exact:true}).click();
+  await expect(page.getByRole("button",{name:"Gifted",exact:true})).toHaveAttribute("aria-pressed","true");
+  await expect(page.locator(".person-gift-collection .gift-card")).toHaveCount(1);
+  await expect(page.locator(".person-gift-collection")).toContainText("Scented candle");
+  await expect(page.locator(".person-gift-collection")).toContainText("Anna's birthday");
+  await expect(page.locator(".person-gift-collection")).toContainText("Nov 10, 2026");
+  await expect(page.locator(".person-gift-collection .gift-status-icon")).toHaveCount(1);
+  await expect(page.locator(".person-gift-collection button.gift-status-icon")).toHaveCount(0);
+  await expect(page.getByText("Future present")).toHaveCount(0);
+  await expect(page.getByText("Cozy blanket")).toHaveCount(0);
+
+  await page.getByRole("button",{name:"Edit gift Scented candle"}).click();
+  await expect(page.getByRole("dialog",{name:"Edit gift"})).toBeVisible();
+  await expect(page.getByLabel("Gift name",{exact:true})).toHaveValue("Scented candle");
+  page.once("dialog", dialog => dialog.accept());
+  await page.getByRole("button",{name:"Delete gift"}).click();
+  await expect(page.getByRole("dialog",{name:"Edit gift"})).toHaveCount(0);
+  await expect(page.getByText("No bought gifts from past occasions yet.")).toBeVisible();
+  expect((await readData(page)).gifts.some((g)=>g.id==="g1")).toBe(false);
+  await page.getByRole("button",{name:"Gift ideas",exact:true}).click();
+  await expect(page.locator(".person-gift-collection .gift-card")).toHaveCount(1);
+});
+
+test("Purchased on the day or for a future occasion is not prematurely Gifted", async ({page}) => {
+  const data = fixture();
+  data.events[0].date = "2026-11-15";
+  data.gifts[1].status = "bought";
+  await seed(page,data);
+  await page.goto("/#/people/p1");
+  await page.getByRole("button",{name:"Gifted",exact:true}).click();
+  await expect(page.getByText("No bought gifts from past occasions yet.")).toBeVisible();
+});

@@ -140,6 +140,25 @@ export function CreateMenu() {
     </div>
   );
 }
+/** Single back-navigation component for all routed detail pages. */
+export function BackLink({
+  to,
+  className = "",
+  label,
+}: {
+  to: string;
+  className?: string;
+  label?: string;
+}) {
+  const destination = to === "/people" ? "People" : to === "/events" ? "Events" : "previous page";
+  return (
+    <Link data-ph={`back-to-${destination.split(" ")[0].toLowerCase()}`} to={to} className={`back-link back-navigation ${className}`}
+      aria-label={label || `Back to ${destination}`}>
+      <ChevronLeft size={20} strokeWidth={2} aria-hidden="true" />
+    </Link>
+  );
+}
+
 export function Title({
   name,
   subtitle,
@@ -151,11 +170,7 @@ export function Title({
 }) {
   return (
     <header className={`page-heading ${back ? "detail-page-heading" : "root-page-heading"}`}>
-      {back && (
-        <Link data-ph="back" className="ghostbutton back-link" to={back}>
-          <ChevronLeft size={16} aria-hidden="true" /> Back
-        </Link>
-      )}
+      {back && <BackLink to={back} />}
       <h1 className="title-xl">{name}</h1>
       {subtitle && <p className="subheading">{subtitle}</p>}
     </header>
@@ -280,6 +295,8 @@ export function Product({
   onToggle,
   showEdit = true,
   actionLabel,
+  captionText,
+  statusReadOnly = false,
 }: {
   item: Gift | Idea;
   person?: boolean;
@@ -288,6 +305,8 @@ export function Product({
   onToggle?: () => void;
   showEdit?: boolean;
   actionLabel?: string;
+  captionText?: string;
+  statusReadOnly?: boolean;
 }) {
   const { data, commit } = useApp();
   const gift = "status" in item ? item as Gift : null;
@@ -300,9 +319,9 @@ export function Product({
         : value),
     });
   };
-  const caption = person
+  const caption = captionText ?? (person
     ? `For ${data.people.find((p) => p.id === item.personId)?.name || "Someone"}`
-    : currency(item.price);
+    : currency(item.price));
   return (
     <article className={`product-card gift-card ${home ? "home-product" : ""} ${gift ? "is-gift" : "is-idea"}`}>
       {onClick ? (
@@ -333,7 +352,8 @@ export function Product({
           </span>}
         </div>
       )}
-      {gift && <GiftStatus status={gift.status} name={gift.name} onToggle={onToggle || defaultToggle} />}
+      {gift && <GiftStatus status={gift.status} name={gift.name}
+        onToggle={statusReadOnly ? undefined : (onToggle || defaultToggle)} />}
       {onClick && showEdit && !home && (
         <button data-ph="gift-card-edit" type="button" className="gift-card-edit"
           aria-label={`Edit ${gift ? "gift" : "idea"} ${item.name}`}

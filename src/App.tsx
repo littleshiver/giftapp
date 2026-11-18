@@ -33,7 +33,12 @@ export function App() {
   return (
     <div className="app-shell">
       <div inert={!!editor} aria-hidden={editor ? true : undefined}>
-        <main className={location.pathname === "/" ? "app-main app-main-home" : "app-main"}>
+        <main className={[
+          "app-main",
+          location.pathname === "/" ? "app-main-home" : "",
+          location.pathname.startsWith("/people/") ? "app-main-profile" : "",
+          location.pathname.startsWith("/events/") ? "app-main-event-detail" : "",
+        ].filter(Boolean).join(" ")}>
           {warning && (
             <div className="notice" role="alert">
               {warning}
