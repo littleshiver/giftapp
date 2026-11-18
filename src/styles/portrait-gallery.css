@@ -117,7 +117,7 @@
   right: 6px;
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
   max-width: calc(100% - 12px);
   padding: 5px 6px;
   border-radius: 9px;
@@ -129,26 +129,34 @@
   font-weight: 820;
   white-space: nowrap;
 }
-.person-birthday-countdown svg { flex: 0 0 auto; }
+.person-birthday-countdown svg {
+  flex: 0 0 auto;
+  display: block;
+  align-self: center;
+}
+.person-birthday-countdown > span {
+  display: block;
+  line-height: 1;
+  white-space: nowrap;
+}
 .person-gallery-info {
   display: grid;
-  grid-template-rows: minmax(28px,auto) 15px;
+  grid-template-rows: 16px 15px;
   align-content: start;
-  gap: 4px;
-  min-height: 66px;
+  gap: 3px;
+  min-height: 0;
   min-width: 0;
   padding: 9px 8px 10px;
 }
 .person-gallery-info > strong {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
+  display: block;
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 12.5px;
   font-weight: 840;
-  line-height: 1.18;
-  overflow-wrap: anywhere;
+  line-height: 16px;
 }
 .person-gallery-birthday {
   display: flex;
@@ -158,11 +166,20 @@
   color: #69757d;
   font-size: 10.5px;
   font-weight: 695;
-  line-height: 1.15;
+  line-height: 1;
   white-space: nowrap;
   letter-spacing: -.2px;
 }
-.person-gallery-birthday svg { flex: 0 0 13px; }
+.person-gallery-birthday svg {
+  flex: 0 0 13px;
+  display: block;
+  align-self: center;
+}
+.person-gallery-birthday > span {
+  display: block;
+  line-height: 1;
+  min-width: 0;
+}
 
 /* The person profile is a single two-column composition: photo on the left,
    identity and short gift preferences on the right, with no About card. */
@@ -285,7 +302,7 @@
   .person-guidance { padding: 10px; }
   .person-guidance p { font-size: 11.5px; }
   .people-gallery-grid { gap: 11px 7px; }
-  .person-gallery-info { padding: 8px 6px 9px; min-height: 63px; }
+  .person-gallery-info { padding: 8px 6px 9px; }
   .person-gallery-info > strong { font-size: 12px; }
   .person-gallery-birthday { font-size: 10px; gap: 2px; }
   .person-birthday-countdown { top: 5px; right: 5px; padding: 4px 5px; font-size: 9.5px; gap: 2px; }
