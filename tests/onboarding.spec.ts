@@ -85,7 +85,8 @@ test("corrupt storage remains recoverable without onboarding overwrite", async (
   await page.goto("/");
   await expect(page.getByRole("alert")).toContainText("not been overwritten");
   await page.goto("/#/people");
-  await page.getByRole("button", { name: "Add person", exact: true }).click();
+  await page.getByRole("button", { name: "Create", exact: true }).click();
+    await page.getByRole("button", { name: "Add person", exact: true }).click();
   await page.getByLabel("Name", { exact: true }).fill("Should not save");
   await page.getByRole("button", { name: "Save person", exact: true }).click();
   await expect(page.getByRole("status")).toContainText("recovery");
