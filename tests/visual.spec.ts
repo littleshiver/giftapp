@@ -462,16 +462,29 @@ test("Variant C profile with portrait and preferences at mobile widths", async (
     const measures = await cover.evaluate((el) => {
       const r = el.getBoundingClientRect();
       const panel = document.querySelector(".person-profile-panel")!.getBoundingClientRect();
+      const shell = document.querySelector(".app-shell")!.getBoundingClientRect();
+      const birthday = el.querySelector(".person-profile-birthday")!.getBoundingClientRect();
+      const rows = Array.from(document.querySelectorAll(".person-gift-guidance > .person-guidance"))
+        .map(row => row.getBoundingClientRect());
       return {
         ratio: r.width / r.height,
+        fullBleedPhoto: Math.abs(shell.width - r.width) < 1 && Math.abs(shell.left - r.left) < 1,
+        fullBleedWhitePanel: Math.abs(shell.width - panel.width) < 1 && Math.abs(shell.left - panel.left) < 1,
+        birthdayAboveWhite: birthday.bottom < panel.top,
         overlap: r.bottom - panel.top,
         columns: getComputedStyle(document.querySelector(".person-gift-guidance")!).gridTemplateColumns.split(" ").length,
+        stackedWideRows: rows.length === 2 && rows[1].top > rows[0].bottom &&
+          Math.abs(rows[0].width - rows[1].width) < 1,
         overflow: document.documentElement.scrollWidth - innerWidth,
       };
     });
     expect(measures.ratio).toBeCloseTo(1, 2);
+    expect(measures.fullBleedPhoto).toBe(true);
+    expect(measures.fullBleedWhitePanel).toBe(true);
+    expect(measures.birthdayAboveWhite).toBe(true);
     expect(measures.overlap).toBeGreaterThan(15);
     expect(measures.columns).toBe(1);
+    expect(measures.stackedWideRows).toBe(true);
     expect(measures.overflow).toBeLessThanOrEqual(1);
     await page.screenshot({
       path: `${dir}/person-variant-c-${width}.png`,
