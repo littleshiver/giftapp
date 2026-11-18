@@ -527,6 +527,9 @@ test("Discover / Saved and both standard sheets are mobile-safe at 320 and 390",
   for (const width of [320, 390]) {
     await page.setViewportSize({ width, height: 844 });
     await page.goto("/#/ideas");
+    // The app intentionally remembers the selected tab while the route stays
+    // mounted; switch back explicitly for the second viewport iteration.
+    await page.getByRole("button", {name:"Discover",exact:true}).click();
     await expect(page.getByRole("button", {name:"Discover",exact:true})).toHaveAttribute("aria-pressed","true");
     await expect(page.locator(".ideas-discovery-photo")).toBeVisible();
     await expect(page.getByRole("button", {name:"Like idea",exact:true})).toBeVisible();
