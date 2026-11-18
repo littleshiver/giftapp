@@ -1089,6 +1089,9 @@ test("Discover supports drag feedback, snap-back and animated swipe outcomes", a
   await page.getByRole("dialog", { name: "Save this idea for who?" })
     .getByRole("button", { name: "Close", exact: true }).click();
   await expect(page.locator(".ideas-discovery-caption")).toHaveText("Ceramic mug");
+  // The card has a 280ms exit/return transition; don't initiate a fresh
+  // pointer gesture while the previous card is still animating back.
+  await page.waitForTimeout(350);
 
   // After a long like gesture the card can return with a new transform;
   // use fresh bounds rather than a coordinate captured before the animation.
@@ -1217,7 +1220,8 @@ test("Event hero shows contextual cover, date, navigation and spent-only budget"
   await expect(page.locator(".event-hero img")).toBeVisible();
   await expect(page.locator(".event-hero-date")).toContainText("November");
   await expect(page.locator(".event-identity h1")).toHaveText("Anna's birthday");
-  await expect(page.locator(".event-person-summary")).toContainText("Anna");
+  await expect(page.locator(".event-person-summary")).toHaveCount(0);
+  await expect(page.locator(".event-single-gifts .event-person-gifts-identity")).toContainText("Anna");
   const budget = page.locator(".event-summary-budget");
   await expect(budget).toContainText("1 900 ₽");
   await expect(budget).toContainText("10 000 ₽");
