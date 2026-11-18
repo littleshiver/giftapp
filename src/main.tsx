@@ -26,3 +26,5 @@ createRoot(document.getElementById("root")!).render(
     </AuthProvider>
   </HashRouter>,
 );
+
+import "./styles/event-detail-v2.css";
