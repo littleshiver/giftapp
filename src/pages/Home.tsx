@@ -9,12 +9,8 @@ import { useApp } from "../state/AppState";
 import { OccasionArt } from "../components/OccasionArt";
 import { WAVE_SHAPE_PATH } from "../components/WaveShape";
 import { enabledEvents, giftsFor } from "../domain/selectors";
-import {
-  countdown,
-  fmtDate,
-  fullDate,
-  today,
-} from "../utils/format";
+import { fmtDate, fullDate, today } from "../utils/format";
+import { CountdownBadge, daysUntilDate } from "../components/CountdownBadge";
 type EventTone = {
   chip: string;
   surface: string;
@@ -69,30 +65,89 @@ export function Home() {
     navigate = useNavigate(),
     upcoming = enabledEvents(data).filter((e) => e.date >= today()),
     selected = upcoming.find((e) => e.id === ui.selectedEvent) || upcoming[0],
-    selectedTone = selected ? toneFor(upcoming.indexOf(selected)) : eventTones.peach;
+    selectedTone = selected ? toneFor(upcoming.indexOf(selected)) : eventTones.peach,
+    selectedGifts = selected ? giftsFor(data, selected.id) : [];
   const upcomingRef = useRef<HTMLDivElement>(null);
   const giftsRef = useRef<HTMLDivElement>(null);
+  const alignOnSelection = useRef(false);
+  const programmaticScroll = useRef(false);
+  const scrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const alignTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if ((selected?.id || "") !== ui.selectedEvent)
       setUi({ selectedEvent: selected?.id || "" });
   }, [selected?.id]);
 
-  // When selecting an upcoming occasion, align its leading edge with the
-  // viewport's left inset. Never jump the document scroll position.
+  // A tap may align the selected occasion, but a manual horizontal scroll
+  // must never be dragged back by the old auto-centering effect.
   useEffect(() => {
     const track = upcomingRef.current;
-    const active = track?.querySelector<HTMLButtonElement>(".occasion-chip.is-selected");
-    if (!track || !active) return;
+    if (!track || !alignOnSelection.current) return;
+    alignOnSelection.current = false;
+    const active = track.querySelector<HTMLButtonElement>(".occasion-chip.is-selected");
+    if (!active) return;
     const inset = Number.parseFloat(getComputedStyle(track).paddingLeft) || 0;
     const offset = active.getBoundingClientRect().left - track.getBoundingClientRect().left - inset;
     if (Math.abs(offset) < 2) return;
+    programmaticScroll.current = true;
     track.scrollTo({
       left: Math.max(0, track.scrollLeft + offset),
       behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
         ? "instant"
         : "smooth",
     });
+    if (alignTimer.current) clearTimeout(alignTimer.current);
+    alignTimer.current = setTimeout(() => { programmaticScroll.current = false; }, 500);
   }, [selected?.id]);
+
+  // The card nearest the visible center becomes selected after the user
+  // finishes scrolling. Keep tapping as a separate, equally valid input.
+  const upcomingIds = upcoming.map(event => event.id).join("|");
+  useEffect(() => {
+    const track = upcomingRef.current;
+    if (!track) return;
+    const handleScroll = () => {
+      if (programmaticScroll.current) return;
+      if (scrollTimer.current) clearTimeout(scrollTimer.current);
+      scrollTimer.current = setTimeout(() => {
+        const bounds = track.getBoundingClientRect();
+        const center = bounds.left + bounds.width / 2;
+        const cards = Array.from(track.querySelectorAll<HTMLButtonElement>(".occasion-chip"));
+        const nearest = cards.reduce<HTMLButtonElement | null>((best, card) => {
+          if (!best) return card;
+          const rect = card.getBoundingClientRect();
+          const prev = best.getBoundingClientRect();
+          return Math.abs(rect.left + rect.width / 2 - center) <
+            Math.abs(prev.left + prev.width / 2 - center) ? card : best;
+        }, null);
+        const id = nearest?.dataset.occasionId;
+        if (id && id !== ui.selectedEvent) setUi({ selectedEvent: id });
+      }, 130);
+    };
+    track.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      track.removeEventListener("scroll", handleScroll);
+      if (scrollTimer.current) clearTimeout(scrollTimer.current);
+    };
+  }, [upcomingIds, ui.selectedEvent]);
+
+  useEffect(() => {
+    if (ui.greetingDismissed) return;
+    const dismissOnScroll = () => {
+      if (window.scrollY > 24) setUi({ greetingDismissed: true });
+    };
+    window.addEventListener("scroll", dismissOnScroll, { passive: true });
+    return () => window.removeEventListener("scroll", dismissOnScroll);
+  }, [ui.greetingDismissed]);
+
+  // The greeting is a welcome on first arrival, not on each client-side
+  // return to Home. A full browser reload recreates the ephemeral UI state.
+  useEffect(() => () => {
+    if (scrollTimer.current) clearTimeout(scrollTimer.current);
+    if (alignTimer.current) clearTimeout(alignTimer.current);
+    setUi({ greetingDismissed: true });
+  }, []);
+
   // Every newly selected occasion starts at its first gift. This also avoids
   // inherited scroll offsets from the previous panel's horizontal rail.
   useEffect(() => {
@@ -102,7 +157,8 @@ export function Home() {
     <>
       <header className="home-heading">
         <HomeBrand />
-        <h1 className="home-greeting">
+        <h1 className={`home-greeting ${ui.greetingDismissed ? "is-dismissed" : ""}`}
+          aria-hidden={ui.greetingDismissed}>
           Hi, {data.settings.name?.trim() || "there"}
           <span className="greeting-wave" role="img" aria-label="waving hand">👋</span>
         </h1>
@@ -123,12 +179,16 @@ export function Home() {
             {upcoming.map((e, index) => (
               <button data-ph="home-occasion-chip"
                 key={e.id}
+                data-occasion-id={e.id}
                 className={`occasion-chip ${selected?.id === e.id ? "is-selected" : ""}`}
                 style={toneStyle(toneFor(index))}
                 aria-pressed={selected?.id === e.id}
-                onClick={() => setUi({ selectedEvent: e.id })}
+                onClick={() => {
+                  if (selected?.id !== e.id) alignOnSelection.current = true;
+                  setUi({ selectedEvent: e.id });
+                }}
               >
-                <span className="occ-count">{countdown(e.date)}</span>
+                <CountdownBadge days={daysUntilDate(e.date)} className="occ-count"/>
                 <span className="occ-thumb">
                   {e.image ? (
                     <Photo src={e.image} name={e.name} />
@@ -186,7 +246,7 @@ export function Home() {
               </div>
             </div>
             <div className="focus-gifts" ref={giftsRef}>
-              {giftsFor(data, selected.id).map((g) => (
+              {selectedGifts.length ? selectedGifts.map((g) => (
                 <Product
                   key={g.id}
                   item={g}
@@ -195,7 +255,11 @@ export function Home() {
                   showEdit={false}
                   onClick={() => navigate(`/events/${selected.id}`)}
                 />
-              ))}
+              )) : (
+                <div className="home-empty-gifts" role="status">
+                  Add gifts with the + button and they’ll appear here.
+                </div>
+              )}
             </div>
           </div>
         </section>
