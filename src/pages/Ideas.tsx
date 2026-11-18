@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Check, ChevronRight, SlidersHorizontal, ThumbsDown, ThumbsUp, X } from "lucide-react";
+import { Check, ChevronRight, SlidersHorizontal, ThumbsDown, ThumbsUp, UsersRound, X } from "lucide-react";
 import type { Idea } from "../domain/models";
 import { Empty, PersonAvatar, Product, Title } from "../components/UI";
 import { Button, Sheet } from "../components/Primitives";
@@ -268,7 +268,7 @@ export function Ideas() {
             <button type="button" className="ideas-recipient-option ideas-recipient-anyone"
               onClick={() => saveFor("")}>
               <span className="ideas-recipient-anyone-icon" aria-hidden="true">
-                <ChevronRight size={22}/>
+                <UsersRound size={21} aria-hidden="true"/>
               </span>
               <span className="ideas-recipient-text"><strong>Anyone</strong>
                 <small>A universal idea</small></span>
