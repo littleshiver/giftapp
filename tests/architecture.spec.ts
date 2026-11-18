@@ -60,6 +60,13 @@ test("person portrait, interests and private gift-idea library persist without p
     buffer: Buffer.from(image("birthday").split(",")[1], "base64"),
   });
   await page.getByRole("button", { name: "Save person" }).click();
+  // Photo processing uses an async image decoder/canvas. Wait until the
+  // atomic save has committed before intentionally reloading the document.
+  await expect.poll(async () => {
+    const saved = await readData(page);
+    return saved.people.find((candidate) => candidate.id === "p1")?.photo || "";
+  }).toMatch(/^data:image\/jpeg;base64,/);
+  await expect(page.getByRole("dialog", { name: "Edit person" })).toHaveCount(0);
   await page.reload();
   await expect(page.locator(".person-profile-photo img")).toBeVisible();
   await expect(page.locator(".person-guidance-positive")).toContainText("Books, Ceramics");
