@@ -215,29 +215,32 @@ export function PersonDetail() {
 
   return (
     <div className="person-detail">
-      <Link className="ghostbutton back-link person-back" to="/people">
-        <ChevronLeft size={16} aria-hidden="true"/> Back
-      </Link>
       <section className="person-profile-hero" aria-label={`Profile of ${person.name}`}>
-        <PersonAvatar person={person} className="person-profile-photo" />
-        <div className="person-profile-info">
-          <div className="person-profile-title-row">
+        <div className="person-profile-cover">
+          <PersonAvatar person={person} className="person-profile-photo" />
+          <Link className="person-photo-action person-photo-back" to="/people"
+            aria-label="Back to People">
+            <ChevronLeft size={20} aria-hidden="true"/>
+          </Link>
+          <button type="button" className="person-photo-action person-photo-edit"
+            aria-label="Edit person" onClick={() => openEditor({type:"person", id:person.id})}>
+            <Edit3 size={18} aria-hidden="true"/>
+          </button>
+        </div>
+        <div className="person-profile-panel">
+          <div className="person-profile-identity">
             <h1 className="title-xl">{person.name}</h1>
-            <Button variant="outline" className="person-edit-button"
-              aria-label="Edit person" onClick={() => openEditor({ type:"person", id:person.id })}>
-              <Edit3 size={17} aria-hidden="true" />
-            </Button>
+            <p className="person-profile-birthday">
+              <Cake size={16} aria-hidden="true"/>
+              <span>{birthday ? fmtDate(`2000-${birthday}`) : "Birthday not set"}</span>
+            </p>
           </div>
-          <p className="person-profile-birthday">
-            <Cake size={15} aria-hidden="true"/>
-            {birthday ? fmtDate(`2000-${birthday}`) : "Birthday not set"}
-          </p>
           {(positive || negative) ? (
             <div className="person-gift-guidance">
               {positive && (
                 <div className="person-guidance person-guidance-positive">
                   <div className="person-guidance-heading">
-                    <Plus size={15} aria-hidden="true"/>
+                    <Plus size={16} aria-hidden="true"/>
                     <strong>Good gifts</strong>
                   </div>
                   <p>{positive}</p>
@@ -246,7 +249,7 @@ export function PersonDetail() {
               {negative && (
                 <div className="person-guidance person-guidance-negative">
                   <div className="person-guidance-heading">
-                    <Minus size={15} aria-hidden="true"/>
+                    <Minus size={16} aria-hidden="true"/>
                     <strong>Avoid gifting</strong>
                   </div>
                   <p>{negative}</p>

@@ -439,3 +439,44 @@ test("filled People gallery and portrait profile visual QA at 320 and 390", asyn
     fullPage:true,animations:"disabled",
   });
 });
+
+test("Variant C profile with portrait and preferences at mobile widths", async ({ page }, testInfo) => {
+  const dir = testInfo.outputPath("screenshots");
+  await mkdir(dir, { recursive: true });
+  await seed(page);
+  await page.goto("/#/settings");
+  await page.getByRole("button", { name: "Filled", exact: true }).click();
+  for (const width of [320, 390, 430]) {
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto("/#/people");
+    await page.locator(".person-gallery-card")
+      .filter({has: page.getByText("Mira", { exact:true })}).click();
+    const cover = page.locator(".person-profile-cover");
+    await expect(cover.locator(".demo-person-sprite")).toBeVisible();
+    await expect(page.locator(".person-photo-back")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Edit person" })).toBeVisible();
+    await expect(page.locator(".person-profile-panel")).toContainText("Mira");
+    await expect(page.locator(".person-guidance-positive")).toBeVisible();
+    await expect(page.locator(".person-guidance-negative")).toBeVisible();
+    await expect(page.locator(".person-ideas .gift-card")).toHaveCount(1);
+    const measures = await cover.evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      const panel = document.querySelector(".person-profile-panel")!.getBoundingClientRect();
+      return {
+        ratio: r.width / r.height,
+        overlap: r.bottom - panel.top,
+        columns: getComputedStyle(document.querySelector(".person-gift-guidance")!).gridTemplateColumns.split(" ").length,
+        overflow: document.documentElement.scrollWidth - innerWidth,
+      };
+    });
+    expect(measures.ratio).toBeCloseTo(1, 2);
+    expect(measures.overlap).toBeGreaterThan(15);
+    expect(measures.columns).toBe(1);
+    expect(measures.overflow).toBeLessThanOrEqual(1);
+    await page.screenshot({
+      path: `${dir}/person-variant-c-${width}.png`,
+      fullPage: true,
+      animations: "disabled",
+    });
+  }
+});

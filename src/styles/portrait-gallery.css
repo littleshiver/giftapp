@@ -181,110 +181,174 @@
   min-width: 0;
 }
 
-/* The person profile is a single two-column composition: photo on the left,
-   identity and short gift preferences on the right, with no About card. */
+/* Person detail · approved Variant C.
+   The image is always a square viewport, never a height that depends on
+   the photo's original aspect ratio. The identity sheet overlaps it quietly. */
 .person-detail .person-profile-hero {
-  display: grid;
-  grid-template-columns: minmax(0,.82fr) minmax(0,1.18fr);
-  align-items: start;
-  gap: 13px;
+  display: block;
+  position: relative;
   padding: 0;
   background: transparent;
   border: 0;
   border-radius: 0;
   box-shadow: none;
 }
-.person-detail .person-profile-photo {
+.person-detail .person-profile-cover {
+  position: relative;
   width: 100%;
-  height: auto;
-  aspect-ratio: 3/4;
-  border-radius: 19px;
-  box-shadow: 0 6px 16px rgba(36,43,47,.07);
-  font-size: 36px;
+  aspect-ratio: 1 / 1;
+  border-radius: 24px;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--lavender);
+}
+.person-detail .person-profile-photo {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  border-radius: 0;
+  box-shadow: none;
+  font-size: clamp(52px, 15vw, 88px);
+}
+.person-detail .person-profile-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+}
+.person-detail .person-profile-photo .demo-person-sprite {
+  width: 100%;
+  height: 100%;
+  background-repeat: no-repeat;
 }
 .person-detail .person-profile-photo > span:not(.demo-person-sprite) {
   display: grid;
   place-items: center;
+  width: 100%;
   height: 100%;
 }
-.person-profile-info {
-  min-width: 0;
-  align-self: start;
+.person-photo-action {
+  position: absolute;
+  top: 13px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, .9);
+  background: rgba(255, 255, 255, .94);
+  color: #26313b;
+  box-shadow: 0 3px 12px rgba(29, 35, 39, .11);
+  cursor: pointer;
 }
-.person-profile-title-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 5px;
-  justify-content: space-between;
+.person-photo-action:focus-visible {
+  outline: 3px solid #5987ac;
+  outline-offset: 3px;
 }
-.person-profile-title-row h1 {
-  flex: 1;
+.person-photo-back { left: 13px; }
+.person-photo-edit { right: 13px; }
+.person-profile-panel {
+  position: relative;
+  z-index: 1;
+  margin: -27px 0 0;
+  padding: 22px 17px 19px;
+  background: #fff;
+  border: 1px solid #f0eff0;
+  border-radius: 24px;
+  box-shadow: 0 6px 17px rgba(37, 42, 48, .055);
+}
+.person-profile-identity {
+  text-align: center;
   min-width: 0;
-  font-size: clamp(21px, 5.5vw, 27px);
-  line-height: 1.12;
+}
+.person-profile-identity h1 {
+  margin: 0;
+  font-size: clamp(25px, 7vw, 32px);
   font-weight: 880;
+  line-height: 1.12;
+  letter-spacing: -.65px;
   overflow-wrap: anywhere;
 }
-.person-profile-title-row .person-edit-button {
-  flex: 0 0 35px;
-  width: 35px;
-  height: 35px;
-  min-width: 35px;
-  min-height: 35px;
-  border: 0;
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(46,54,57,.08);
-  border-radius: 11px;
-}
-.person-profile-birthday {
-  margin: 7px 0 0;
-  font-size: 12px;
-  color: #66727b;
+.person-detail .person-profile-birthday {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin: 8px 0 0;
+  color: #65717a;
+  font-size: 13px;
   font-weight: 720;
+  line-height: 1;
+  white-space: nowrap;
 }
-.person-gift-guidance {
+.person-detail .person-profile-birthday svg {
+  display: block;
+  flex: 0 0 auto;
+  position: relative;
+  top: -1px; /* optical correction for the asymmetrical cake drawing */
+}
+.person-detail .person-profile-birthday > span {
+  display: block;
+  line-height: 1;
+}
+.person-detail .person-gift-guidance {
   display: grid;
-  gap: 8px;
-  margin-top: 17px;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin: 20px 0 0;
 }
-.person-guidance {
+.person-detail .person-guidance {
   min-width: 0;
-  border-radius: 14px;
-  padding: 11px 12px;
+  border: 0;
+  border-radius: 16px;
+  padding: 13px 14px 14px;
+  box-shadow: none;
 }
-.person-guidance-positive {
-  background: #e6f4e9;
-  color: #38694a;
+.person-detail .person-guidance-positive {
+  background: #e9f3e6;
+  color: #365f40;
 }
-.person-guidance-negative {
-  background: #fcebee;
-  color: #965363;
+.person-detail .person-guidance-negative {
+  background: #fae9ed;
+  color: #874853;
 }
-.person-guidance-heading {
+.person-detail .person-guidance-heading {
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 11.5px;
+  gap: 8px;
+  font-size: 13px;
   font-weight: 830;
   line-height: 1.25;
 }
-.person-guidance-heading svg { flex: 0 0 15px; stroke-width: 2.8; }
-.person-guidance p {
-  margin-top: 6px;
-  font-size: 12px;
-  font-weight: 620;
-  line-height: 1.43;
+.person-detail .person-guidance-heading svg {
+  display: block;
+  position: relative;
+  top: -.5px;
+  flex: 0 0 16px;
+  stroke-width: 2.5;
+}
+.person-detail .person-guidance p {
+  margin: 6px 0 0 24px;
+  font-size: 13px;
+  font-weight: 590;
+  line-height: 1.45;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
 }
-.person-guidance-empty {
-  margin-top: 14px;
-  font-size: 12px;
+.person-detail .person-guidance-empty {
+  margin: 16px 0 0;
+  font-size: 12.5px;
   line-height: 1.5;
   color: #879198;
+  text-align: center;
 }
-.person-profile-note {
-  margin: 13px 0 0;
+.person-detail .person-profile-note {
+  margin: 14px 0 0;
   font-size: 12px;
   line-height: 1.5;
   color: #79848c;
@@ -292,15 +356,31 @@
 }
 .person-detail .person-ideas { margin-top: 29px; }
 .person-detail .person-ideas .section-top { margin-bottom: 15px; }
+
+/* A shared optical alignment rule for both gallery cake rows.
+   The icon's vector shape has more visual weight at the bottom than at the top. */
+.person-gallery-birthday svg,
+.person-birthday-countdown svg {
+  position: relative;
+  top: -1px;
+}
+.person-gallery-birthday,
+.person-birthday-countdown {
+  align-items: center;
+}
+@media (min-width: 560px) {
+  .person-detail .person-profile-hero { max-width: 500px; margin: 0 auto; }
+  .person-detail .person-gift-guidance { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 @media (max-width: 359px) {
   .app-main-home .focus-gifts > .gift-card.home-product { flex-basis: 133px; }
-  .person-detail .person-profile-hero {
-    grid-template-columns: minmax(0,.75fr) minmax(0,1.25fr);
-    gap: 10px;
-  }
-  .person-detail .person-profile-photo { border-radius: 16px; }
-  .person-guidance { padding: 10px; }
-  .person-guidance p { font-size: 11.5px; }
+  .person-detail .person-profile-cover { border-radius: 20px; }
+  .person-photo-action { top: 10px; width: 42px; height: 42px; }
+  .person-photo-back { left: 10px; }
+  .person-photo-edit { right: 10px; }
+  .person-profile-panel { margin-top: -24px; padding: 20px 13px 15px; border-radius: 20px; }
+  .person-detail .person-guidance { padding: 11px 12px; }
+  .person-detail .person-guidance p { font-size: 12px; margin-left: 24px; }
   .people-gallery-grid { gap: 11px 7px; }
   .person-gallery-info { padding: 8px 6px 9px; }
   .person-gallery-info > strong { font-size: 12px; }

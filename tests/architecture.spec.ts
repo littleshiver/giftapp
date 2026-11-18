@@ -204,3 +204,75 @@ test("People birthday badge is compact, only for birthdays within 30 days and ke
   expect(alignment.dateIconCenterDiff).toBeLessThanOrEqual(1.5);
   expect(alignment.badgeIconCenterDiff).toBeLessThanOrEqual(1.5);
 });
+
+test("Variant C profile crops wide portraits to a stable square without stretching the content", async ({ page }) => {
+  await seed(page);
+  await page.goto("/#/people/p1");
+  await page.getByRole("button", { name: "Edit person" }).click();
+  const wideSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="600">
+    <rect width="1200" height="600" fill="#c9d5e1"/>
+    <circle cx="600" cy="300" r="220" fill="#839fb2"/>
+  </svg>`;
+  await page.getByLabel("Person photo", { exact: true }).setInputFiles({
+    name: "wide-portrait.svg",
+    mimeType: "image/svg+xml",
+    buffer: Buffer.from(wideSvg),
+  });
+  await page.getByRole("button", { name: "Save person" }).click();
+  await expect.poll(async () => (await readData(page)).people.find(p => p.id === "p1")?.photo || "")
+    .toMatch(/^data:image\/jpeg;base64,/);
+  await expect(page.getByRole("dialog", { name: "Edit person" })).toHaveCount(0);
+  await page.reload();
+
+  const sourceDimensions = await page.locator(".person-profile-photo img").evaluate(async (el) => {
+    const image = el as HTMLImageElement;
+    await image.decode();
+    return [image.naturalWidth, image.naturalHeight];
+  });
+  expect(sourceDimensions).toEqual([640, 640]);
+
+  for (const width of [320, 390, 430]) {
+    await page.setViewportSize({ width, height: 844 });
+    const shape = await page.locator(".person-profile-hero").evaluate((hero) => {
+      const cover = hero.querySelector(".person-profile-cover")!.getBoundingClientRect();
+      const photo = hero.querySelector(".person-profile-photo")!.getBoundingClientRect();
+      const panel = hero.querySelector(".person-profile-panel")!.getBoundingClientRect();
+      const edit = hero.querySelector(".person-photo-edit")!.getBoundingClientRect();
+      const birthday = hero.querySelector(".person-profile-birthday")!;
+      const icon = birthday.querySelector("svg")!.getBoundingClientRect();
+      const date = birthday.querySelector("span")!.getBoundingClientRect();
+      const center = (r: DOMRect) => (r.top + r.bottom) / 2;
+      return {
+        squareDelta: Math.abs(cover.width - cover.height),
+        photoDelta: Math.abs(photo.height - cover.height),
+        overlap: cover.bottom - panel.top,
+        editWithinCover: edit.left > cover.left && edit.right < cover.right,
+        alignment: Math.abs(center(icon) - center(date)),
+        objectFit: getComputedStyle(hero.querySelector(".person-profile-photo img")!).objectFit,
+        overflow: document.documentElement.scrollWidth - innerWidth,
+      };
+    });
+    expect(shape.squareDelta).toBeLessThan(1);
+    expect(shape.photoDelta).toBeLessThan(1);
+    expect(shape.overlap).toBeGreaterThan(15);
+    expect(shape.overlap).toBeLessThan(38);
+    expect(shape.editWithinCover).toBe(true);
+    expect(shape.alignment).toBeLessThanOrEqual(1.5);
+    expect(shape.objectFit).toBe("cover");
+    expect(shape.overflow).toBeLessThanOrEqual(1);
+  }
+  await page.getByRole("button", { name: "Edit person" }).click();
+  await expect(page.getByRole("dialog", { name: "Edit person" })).toBeVisible();
+});
+
+test("Variant C retains empty and one-sided preferences without blank panels", async ({ page }) => {
+  const data = fixture();
+  data.people[0].likes = "";
+  data.people[0].avoid = "";
+  await seed(page, data);
+  await page.goto("/#/people/p1");
+  await expect(page.locator(".person-profile-cover")).toBeVisible();
+  await expect(page.locator(".person-profile-panel .person-guidance")).toHaveCount(0);
+  await expect(page.locator(".person-guidance-empty")).toBeVisible();
+  await expect(page.locator(".person-ideas .gift-card")).toHaveCount(1);
+});
