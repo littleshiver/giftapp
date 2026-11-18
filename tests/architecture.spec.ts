@@ -128,13 +128,13 @@ test("People gallery: high-resolution portraits, birthday-only metadata and empt
   await page.getByRole("button", {name:"Filled",exact:true}).click();
   await page.goto("/#/people");
   const cards = page.locator(".person-gallery-card");
-  await expect(cards).toHaveCount(10);
+  await expect(cards).toHaveCount(14);
   const mira = cards.filter({has:page.getByText("Mira",{exact:true})});
   await expect(mira).toContainText("Nov 28");
   await expect(page.locator(".person-gallery-hint")).toHaveCount(0);
-  await expect(page.locator(".person-gallery-birthday")).toHaveCount(10);
+  await expect(page.locator(".person-gallery-birthday")).toHaveCount(14);
   await expect(page.locator(".demo-person-sprite")).toHaveCount(4);
-  await expect(page.locator(".person-gallery-portrait")).toHaveCount(10);
+  await expect(page.locator(".person-gallery-portrait")).toHaveCount(14);
   await expect(page.locator(".people-search")).toHaveCount(0);
   const portraitDimensions = await page.locator(".demo-person-sprite").first().evaluate(async el => {
     const imageUrl = getComputedStyle(el).backgroundImage.slice(5, -2);

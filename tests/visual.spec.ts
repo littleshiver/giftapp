@@ -119,7 +119,7 @@ test("preview empty and filled mobile screenshots", async ({ page }, testInfo) =
   await page.goto("/#/");
   await expect(page.locator(".demo-product-sprite").first()).toBeVisible();
   const occasionChips = page.locator(".upcoming-track .occasion-chip");
-  await expect(occasionChips).toHaveCount(4);
+  await expect(occasionChips).toHaveCount(5);
   // Exact standalone assets, not an atlas. Every image has the same square
   // source bounds and occupies exactly the white tile's content box.
   await occasionChips.locator("img.occ-illustration").evaluateAll((images) =>
@@ -152,7 +152,7 @@ test("preview empty and filled mobile screenshots", async ({ page }, testInfo) =
   );
   expect(new Set(uiChecks.map((item) => item.bg)).size).toBe(4);
   expect(uiChecks.map((item) => item.iconKind))
-    .toEqual(["birthday", "new-year", "romantic", "celebration"]);
+    .toEqual(["birthday", "new-year", "romantic", "celebration", "celebration"]);
   expect(uiChecks.every((item) =>
     item.iconSrc.includes(".png") &&
     item.naturalWidth === 540 && item.naturalHeight === 540 &&
@@ -397,7 +397,8 @@ test("filled People gallery and portrait profile visual QA at 320 and 390", asyn
   for(const width of [320,390]){
     await page.setViewportSize({width,height:844});
     await page.goto("/#/people");
-    await expect(page.locator(".person-gallery-card")).toHaveCount(10);
+    await expect(page.locator(".person-gallery-card")).toHaveCount(14);
+    await expect(page.locator(".person-gallery-card .person-avatar img")).toHaveCount(4);
     await expect(page.locator(".demo-person-sprite")).toHaveCount(4);
     await expect(page.locator(".person-gallery-hint")).toHaveCount(0);
     const geometry = await page.locator(".people-gallery-grid").evaluate((grid) => {
