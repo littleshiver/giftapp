@@ -295,7 +295,7 @@ export function PersonDetail() {
                 const occasion = eventById.get(gift.eventId)!;
                 return (
                   <Product key={gift.id} item={gift} statusReadOnly
-                    captionText={`${occasion.name} · ${fullDate(occasion.date)}`}
+                    captionText={`${occasion.name} · ${fmtDate(occasion.date)}, ${occasion.date.slice(0, 4)}`}
                     onClick={() => openEditor({type:"gift", id:gift.id})}/>
                 );
               })}
