@@ -308,10 +308,25 @@
    The colored shape lives UNDER the contents; no gray pseudo-element
    can cover the filters, and no overflow clipping can cut card shadows. */
 .app-main:has(.ideas-discover) {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
   overflow-x: clip;
   padding-bottom: 0;
 }
-.ideas-discover { overflow: visible; }
+.ideas-page:has(.ideas-discover) {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+.ideas-discover {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  overflow: visible;
+}
 .ideas-filter-toolbar {
   position: relative;
   z-index: 1;
@@ -356,7 +371,8 @@
   width: calc(100% + 2 * var(--space));
   max-width: none;
   height: auto;
-  min-height: max(0px, calc(100dvh - var(--discover-stage-top, 240px)));
+  flex: 1 1 auto;
+  min-height: 0;
   margin-inline: calc(-1 * var(--space));
   padding: clamp(57px, 8.2dvh, 77px) 14px max(22px, env(safe-area-inset-bottom));
   border: 0;
