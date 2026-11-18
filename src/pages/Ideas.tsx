@@ -13,8 +13,15 @@ import mug from "../assets/discovery/mug-hires.jpg?inline";
 import candle from "../assets/discovery/candle-hires.jpg?inline";
 
 type Audience = "adult" | "child";
-type Relationship = "close" | "acquaintance";
-type DiscoveryFilters = { audiences: Audience[]; relationships: Relationship[] };
+type Relationship = "close" | "friend" | "colleague" | "acquaintance";
+type Category = "home" | "books";
+type Budget = "under1000" | "mid" | "over2000";
+type DiscoveryFilters = {
+  audience: Audience | "";
+  relationship: Relationship | "";
+  category: Category | "";
+  budget: Budget | "";
+};
 type Suggestion = {
   id: string;
   name: string;
@@ -23,6 +30,7 @@ type Suggestion = {
   note: string;
   audiences: Audience[];
   relationships: Relationship[];
+  category: Category;
 };
 
 /** An intentionally small starter catalog. Expand content and taxonomy later;
@@ -30,22 +38,29 @@ type Suggestion = {
 const suggestions: Suggestion[] = [
   { id: "discovery:ceramic-mug", name: "Ceramic mug", image: mug, price: 1200,
     note: "Handmade styles and different glazes",
-    audiences: ["adult"], relationships: ["close", "acquaintance"] },
+    audiences: ["adult"], relationships: ["close", "friend", "colleague", "acquaintance"], category: "home" },
   { id: "discovery:throw-blanket", name: "Throw blanket", image: blanket, price: 2100,
     note: "Soft textures and cozy corners",
-    audiences: ["adult", "child"], relationships: ["close"] },
+    audiences: ["adult", "child"], relationships: ["close", "friend"], category: "home" },
   { id: "discovery:art-book", name: "Art book", image: artbook, price: 1800,
     note: "Art, photography and illustration",
-    audiences: ["adult"], relationships: ["close", "acquaintance"] },
+    audiences: ["adult"], relationships: ["close", "friend", "acquaintance"], category: "books" },
   { id: "discovery:scented-candle", name: "Scented candle", image: candle, price: 900,
     note: "Atmospheric gifts for the home",
-    audiences: ["adult"], relationships: ["close", "acquaintance"] },
+    audiences: ["adult"], relationships: ["close", "friend", "colleague", "acquaintance"], category: "home" },
 ];
-const initialFilters: DiscoveryFilters = { audiences: [], relationships: [] };
+const initialFilters: DiscoveryFilters = { audience: "", relationship: "", category: "", budget: "" };
 const audienceLabels: Record<Audience, string> = { adult: "Adult", child: "Child" };
 const relationshipLabels: Record<Relationship, string> = {
-  close: "Close person", acquaintance: "Acquaintance",
+  close: "Close person", friend: "Friend", colleague: "Colleague", acquaintance: "Acquaintance",
 };
+const categoryLabels: Record<Category, string> = { home: "Home & living", books: "Books & art" };
+const budgetLabels: Record<Budget, string> = {
+  under1000: "Under 1,000", mid: "1,000–2,000", over2000: "Over 2,000",
+};
+const matchesBudget = (price: number, budget: Budget) =>
+  budget === "under1000" ? price < 1000 :
+    budget === "mid" ? price >= 1000 && price <= 2000 : price > 2000;
 
 export function Ideas() {
   const { data, commit, notify, ui, setUi, openEditor } = useApp();
@@ -70,13 +85,16 @@ export function Ideas() {
     setLikedId(null);
   }, [tab]);
   const isAnimating = exiting !== null;
+  const activeFilterCount = Object.values(filters).filter(Boolean).length;
 
   const hasSeen = (id: string) => data.skipped.includes(id) ||
     data.ideas.some(idea => idea.sourceDiscoveryId === id);
   const remaining = suggestions.filter(item =>
     !hasSeen(item.id) &&
-    (!filters.audiences.length || item.audiences.some(value => filters.audiences.includes(value))) &&
-    (!filters.relationships.length || item.relationships.some(value => filters.relationships.includes(value))),
+    (!filters.audience || item.audiences.includes(filters.audience)) &&
+    (!filters.relationship || item.relationships.includes(filters.relationship)) &&
+    (!filters.category || item.category === filters.category) &&
+    (!filters.budget || matchesBudget(item.price, filters.budget)),
   );
   const suggestion = remaining[0];
   const liked = suggestions.find(item => item.id === likedId);
@@ -109,15 +127,6 @@ export function Ideas() {
     if (Math.abs(x) > 85) reactToIdea(x > 0 ? "right" : "left");
     else setDragX(0);
   };
-  const toggleDraft = <T extends Audience | Relationship>(
-    field: "audiences" | "relationships", value: T,
-  ) => setDraftFilters(current => {
-    const currentItems = current[field] as T[];
-    const nextItems = currentItems.includes(value)
-      ? currentItems.filter(item => item !== value)
-      : [...currentItems, value];
-    return { ...current, [field]: nextItems };
-  });
   const saveFor = (personId: string) => {
     if (!liked || data.ideas.some(idea => idea.sourceDiscoveryId === liked.id)) {
       setLikedId(null);
@@ -141,7 +150,7 @@ export function Ideas() {
     }
   };
   const openFilters = () => {
-    setDraftFilters({ audiences: [...filters.audiences], relationships: [...filters.relationships] });
+    setDraftFilters({ ...filters });
     setFiltersOpen(true);
   };
   const savedPerson = ui.filterPerson;
@@ -169,32 +178,42 @@ export function Ideas() {
             <button className="ideas-filters-button" type="button" onClick={openFilters}>
               <SlidersHorizontal size={17} aria-hidden="true" />
               Filters
-              {filters.audiences.length + filters.relationships.length > 0 && (
+              {activeFilterCount > 0 && (
                 <span className="ideas-filter-count" aria-label="Filters active">
-                  {filters.audiences.length + filters.relationships.length}
+                  {activeFilterCount}
                 </span>
               )}
             </button>
-            {filters.audiences.length + filters.relationships.length > 0 && (
+            {activeFilterCount > 0 && (
               <div className="ideas-active-filters" aria-label="Active filters">
-                {filters.audiences.map(value => (
-                  <button key={value} type="button" className="ideas-filter-chip"
-                    aria-label={`Remove ${audienceLabels[value]} filter`}
-                    onClick={() => setFilters(current => ({
-                      ...current, audiences: current.audiences.filter(item => item !== value),
-                    }))}>
-                    {audienceLabels[value]} <X size={13} aria-hidden="true" />
+                {filters.audience && (
+                  <button type="button" className="ideas-filter-chip"
+                    aria-label={`Remove ${audienceLabels[filters.audience]} filter`}
+                    onClick={() => setFilters(current => ({ ...current, audience: "" }))}>
+                    {audienceLabels[filters.audience]} <X size={13} aria-hidden="true" />
                   </button>
-                ))}
-                {filters.relationships.map(value => (
-                  <button key={value} type="button" className="ideas-filter-chip"
-                    aria-label={`Remove ${relationshipLabels[value]} filter`}
-                    onClick={() => setFilters(current => ({
-                      ...current, relationships: current.relationships.filter(item => item !== value),
-                    }))}>
-                    {relationshipLabels[value]} <X size={13} aria-hidden="true"/>
+                )}
+                {filters.relationship && (
+                  <button type="button" className="ideas-filter-chip"
+                    aria-label={`Remove ${relationshipLabels[filters.relationship]} filter`}
+                    onClick={() => setFilters(current => ({ ...current, relationship: "" }))}>
+                    {relationshipLabels[filters.relationship]} <X size={13} aria-hidden="true" />
                   </button>
-                ))}
+                )}
+                {filters.category && (
+                  <button type="button" className="ideas-filter-chip"
+                    aria-label={`Remove ${categoryLabels[filters.category]} filter`}
+                    onClick={() => setFilters(current => ({ ...current, category: "" }))}>
+                    {categoryLabels[filters.category]} <X size={13} aria-hidden="true" />
+                  </button>
+                )}
+                {filters.budget && (
+                  <button type="button" className="ideas-filter-chip"
+                    aria-label={`Remove ${budgetLabels[filters.budget]} filter`}
+                    onClick={() => setFilters(current => ({ ...current, budget: "" }))}>
+                    {budgetLabels[filters.budget]} <X size={13} aria-hidden="true" />
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -247,7 +266,7 @@ export function Ideas() {
                 <button type="button" className="ideas-reaction ideas-like"
                   aria-label="Like idea" title="Save this idea" disabled={isAnimating}
                   onClick={() => reactToIdea("right")}>
-                  <Heart size={27} strokeWidth={2.1} aria-hidden="true"/>
+                  <Heart size={27} strokeWidth={1.8} fill="currentColor" aria-hidden="true"/>
                 </button>
               </div>
             </div>
@@ -297,45 +316,62 @@ export function Ideas() {
       {filtersOpen && (
         <Sheet title="Filters" onClose={() => setFiltersOpen(false)}>
           <div className="ideas-filter-sheet">
-            <details className="ideas-filter-dropdown" open>
-              <summary>
-                <span>Age</span>
-                <small>{draftFilters.audiences.length ? draftFilters.audiences.map(v => audienceLabels[v]).join(", ") : "Any age"}</small>
+            <label className="ideas-filter-select-field">
+              <span>Age</span>
+              <span className="ideas-filter-select-wrap">
+                <select aria-label="Age" value={draftFilters.audience}
+                  onChange={e => setDraftFilters(current => ({ ...current, audience: e.target.value as Audience | "" }))}>
+                  <option value="">Any age</option>
+                  <option value="adult">Adult</option>
+                  <option value="child">Child</option>
+                </select>
                 <ChevronDown size={18} aria-hidden="true"/>
-              </summary>
-              <div className="ideas-filter-checks" role="group" aria-label="Age">
-                {(["adult", "child"] as const).map(value => (
-                  <label className="ideas-filter-check" key={value}>
-                    <input type="checkbox" checked={draftFilters.audiences.includes(value)}
-                      onChange={() => toggleDraft("audiences", value)}/>
-                    <span>{audienceLabels[value]}</span>
-                  </label>
-                ))}
-              </div>
-            </details>
-            <details className="ideas-filter-dropdown">
-              <summary>
-                <span>Relationship</span>
-                <small>{draftFilters.relationships.length ?
-                  draftFilters.relationships.map(v => relationshipLabels[v]).join(", ") : "Anyone"}</small>
+              </span>
+            </label>
+            <label className="ideas-filter-select-field">
+              <span>Relationship</span>
+              <span className="ideas-filter-select-wrap">
+                <select aria-label="Relationship" value={draftFilters.relationship}
+                  onChange={e => setDraftFilters(current => ({ ...current, relationship: e.target.value as Relationship | "" }))}>
+                  <option value="">Anyone</option>
+                  <option value="close">Close person</option>
+                  <option value="friend">Friend</option>
+                  <option value="colleague">Colleague</option>
+                  <option value="acquaintance">Acquaintance</option>
+                </select>
                 <ChevronDown size={18} aria-hidden="true"/>
-              </summary>
-              <div className="ideas-filter-checks" role="group" aria-label="Relationship">
-                {(["close", "acquaintance"] as const).map(value => (
-                  <label className="ideas-filter-check" key={value}>
-                    <input type="checkbox" checked={draftFilters.relationships.includes(value)}
-                      onChange={() => toggleDraft("relationships", value)}/>
-                    <span>{relationshipLabels[value]}</span>
-                  </label>
-                ))}
-              </div>
-            </details>
+              </span>
+            </label>
+            <label className="ideas-filter-select-field">
+              <span>Category</span>
+              <span className="ideas-filter-select-wrap">
+                <select aria-label="Category" value={draftFilters.category}
+                  onChange={e => setDraftFilters(current => ({ ...current, category: e.target.value as Category | "" }))}>
+                  <option value="">Any category</option>
+                  <option value="home">Home &amp; living</option>
+                  <option value="books">Books &amp; art</option>
+                </select>
+                <ChevronDown size={18} aria-hidden="true"/>
+              </span>
+            </label>
+            <label className="ideas-filter-select-field">
+              <span>Budget</span>
+              <span className="ideas-filter-select-wrap">
+                <select aria-label="Budget" value={draftFilters.budget}
+                  onChange={e => setDraftFilters(current => ({ ...current, budget: e.target.value as Budget | "" }))}>
+                  <option value="">Any budget</option>
+                  <option value="under1000">Under 1,000</option>
+                  <option value="mid">1,000–2,000</option>
+                  <option value="over2000">Over 2,000</option>
+                </select>
+                <ChevronDown size={18} aria-hidden="true"/>
+              </span>
+            </label>
             <div className="ideas-filter-footer">
-              <button type="button" className="button-outline" onClick={() => setDraftFilters({
-                audiences: [], relationships: [],
-              })}>Clear</button>
+              <button type="button" className="button-outline"
+                onClick={() => setDraftFilters({ ...initialFilters })}>Clear</button>
               <Button type="button" onClick={() => {
-                setFilters({ audiences: [...draftFilters.audiences], relationships: [...draftFilters.relationships] });
+                setFilters({ ...draftFilters });
                 setFiltersOpen(false);
               }}>Apply filters</Button>
             </div>
