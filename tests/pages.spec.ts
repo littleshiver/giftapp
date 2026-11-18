@@ -90,6 +90,7 @@ test("Pages production assets, hash routes, editing and reload on mobile", async
       await expect(page.locator("h1")).toBeVisible();
     }
     await page.goto("http://127.0.0.1:4174/giftapp/#/people");
+    await page.getByRole("button", { name: "Create", exact: true }).click();
     await page.getByRole("button", { name: "Add person" }).click();
     await page.getByLabel("Name", { exact: true }).fill("Pages mobile test");
     await page
