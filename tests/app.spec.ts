@@ -231,8 +231,9 @@ test("Discover filters are in a separate sheet, with removable chips and meaning
   await page.goto("/#/ideas");
   await page.getByRole("button", { name: "Filters" }).click();
   const sheet = page.getByRole("dialog", { name: "Filters" });
-  await sheet.getByRole("button", { name: "Child", exact: true }).click();
-  await sheet.getByRole("button", { name: "Close person", exact: true }).click();
+  await sheet.getByRole("checkbox", { name: "Child", exact: true }).check();
+  await sheet.locator(".ideas-filter-dropdown").nth(1).locator("summary").click();
+  await sheet.getByRole("checkbox", { name: "Close person", exact: true }).check();
   await sheet.getByRole("button", { name: "Apply filters" }).click();
   await expect(sheet).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Remove Child filter" })).toBeVisible();
@@ -354,7 +355,8 @@ test("corrupt data and quota errors never overwrite storage or claim success", a
     };
   });
   await page.getByRole("button", { name: "Save idea", exact: true }).click();
-  await expect(page.getByRole("alert")).toContainText("Changes were not saved");
+  await expect(page.locator(".warning[role=alert]")).toContainText("Changes were not saved");
+  await expect(page.locator(".app-toast.toast-error")).toContainText("Couldn’t save");
   await expect(page.getByRole("dialog")).toBeVisible();
   expect((await readData(page)).ideas[0].name).toBe("Ceramic mug");
 });
@@ -484,6 +486,7 @@ test("new recipient assigned to an occasion appears in the gift picker", async (
 
   // A global Add action must not silently choose a different occasion.
   await page.goto("/#/ideas");
+  await page.getByRole("button", { name: "Saved", exact: true }).click();
   await page.getByRole("button", { name: "Create", exact: true }).click();
   await page.getByRole("button", { name: "Add gift to occasion" }).click();
   await expect(page.getByRole("combobox", { name: "Occasion" })).toHaveValue("");
@@ -527,6 +530,7 @@ test("gift editor adds people only to group occasions and does not invent budget
   // A global add flow still allows explicitly assigning an unlisted
   // recipient; the event-detail FAB only offers people already in the event.
   await page.goto("/#/ideas");
+  await page.getByRole("button", { name: "Saved", exact: true }).click();
   await page.getByRole("button", { name: "Create", exact: true }).click();
   await page.getByRole("button", { name: "Add gift to occasion" }).click();
   await page.getByRole("combobox", { name: "Occasion" }).selectOption("e2");
@@ -971,7 +975,7 @@ test("root page headers omit redundant Givvy overlines and detail pages share a 
 
 test("global FAB is the only add entry point on all main and detail pages", async ({ page }) => {
   await seed(page);
-  for (const route of ["/", "/ideas", "/people", "/events", "/people/p1", "/events/e1", "/events/e2", "/settings"]) {
+  for (const route of ["/", "/people", "/events", "/people/p1", "/events/e1", "/events/e2", "/settings"]) {
     await page.goto("/#" + route);
     await expect(page.getByRole("button", { name: "Create", exact: true })).toBeVisible();
     await expect(page.locator(".people-add, .product-add, .person-add-idea, .event-add-gift, .event-add-recipient")).toHaveCount(0);
@@ -979,6 +983,11 @@ test("global FAB is the only add entry point on all main and detail pages", asyn
     await expect(page.getByRole("button", { name: "Add person", exact: true })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Add idea", exact: true })).toHaveCount(0);
   }
+  await page.goto("/#/ideas");
+  await page.getByRole("button", { name: "Discover", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Create", exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "Saved", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Create", exact: true })).toBeVisible();
   // FAB inside a person profile retains the recipient prefill.
   await page.goto("/#/people/p1");
   await page.getByRole("button", { name: "Create", exact: true }).click();
