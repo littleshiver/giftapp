@@ -51,6 +51,13 @@
   --toast-success-ink: #28714d;
   --toast-error-bg: #fce8eb;
   --toast-error-ink: #ab4155;
+  /* Shared compact countdown status palette: calm, near, day zero. */
+  --countdown-default-bg: rgba(255,255,255,.96);
+  --countdown-default-ink: #354951;
+  --countdown-soon-bg: #fff0d7;
+  --countdown-soon-ink: #8e4f1d;
+  --countdown-now-bg: #fde4e6;
+  --countdown-now-ink: #a72e43;
   font-family:
     "Nunito",
     ui-rounded,
