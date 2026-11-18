@@ -35,8 +35,8 @@ export function emptyDemo(): AppData {
   };
 }
 export function filledDemo(): AppData {
-  // Four generated portrait headshots, plus deliberately portrait-free
-  // entries to QA both the photo gallery and pastel fallback states.
+  // Four bundled headshots, plus varied real-world demo portraits and
+  // deliberately photo-free entries to QA the gallery and fallbacks.
   const people = [
     {id:"demo-mira",name:"Mira",birthday:"1997-11-28",photo:"demo-person:0",
       likes:"Handmade ceramics, art books, warm neutral colors and little home comforts.",
@@ -68,6 +68,24 @@ export function filledDemo(): AppData {
     {id:"demo-emma",name:"Emma",birthday:"1992-09-17",photo:"",
       likes:"Cooking classes, fresh flowers and paper goods.",
       avoid:"Strongly perfumed beauty sets.",note:""},
+    // Diverse ages and candid, contextual portrait photos for design preview
+    // only; URLs are public Unsplash License photographs, not real user data.
+    {id:"demo-grandma",name:"Grandma Ruth",birthday:"1950-04-02",
+      photo:"https://images.unsplash.com/photo-1768567312002-adbeced8e41c?auto=format&fit=crop&w=540&h=540&q=75",
+      likes:"Gardening, handwritten letters, knitting and long walks.",
+      avoid:"Heavily perfumed home fragrances.",note:""},
+    {id:"demo-grandpa",name:"Grandpa Theo",birthday:"1954-10-21",
+      photo:"https://images.unsplash.com/photo-1779126299917-1c1d414dbc26?auto=format&fit=crop&w=540&h=540&q=75",
+      likes:"Local history, crosswords and classic films.",
+      avoid:"Complicated gadgets.",note:""},
+    {id:"demo-lily",name:"Lily",birthday:"2017-04-18",
+      photo:"https://images.unsplash.com/photo-1684664886440-9c0357ce3ae4?auto=format&fit=crop&w=540&h=540&q=75",
+      likes:"Drawing, building little houses and picture books.",
+      avoid:"Loud electronic toys.",note:""},
+    {id:"demo-oliver",name:"Oliver",birthday:"2014-12-04",
+      photo:"https://images.unsplash.com/photo-1684664887279-98c6c71a6cbd?auto=format&fit=crop&w=540&h=540&q=75",
+      likes:"LEGO, nature books and puzzles.",
+      avoid:"Too-young toys.",note:""},
   ];
   const events: Event[] = [
     {
@@ -94,6 +112,13 @@ export function filledDemo(): AppData {
       budgets: { "demo-mira": 2200, "demo-sasha": 1800 }, demo: true,
     },
   ];
+  events.push({
+    id:"demo-family", name:"Family gathering", kind:"other" as const,
+    date:"2027-02-14", enabled:true,
+    people:["demo-grandma","demo-grandpa","demo-lily","demo-oliver"],
+    budgets:{"demo-grandma":3000,"demo-grandpa":3500,"demo-lily":1800,"demo-oliver":2600},
+    demo:true,
+  });
   const specs = [
     ["Wireless headphones", "demo-newyear", "demo-denis", 6900, "to_buy"],
     ["Espresso machine", "demo-anniversary", "demo-denis", 8900, "to_buy"],
