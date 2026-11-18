@@ -1,0 +1,151 @@
+/* Event cover and content now share the People profile's one-sheet language.
+   Keep this scoped: gift filters, gift shelf, budgets and data model unchanged. */
+.event-detail-v2 .event-overview {
+  position: relative;
+  width: calc(100% + 2 * var(--space));
+  max-width: none;
+  margin-inline: calc(-1 * var(--space));
+  padding: 0;
+}
+.event-detail-v2 .event-overview .event-hero {
+  width: 100%;
+  height: clamp(200px, 57vw, 292px);
+  margin: 0;
+  border-radius: 24px 24px 0 0;
+  overflow: hidden;
+  isolation: isolate;
+}
+.event-detail-v2 .event-overview .event-hero > img,
+.event-detail-v2 .event-overview .event-hero .photo,
+.event-detail-v2 .event-overview .event-hero .photo img {
+  object-fit: cover;
+  object-position: center;
+}
+.event-detail-v2 .event-overview .event-hero-action {
+  top: 13px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.94);
+}
+.event-detail-v2 .event-overview .event-hero-back { left: 13px; }
+.event-detail-v2 .event-overview .event-hero-edit { right: 13px; }
+.event-detail-v2 .event-overview .event-hero-date {
+  right: 17px;
+  bottom: 45px; /* above the 27px panel overlap */
+}
+.event-detail-v2 .event-overview-panel {
+  position: relative;
+  z-index: 2;
+  margin-top: -27px;
+  padding: 22px 17px 19px;
+  border-radius: 24px;
+  border: 1px solid #f0eff0;
+  background: #fff;
+  box-shadow: 0 6px 17px rgba(37,42,48,.055);
+}
+.event-detail-v2 .event-overview-panel .event-identity {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  text-align: center;
+}
+.event-detail-v2 .event-overview-panel .event-identity-type {
+  margin: 0 0 5px;
+}
+.event-detail-v2 .event-overview-panel .event-identity h1 {
+  font-size: clamp(25px, 7vw, 32px);
+  line-height: 1.12;
+  letter-spacing: -.65px;
+}
+.event-detail-v2 .event-overview-panel .event-summary {
+  display: grid;
+  gap: 0;
+  margin: 17px 0 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.event-detail-v2 .event-overview-panel .event-summary-recipients {
+  min-width: 0;
+  margin: 0;
+  padding: 13px 0;
+  border-top: 1px solid #edf0f2;
+}
+.event-detail-v2 .event-overview-panel .event-person-summary,
+.event-detail-v2 .event-overview-panel .event-recipient-summary,
+.event-detail-v2 .event-overview-panel .event-recipient-empty {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  text-decoration: none;
+  color: var(--ink);
+}
+.event-detail-v2 .event-overview-panel .event-recipient-summary {
+  justify-content: space-between;
+}
+.event-detail-v2 .event-overview-panel .event-recipient-copy {
+  display: grid;
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 4px;
+}
+.event-detail-v2 .event-overview-panel .event-recipient-copy strong {
+  font-size: 14px;
+  font-weight: 850;
+}
+.event-detail-v2 .event-overview-panel .event-recipient-copy small {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: #68757d;
+  font-size: 11px;
+}
+.event-detail-v2 .event-overview-panel .event-avatar-stack {
+  flex: 0 0 auto;
+  margin-left: 6px;
+  padding-right: 0;
+}
+.event-detail-v2 .event-overview-panel .event-summary-budget {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 16px 0 0;
+  border: 0;
+  border-top: 1px solid #edf0f2;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.event-detail-v2 .event-overview-panel .event-summary:has(> .event-summary-budget:first-child) {
+  margin-top: 20px;
+}
+.event-detail-v2 .event-overview-panel .event-budget-head {
+  margin-bottom: 11px;
+}
+.event-detail-v2 .event-gift-groups {
+  margin-top: 32px;
+}
+@media (max-width: 359px) {
+  .event-detail-v2 .event-overview .event-hero { height: 195px; }
+  .event-detail-v2 .event-overview-panel { padding: 20px 13px 17px; }
+  .event-detail-v2 .event-overview .event-hero-date { right: 13px; }
+}
+@media (min-width: 680px) {
+  .event-detail-v2 .event-overview .event-hero { height: clamp(255px, 34vw, 340px); }
+  .event-detail-v2 .event-overview-panel { padding-inline: 24px; }
+}
