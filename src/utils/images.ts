@@ -34,7 +34,8 @@ export function readImage(file: File): Promise<string> {
   });
 }
 
-/** Compact square portrait to keep local backups and storage small. */
+/** Center-cropped portrait for square cards and high-density profile images.
+ * 640px keeps full-width mobile portraits crisp without storing camera originals. */
 export function readAvatar(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     if (!file.type.startsWith("image/")) return reject(Error("Choose an image file."));
@@ -47,15 +48,15 @@ export function readAvatar(file: File): Promise<string> {
       img.onload = () => {
         try {
           const canvas = document.createElement("canvas");
-          canvas.width = canvas.height = 256;
+          canvas.width = canvas.height = 640;
           const context = canvas.getContext("2d");
           if (!context) throw Error("Image processing is unavailable.");
           const size = Math.min(img.width, img.height);
           context.drawImage(
             img, (img.width - size) / 2, (img.height - size) / 2,
-            size, size, 0, 0, 256, 256,
+            size, size, 0, 0, canvas.width, canvas.height,
           );
-          resolve(canvas.toDataURL("image/jpeg", 0.72));
+          resolve(canvas.toDataURL("image/jpeg", 0.8));
         } catch (error) { reject(error); }
       };
       img.src = String(reader.result);
