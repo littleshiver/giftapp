@@ -70,6 +70,21 @@ CAPTURE_SCREENSHOTS=1 npm test -- tests/visual.spec.ts
 
 The static suggestion deck is demonstrative, not personalized. Dark mode, backend sync, full image storage/backup redesign, recurring-event automation and PWA installation remain outside this change. Chromium is covered; physical iOS/Android devices and Safari/Firefox require separate review.
 
+## Analytics (PostHog)
+
+Optional product analytics via [PostHog](https://posthog.com) (EU cloud). Set
+`VITE_POSTHOG_KEY` (and optionally `VITE_POSTHOG_HOST`) in `.env.production`;
+without a key nothing is loaded. Code lives in `src/analytics/`.
+
+- Nothing is sent until the visitor taps **Allow** in the consent card; the
+  choice can be changed in Settings → Privacy.
+- Pageviews for hash routes (with a `route` property such as `/people/:id`),
+  autocaptured clicks, heatmaps, dead/rage clicks and session replays.
+- Signed-in users are identified by Firebase uid only; sign-out resets.
+- Click events keep tags and CSS classes but drop element text and label-like
+  attributes; replays mask all text and inputs and block images.
+- Custom funnel events: `track("event_name", { ... })` from `src/analytics/analytics.ts`.
+
 ## GitHub Pages and PR checks
 
 Production: **https://littleshiver.github.io/giftapp/**. `vite.config.ts` retains `/giftapp/` for production and preview; `/#/people` becomes `/giftapp/#/people` and refreshes without server rewrites.

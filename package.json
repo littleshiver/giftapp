@@ -13,6 +13,7 @@
   "dependencies": {
     "firebase": "^12.19.0",
     "lucide-react": "^0.468.0",
+    "posthog-js": "^1.450.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.13.0"
