@@ -1014,3 +1014,35 @@ test("Home gift image is a reminder only, with right-hand status and text fallba
   await expect(page).toHaveURL(/#\/events\/e1$/);
   await expect(page.getByRole("dialog")).toHaveCount(0);
 });
+
+test("Discover exhausts its finite pool and can explicitly revisit dislikes", async ({ page }) => {
+  await seed(page);
+  await page.goto("/#/ideas");
+  for (const title of ["Ceramic mug", "Throw blanket", "Art book", "Scented candle"]) {
+    await expect(page.locator(".ideas-discovery-caption")).toHaveText(title);
+    await page.getByRole("button", { name: "Dislike idea" }).click();
+  }
+  await expect(page.getByText("You've seen all the ideas in this selection.")).toBeVisible();
+  await expect(page.locator(".ideas-discovery-card")).toHaveCount(0);
+  expect((await readData(page)).skipped).toHaveLength(4);
+  await page.reload();
+  await expect(page.getByText("You've seen all the ideas in this selection.")).toBeVisible();
+  await page.getByRole("button", { name: "Review skipped ideas" }).click();
+  await expect(page.locator(".ideas-discovery-caption")).toHaveText("Ceramic mug");
+  expect((await readData(page)).skipped).toHaveLength(0);
+});
+
+test("FAB-created gift idea is available under Saved → Anyone and remains editable", async ({ page }) => {
+  await seed(page);
+  await page.goto("/#/ideas");
+  await page.getByRole("button", { name: "Saved", exact: true }).click();
+  await page.getByRole("button", { name: "Create", exact: true }).click();
+  await page.getByRole("button", { name: "Add gift idea" }).click();
+  await page.getByLabel("Idea name").fill("A new handmade gift");
+  await page.getByRole("button", { name: "Save idea", exact: true }).click();
+  await page.getByRole("button", { name: "Anyone", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Edit idea A new handmade gift" })).toBeVisible();
+  expect((await readData(page)).ideas.find(i => i.name === "A new handmade gift").personId).toBe("");
+  await page.getByRole("button", { name: "Edit idea A new handmade gift" }).click();
+  await expect(page.getByRole("dialog", { name: "Edit idea" })).toBeVisible();
+});
