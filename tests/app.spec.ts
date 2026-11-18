@@ -1268,11 +1268,19 @@ test("Occasion cover presets map holidays, birthdays and other occasions correct
   await seed(page,data);
   for(const [route,kind] of [["e1","birthday"],["e2","winter"],["e3","romantic"]]) {
     await page.goto(`/#/events/${route}`);
-    await expect(page.locator(".event-hero-image")).toHaveAttribute("src",/givvy-event-covers.*\.avif/);
+    await expect(page.locator(".event-hero-image")).toHaveAttribute("src",new RegExp(`cover-${kind}.*\\.jpg`));
     await expect(page.locator(".event-hero-image")).toHaveAttribute("data-cover-kind",kind);
-    const loaded = await page.locator(".event-hero-image").evaluate((el) =>
-      (el as HTMLImageElement).complete && (el as HTMLImageElement).naturalWidth > 0);
-    expect(loaded).toBe(true);
+    await expect.poll(() => page.locator(".event-hero-image").evaluate((el) =>
+      (el as HTMLImageElement).naturalWidth)).toBeGreaterThanOrEqual(1500);
+    const cover = await page.locator(".event-hero-image").evaluate((el) => ({
+      naturalWidth: (el as HTMLImageElement).naturalWidth,
+      naturalHeight: (el as HTMLImageElement).naturalHeight,
+      fit: getComputedStyle(el).objectFit,
+      transform: getComputedStyle(el).transform,
+    }));
+    expect(cover.naturalHeight).toBeGreaterThanOrEqual(750);
+    expect(cover.fit).toBe("cover");
+    expect(cover.transform).toBe("none");
   }
 });
 
@@ -1296,6 +1304,10 @@ test("Event hero uses one overlapping profile-style panel on 390px and 320px scr
     expect(Math.abs(geometry.heroLeft-geometry.panelLeft)).toBeLessThan(1);
     expect(Math.abs(geometry.heroRight-geometry.panelRight)).toBeLessThan(1);
     expect(geometry.lowerRadius).toBe("0px");
+    const heroTop = await page.locator(".event-overview .event-hero")
+      .evaluate(el => el.getBoundingClientRect().top);
+    expect(heroTop).toBe(0);
+    await expect(page.locator(".event-overview-panel .event-identity-type")).toHaveCount(0);
     await expect(page.locator(".event-overview-panel .event-identity h1")).toHaveText("Anna's birthday");
     await expect(page.locator(".event-overview-panel .event-summary-budget")).toHaveCount(1);
     await expect(page.locator(".event-overview-panel .event-summary-recipients")).toHaveCount(0);
