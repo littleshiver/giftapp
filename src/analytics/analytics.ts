@@ -98,8 +98,13 @@ export function setConsent(value: "granted" | "denied") {
       ph.opt_in_capturing();
       ph.startSessionRecording();
       capturePageview();
+      for (const [event, props] of beforeConsent) ph.capture(event, props);
+      beforeConsent = [];
     });
-  } else if (client) {
+  } else {
+    beforeConsent = [];
+  }
+  if (value === "denied" && client) {
     client.stopSessionRecording();
     client.opt_out_capturing();
   }
@@ -148,6 +153,17 @@ export function setAnalyticsUser(uid: string | null) {
 }
 
 /** Named product events for funnels, e.g. track("onboarding_completed"). */
-export function track(event: string, properties?: Record<string, string | number | boolean>) {
-  if (client && getConsent() === "granted") client.capture(event, properties);
+type Props = Record<string, string | number | boolean>;
+// Events from before the visitor answered the consent card (e.g. the first
+// onboarding step). Kept in memory only: sent on Allow, dropped on No thanks.
+let beforeConsent: [string, Props | undefined][] = [];
+
+export function track(event: string, properties?: Props) {
+  const consent = getConsent();
+  if (consent === "granted") {
+    if (client) client.capture(event, properties);
+    else load().then((ph) => ph?.capture(event, properties));
+  } else if (consent === null && analyticsAvailable && beforeConsent.length < 20) {
+    beforeConsent.push([event, properties]);
+  }
 }
