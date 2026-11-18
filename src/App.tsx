@@ -36,8 +36,8 @@ export function App() {
         <main className={[
           "app-main",
           location.pathname === "/" ? "app-main-home" : "",
-          /^\\/people\\/[^/]+$/.test(location.pathname) ? "app-main-profile" : "",
-          /^\\/events\\/[^/]+$/.test(location.pathname) ? "app-main-event-detail" : "",
+          location.pathname.startsWith("/people/") ? "app-main-profile" : "",
+          location.pathname.startsWith("/events/") ? "app-main-event-detail" : "",
         ].filter(Boolean).join(" ")}>
           {warning && (
             <div className="notice" role="alert">
