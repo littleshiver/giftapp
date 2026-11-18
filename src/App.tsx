@@ -36,6 +36,7 @@ export function App() {
         <main className={[
           "app-main",
           location.pathname === "/" ? "app-main-home" : "",
+          location.pathname === "/ideas" ? "app-main-ideas" : "",
           location.pathname.startsWith("/people/") ? "app-main-profile" : "",
           location.pathname.startsWith("/events/") ? "app-main-event-detail" : "",
         ].filter(Boolean).join(" ")}>
