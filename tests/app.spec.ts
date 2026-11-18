@@ -76,7 +76,8 @@ test("FAB actions; gift photo/status, membership validation and independent idea
   expect(saved.image).toMatch(/^data:image\/jpeg/);
   expect(saved.eventId).toBeUndefined();
   await page.goto("/#/ideas");
-  await page.getByRole("button", { name: /A photo idea.*Saved idea/ }).click();
+  await page.getByRole("button", { name: "Saved", exact: true }).click();
+  await page.getByRole("button", { name: "Edit idea A photo idea" }).click();
   await page.getByRole("button", { name: "Use for an occasion" }).click();
   await expect(page.getByLabel("Gift name", { exact: true })).toHaveValue(
     "A photo idea",
@@ -179,32 +180,91 @@ test("calendar, reminders, people editing and contextual gift/idea creation", as
   await page.reload();
   await expect(page.getByText("A note", { exact: true })).toBeVisible();
 });
-test("suggestions save without a person or occasion and filters persist across tabs", async ({
+test("Discover like opens the recipient sheet, a canceled like does not save, and dislikes persist", async ({
   page,
 }) => {
   await seed(page);
   await page.goto("/#/ideas");
-  await page.getByRole("button", { name: "Save idea", exact: true }).click();
-  expect((await readData(page)).ideas.at(-1).personId).toBe("");
-  expect((await readData(page)).ideas.at(-1).image).toMatch(
-    /^data:image\/jpeg/,
-  );
-  await page.getByRole("button", { name: "Skip idea", exact: true }).click();
-  await expect(page.locator(".idea-spotlight h3")).toHaveText("Coffee ritual");
+  await expect(page.getByRole("button", { name: "Discover", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".ideas-discovery-caption")).toHaveText("Ceramic mug");
+  await expect(page.locator(".ideas-filters-button")).toBeVisible();
+  await expect(page.locator(".ideas-discovery-card .ideas-filters-button")).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Like idea" }).click();
+  const chooser = page.getByRole("dialog", { name: "Save this idea for who?" });
+  await expect(chooser.getByRole("button", { name: /Anyone/ })).toBeVisible();
+  await expect(chooser.getByRole("button", { name: "Anna" })).toBeVisible();
+  await chooser.getByRole("button", { name: "Close" }).click();
+  await expect(page.locator(".ideas-discovery-caption")).toHaveText("Ceramic mug");
+  expect((await readData(page)).ideas).toHaveLength(1);
+
+  await page.getByRole("button", { name: "Like idea" }).click();
+  await page.getByRole("dialog", { name: "Save this idea for who?" })
+    .getByRole("button", { name: /Anyone/ }).click();
+  expect((await readData(page)).ideas.at(-1)).toMatchObject({
+    name: "Ceramic mug", personId: "", sourceDiscoveryId: "discovery:ceramic-mug",
+  });
+  expect((await readData(page)).ideas.at(-1).image).toMatch(/^data:image\/jpeg/);
+  await expect(page.locator(".ideas-discovery-caption")).toHaveText("Throw blanket");
+  await page.getByRole("button", { name: "Dislike idea" }).click();
+  await expect(page.locator(".ideas-discovery-caption")).toHaveText("Art book");
+  expect((await readData(page)).skipped).toContain("discovery:throw-blanket");
+
+  await page.getByRole("button", { name: "Saved", exact: true }).click();
+  await expect(page.locator(".ideas-saved-grid .gift-card")).toHaveCount(2);
+  await page.getByRole("button", { name: "Anyone", exact: true }).click();
+  await expect(page.locator(".ideas-saved-grid .gift-card")).toHaveCount(1);
   await page.getByRole("button", { name: "Anna", exact: true }).click();
-  await expect(page.locator(".idea-list-item")).toHaveCount(1);
-  await page
-    .getByRole("navigation")
-    .getByRole("link", { name: "Home", exact: true })
-    .click();
-  await page
-    .getByRole("navigation")
-    .getByRole("link", { name: "Ideas", exact: true })
-    .click();
-  await expect(
-    page.getByRole("button", { name: "Anna", exact: true }),
-  ).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".ideas-saved-grid .gift-card")).toHaveCount(1);
+  await expect(page.getByRole("button", { name: "Edit idea Ceramic mug" })).toBeVisible();
+  await page.getByRole("navigation").getByRole("link", { name: "Home", exact: true }).click();
+  await page.getByRole("navigation").getByRole("link", { name: "Ideas", exact: true }).click();
+  await page.getByRole("button", { name: "Saved", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Anna", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await page.reload();
+  await expect(page.locator(".ideas-discovery-caption")).toHaveText("Art book");
+  expect((await readData(page)).ideas.some((idea) => idea.sourceDiscoveryId === "discovery:ceramic-mug")).toBe(true);
 });
+
+test("Discover filters are in a separate sheet, with removable chips and meaningful results", async ({ page }) => {
+  await seed(page);
+  await page.goto("/#/ideas");
+  await page.getByRole("button", { name: "Filters" }).click();
+  const sheet = page.getByRole("dialog", { name: "Filters" });
+  await sheet.getByRole("button", { name: "Child", exact: true }).click();
+  await sheet.getByRole("button", { name: "Close person", exact: true }).click();
+  await sheet.getByRole("button", { name: "Apply filters" }).click();
+  await expect(sheet).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Remove Child filter" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Remove Close person filter" })).toBeVisible();
+  await expect(page.locator(".ideas-discovery-caption")).toHaveText("Throw blanket");
+  await page.getByRole("button", { name: "Remove Child filter" }).click();
+  await expect(page.getByRole("button", { name: "Remove Child filter" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Filters" }).click();
+  await page.getByRole("dialog", { name: "Filters" }).getByRole("button", { name: "Clear" }).click();
+  await page.getByRole("dialog", { name: "Filters" }).getByRole("button", { name: "Apply filters" }).click();
+  await expect(page.locator(".ideas-discovery-caption")).toHaveText("Ceramic mug");
+  await expect(page.locator(".ideas-active-filters")).toHaveCount(0);
+});
+
+test("Discover liking a suggestion for a person uses their Saved filter and avoids repeated recommendations", async ({ page }) => {
+  await seed(page);
+  await page.goto("/#/ideas");
+  await page.getByRole("button", { name: "Like idea" }).click();
+  await page.getByRole("dialog", { name: "Save this idea for who?" })
+    .getByRole("button", { name: "Mira" }).click();
+  const added = (await readData(page)).ideas.at(-1);
+  expect(added).toMatchObject({
+    personId: "p3", sourceDiscoveryId: "discovery:ceramic-mug",
+  });
+  await expect(page.locator(".ideas-discovery-caption")).toHaveText("Throw blanket");
+  await page.getByRole("button", { name: "Saved", exact: true }).click();
+  await page.getByRole("button", { name: "Mira", exact: true }).click();
+  await expect(page.locator(".ideas-saved-grid .gift-card")).toHaveCount(1);
+  await page.getByRole("button", { name: "Edit idea Ceramic mug" }).click();
+  await expect(page.getByRole("dialog", { name: "Edit idea" })).toBeVisible();
+});
+
 test("legacy migration notice, original data exports, v3 restore and invalid backup", async ({
   page,
 }) => {
@@ -247,9 +307,8 @@ test("legacy migration notice, original data exports, v3 restore and invalid bac
     await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3")),
   ).toBeNull();
   await page.goto("/#/ideas");
-  await expect(
-    page.getByRole("button", { name: /Original idea/ }),
-  ).toBeVisible();
+  await page.getByRole("button", { name: "Saved", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Edit idea Original idea" })).toBeVisible();
   await page.goto("/#/settings");
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: "Export original data" }).click();
@@ -286,7 +345,8 @@ test("corrupt data and quota errors never overwrite storage or claim success", a
 }) => {
   await seed(page);
   await page.goto("/#/ideas");
-  await page.getByRole("button", { name: /Ceramic mug.*Saved idea/ }).click();
+  await page.getByRole("button", { name: "Saved", exact: true }).click();
+  await page.getByRole("button", { name: "Edit idea Ceramic mug" }).click();
   await page.getByLabel("Idea name", { exact: true }).fill("Unsaved");
   await page.evaluate(() => {
     Storage.prototype.setItem = () => {
