@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowRight, Check } from "lucide-react";
 import { Button, Field } from "../components/Primitives";
 import { useApp } from "../state/AppState";
+import { useAuth } from "../auth/AuthContext";
 import { applySetup, holidays, type SetupDraft } from "../domain/onboarding";
 export function Onboarding() {
   const { data, commit, notify } = useApp(),
+    auth = useAuth(),
     navigate = useNavigate(),
     [params] = useSearchParams(),
     preview = params.has("preview"),
@@ -74,6 +76,15 @@ export function Onboarding() {
           >
             {preview ? "Back to Settings" : "Explore first"}
           </Button>
+          {!preview && auth.status === "guest" && (
+            <Link
+              className="ghostbutton button-full"
+              style={{ marginTop: 10 }}
+              to="/account?next=/onboarding"
+            >
+              I already have an account
+            </Link>
+          )}
         </>
       ) : step === 1 ? (
         <>

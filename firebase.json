@@ -1,0 +1,10 @@
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "location": "eur3"
+  },
+  "hosting": {
+    "public": "dist-demo",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+  }
+}

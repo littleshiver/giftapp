@@ -9,10 +9,11 @@ import { Events } from "./pages/Events";
 import { People } from "./pages/People";
 import { Ideas } from "./pages/Ideas";
 import { Settings } from "./pages/Settings";
+import { Account } from "./pages/Account";
 import { EventDetail, PersonDetail } from "./pages/Details";
 import { useApp } from "./state/AppState";
 export function App() {
-  const { data, editor, warning, upgradeNotice, closeEditor, openEditor } = useApp(),
+  const { data, editor, warning, upgradeNotice, closeEditor, openEditor, syncStatus } = useApp(),
     location = useLocation();
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -55,6 +56,9 @@ export function App() {
               path="/"
               element={
                 !warning &&
+                // Wait for a signed-in account to load before deciding the
+                // user is new (a fresh device starts with an empty cache).
+                syncStatus !== "loading" &&
                 !data.settings.onboardingComplete &&
                 !data.people.length &&
                 !data.events.length &&
@@ -73,6 +77,7 @@ export function App() {
             <Route path="/ideas" element={<Ideas />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/onboarding" element={<Onboarding />} />
+            <Route path="/account" element={<Account />} />
             {import.meta.env.DEV && (
               <Route path="/components" element={<Components />} />
             )}

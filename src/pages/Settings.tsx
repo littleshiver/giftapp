@@ -1,20 +1,42 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Download, Upload, Sparkles, Info } from "lucide-react";
+import { Download, Upload, Sparkles, Info, UserRound } from "lucide-react";
 import { Title } from "../components/UI";
 import { Button, Field } from "../components/Primitives";
 import { useApp } from "../state/AppState";
+import { useAuth } from "../auth/AuthContext";
 import { decode, downloadJson, exportBackup } from "../persistence/storage";
 export function Settings() {
-  const { data, personalData, previewMode, setPreviewMode, commit, notify } = useApp(),
+  const { data, personalData, previewMode, setPreviewMode, commit, notify, syncStatus } = useApp(),
     [budget, setBudget] = useState(data.settings.birthdayBudget),
-    file = useRef<HTMLInputElement>(null);
+    file = useRef<HTMLInputElement>(null),
+    auth = useAuth();
   useEffect(() => {
     setBudget(data.settings.birthdayBudget);
   }, [previewMode]);
   return (
     <>
       <Title name="Settings" subtitle="Make Givvy yours." />
+      {auth.status !== "disabled" && (
+        <section className="data-card">
+          <h2>Account</h2>
+          <p>
+            {auth.status === "signed-in"
+              ? `Signed in as ${auth.user?.email || auth.user?.displayName || "you"}. ${
+                  syncStatus === "error"
+                    ? "Couldn't reach your account — changes are kept and will sync."
+                    : syncStatus === "loading" || syncStatus === "saving"
+                      ? "Syncing…"
+                      : "Everything is saved to your account."
+                }`
+              : "You're using Givvy as a guest. Sign in to keep your lists safe — everything you've added stays."}
+          </p>
+          <Link className="button-secondary button-full" style={{ marginTop: 14 }} to="/account">
+            <UserRound size={16} />
+            {auth.status === "signed-in" ? "Manage account" : "Sign in or create account"}
+          </Link>
+        </section>
+      )}
       <section className="data-card">
         <h2>Preview content</h2>
         <p>
@@ -119,10 +141,11 @@ export function Settings() {
         )}
       </section>
       <section className="data-card">
-        <h2>Local data</h2>
+        <h2>{auth.status === "signed-in" ? "Backup" : "Local data"}</h2>
         <p>
-          Your real data stays in this browser. Export before changing browsers
-          or devices. Preview content is never included in your backup.
+          {auth.status === "signed-in"
+            ? "Your data is saved to your account and available on any device. You can still export a JSON copy. Preview content is never included."
+            : "Your real data stays in this browser. Export before changing browsers or devices. Preview content is never included in your backup."}
         </p>
         <div className="button-row" style={{ marginTop: 14 }}>
           <Button variant="secondary" onClick={() => exportBackup(personalData)}>
