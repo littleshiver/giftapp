@@ -1140,3 +1140,64 @@ test("Saved has the FAB and ephemeral save success has no redundant dismiss butt
   await page.getByRole("button", { name: "Saved", exact: true }).click();
   await expect(page.getByRole("button", { name: "Create", exact: true })).toBeVisible();
 });
+
+
+test("Home and People share compact 0d badge with urgent red state", async ({page}) => {
+  const data = fixture();
+  data.people[0].birthday = "1997-11-15";
+  data.events[0].date = "2026-11-15";
+  await seed(page, data);
+  await expect(page.locator(".occasion-chip").first().locator(".countdown-badge")).toHaveText("0d");
+  await expect(page.locator(".occasion-chip").first().locator(".countdown-badge"))
+    .toHaveClass(/countdown-badge--now/);
+  await page.goto("/#/people");
+  const badge = page.locator(".person-birthday-countdown").first();
+  await expect(badge).toHaveText("0d");
+  await expect(badge.locator("svg")).toHaveCount(1);
+  await expect(badge).toHaveClass(/countdown-badge--now/);
+});
+
+test("Home greeting waves once, collapses after scrolling and returns only on full reload", async ({page}) => {
+  await seed(page);
+  await expect(page.locator(".home-greeting")).toContainText("Hi, Polina");
+  await expect(page.locator(".home-greeting")).not.toHaveClass(/is-dismissed/);
+  await page.mouse.wheel(0, 450);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(24);
+  await expect(page.locator(".home-greeting")).toHaveClass(/is-dismissed/);
+  await page.goto("/#/people");
+  await page.goto("/#/");
+  await expect(page.locator(".home-greeting")).toHaveClass(/is-dismissed/);
+  await page.reload();
+  await expect(page.locator(".home-greeting")).not.toHaveClass(/is-dismissed/);
+});
+
+test("Home gift gallery displays a simple full-height placeholder for empty occasions", async ({page}) => {
+  await seed(page);
+  const productHeight = await page.locator(".focus-gifts .home-product").first()
+    .evaluate(el => el.getBoundingClientRect().height);
+  await page.getByRole("button", {name:/Our anniversary/}).click();
+  await expect(page.locator(".focus-head h2")).toHaveText("Our anniversary");
+  const empty = page.locator(".home-empty-gifts");
+  await expect(empty).toContainText("Add gifts with the + button");
+  await expect(page.locator(".focus-gifts .home-product")).toHaveCount(0);
+  const emptyHeight = await empty.evaluate(el => el.getBoundingClientRect().height);
+  expect(Math.abs(emptyHeight - productHeight)).toBeLessThanOrEqual(2);
+  await expect(page.getByRole("button", {name:"Create", exact:true})).toBeVisible();
+});
+
+test("Scrolling Coming up chooses the nearest centered occasion without snap-back", async ({page}) => {
+  await page.setViewportSize({width:390,height:844});
+  await seed(page);
+  const track = page.locator(".upcoming-track");
+  const finalScroll = await track.evaluate(el => {
+    el.scrollLeft = el.scrollWidth;
+    return el.scrollLeft;
+  });
+  expect(finalScroll).toBeGreaterThan(0);
+  await expect(page.locator(".focus-head h2")).toHaveText("Our anniversary");
+  const afterSelection = await track.evaluate(el => el.scrollLeft);
+  expect(afterSelection).toBeGreaterThanOrEqual(finalScroll - 2);
+  // Taps still directly select and bring the chosen tile back into view.
+  await page.locator(".occasion-chip").first().click();
+  await expect(page.locator(".focus-head h2")).toHaveText("Anna's birthday");
+});

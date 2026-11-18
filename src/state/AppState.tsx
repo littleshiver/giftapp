@@ -51,6 +51,7 @@ interface UiState {
   suggestionIndex: number;
   filterPerson: string;
   ideasTab: "discover" | "saved";
+  greetingDismissed: boolean;
   /** UI-only request: open recipient / saved-idea chooser from global FAB. */
   giftPickerEventId: string;
 }
@@ -85,6 +86,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     suggestionIndex: 0,
     filterPerson: "all",
     ideasTab: "discover",
+    greetingDismissed: false,
     giftPickerEventId: "",
   }));
   const setUi = (patch: Partial<UiState>) =>
