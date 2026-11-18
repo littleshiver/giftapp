@@ -11,8 +11,8 @@ import {
 } from "../domain/selectors";
 import { currency, fmtDate, fullDate, today } from "../utils/format";
 import { Button, Sheet } from "../components/Primitives";
-import { EventCover, coverKind } from "../components/EventCover";
-import type { Event, Gift, Person } from "../domain/models";
+import { EventCover } from "../components/EventCover";
+import type { Gift, Person } from "../domain/models";
 
 type GiftFilter = "all" | "to_buy" | "bought";
 const filterOptions: {value: GiftFilter; label: string}[] = [
