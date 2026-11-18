@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { UsersRound, Edit3, Plus, Minus, ChevronLeft, ChevronRight, Cake, CalendarDays } from "lucide-react";
+import { UsersRound, Pencil, Plus, Minus, ChevronRight, Cake, CalendarDays } from "lucide-react";
 import { birthdayMonthDay } from "../domain/birthdays";
 import {
   Empty,
@@ -9,6 +9,7 @@ import {
   Title,
   BudgetBar,
   PersonAvatar,
+  BackLink,
 } from "../components/UI";
 import { useApp } from "../state/AppState";
 import {
@@ -18,7 +19,7 @@ import {
   giftsFor,
   total,
 } from "../domain/selectors";
-import { currency, fmtDate, fullDate } from "../utils/format";
+import { currency, fmtDate, fullDate, today } from "../utils/format";
 import { Button, Sheet } from "../components/Primitives";
 
 import type { Gift } from "../domain/models";
@@ -80,7 +81,7 @@ export function EventDetail() {
             <p className="event-summary-date"><CalendarDays size={17} aria-hidden="true" />{fullDate(event.date)}</p>
           </div>
           <Button variant="outline" onClick={() => openEditor({type: "event", id: event.id})}>
-            <Edit3 size={16}/> Edit
+            <Pencil size={16} aria-hidden="true"/> Edit
           </Button>
         </div>
         {!isGroup && event.people.length === 1 && (() => {
@@ -204,9 +205,15 @@ export function EventDetail() {
 export function PersonDetail() {
   const { id } = useParams();
   const { data, openEditor } = useApp();
+  const [collection, setCollection] = useState<"ideas" | "gifted">("ideas");
   const person = data.people.find((candidate) => candidate.id === id);
   if (!person) return <Title name="Person not found" back="/people"/>;
   const ideas = data.ideas.filter((idea) => idea.personId === person.id);
+  const eventById = new Map(data.events.map((event) => [event.id, event]));
+  const gifted = data.gifts
+    .filter((gift) => gift.personId === person.id && gift.status === "bought" &&
+      (eventById.get(gift.eventId)?.date || "9999-12-31") < today())
+    .sort((a, b) => (eventById.get(b.eventId)?.date || "").localeCompare(eventById.get(a.eventId)?.date || ""));
   const birthday = birthdayMonthDay(person.birthday);
   // Existing separate interest tags and free-form wishes both describe
   // what is good to gift; show them together without erasing legacy data.
@@ -218,13 +225,10 @@ export function PersonDetail() {
       <section className="person-profile-hero" aria-label={`Profile of ${person.name}`}>
         <div className="person-profile-cover">
           <PersonAvatar person={person} className="person-profile-photo" />
-          <Link className="person-photo-action person-photo-back" to="/people"
-            aria-label="Back to People">
-            <ChevronLeft size={20} aria-hidden="true"/>
-          </Link>
+          <BackLink to="/people" className="person-photo-action person-photo-back" />
           <button type="button" className="person-photo-action person-photo-edit"
             aria-label="Edit person" onClick={() => openEditor({type:"person", id:person.id})}>
-            <Edit3 size={18} aria-hidden="true"/>
+            <Pencil size={16} strokeWidth={2} aria-hidden="true"/>
           </button>
           <p className="person-profile-birthday">
             <Cake size={16} aria-hidden="true"/>
@@ -264,19 +268,39 @@ export function PersonDetail() {
       {person.note && (
         <p className="person-profile-note">{person.note}</p>
       )}
-      <section className="section person-ideas" aria-labelledby="person-ideas-heading">
-        <div className="section-top">
-          <h2 id="person-ideas-heading">Gift ideas</h2>
+      <section className="section person-ideas" aria-label="Gift collections">
+        <div className="pill-tabs person-collection-tabs" role="group" aria-label="Gift collections">
+          <button type="button" className={`pill-tab ${collection === "ideas" ? "is-active" : ""}`}
+            aria-pressed={collection === "ideas"} onClick={() => setCollection("ideas")}>
+            Gift ideas
+          </button>
+          <button type="button" className={`pill-tab ${collection === "gifted" ? "is-active" : ""}`}
+            aria-pressed={collection === "gifted"} onClick={() => setCollection("gifted")}>
+            Gifted
+          </button>
         </div>
-        {ideas.length ? (
-          <div className="smallcards-grid">
-            {ideas.map((idea) => (
-              <Product key={idea.id} item={idea}
-                onClick={() => openEditor({ type:"idea", id:idea.id })}/>
-            ))}
-          </div>
+        {collection === "ideas" ? (
+          ideas.length ? (
+            <div className="smallcards-grid person-gift-collection">
+              {ideas.map((idea) => (
+                <Product key={idea.id} item={idea}
+                  onClick={() => openEditor({ type:"idea", id:idea.id })}/>
+              ))}
+            </div>
+          ) : <Empty>No ideas saved for {person.name} yet.</Empty>
         ) : (
-          <Empty>No ideas saved for {person.name} yet.</Empty>
+          gifted.length ? (
+            <div className="smallcards-grid person-gift-collection">
+              {gifted.map((gift) => {
+                const occasion = eventById.get(gift.eventId)!;
+                return (
+                  <Product key={gift.id} item={gift} statusReadOnly
+                    captionText={`${occasion.name} · ${fullDate(occasion.date)}`}
+                    onClick={() => openEditor({type:"gift", id:gift.id})}/>
+                );
+              })}
+            </div>
+          ) : <Empty>No bought gifts from past occasions yet.</Empty>
         )}
       </section>
     </div>
