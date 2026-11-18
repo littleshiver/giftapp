@@ -137,8 +137,14 @@
   color: #68757d;
   font-size: 11px;
 }
-.event-detail-v2 .event-overview-panel .event-avatar-stack {
+/* Override the v2 summary's old :last-child rule, which used to
+   target the text but now targets the right-hand avatar stack. */
+.event-detail-v2 .event-overview-panel .event-recipient-summary > .event-avatar-stack {
+  display: flex;
   flex: 0 0 auto;
+  align-items: center;
+  gap: 0;
+  min-width: 0;
   margin-left: 6px;
   padding-right: 0;
 }
