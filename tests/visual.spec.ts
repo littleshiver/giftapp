@@ -402,7 +402,8 @@ test("filled People gallery and portrait profile visual QA at 320 and 390", asyn
   for(const width of [320,390]){
     await page.setViewportSize({width,height:844});
     await page.goto("/#/people");
-    await expect(page.locator(".person-gallery-card")).toHaveCount(10);
+    await expect(page.locator(".person-gallery-card")).toHaveCount(14);
+    await expect(page.locator(".person-gallery-card .person-avatar img")).toHaveCount(4);
     await expect(page.locator(".demo-person-sprite")).toHaveCount(4);
     await expect(page.locator(".person-gallery-hint")).toHaveCount(0);
     const geometry = await page.locator(".people-gallery-grid").evaluate((grid) => {
