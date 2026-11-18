@@ -195,6 +195,20 @@ export function Photo({
 }) {
   const [failed, setFailed] = useState(false);
   useEffect(() => setFailed(false), [src]);
+  if (src?.startsWith("demo-person:")) {
+    const index = Number(src.slice("demo-person:".length));
+    if (Number.isInteger(index) && index >= 0 && index < 4) {
+      return (
+        <span role="img" aria-label={name || "Person portrait"} className="demo-person-sprite"
+          style={{
+            backgroundImage: `url("${demoPersonSheet}")`,
+            backgroundSize: "200% 200%",
+            backgroundPosition: `${index % 2 ? 100 : 0}% ${index >= 2 ? 100 : 0}%`,
+          }}
+        />
+      );
+    }
+  }
   const demoIndex = src?.startsWith("demo-photo:")
     ? Number(src.slice("demo-photo:".length))
     : -1;
