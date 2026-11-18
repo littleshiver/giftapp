@@ -119,7 +119,7 @@ test("preview empty and filled mobile screenshots", async ({ page }, testInfo) =
   await page.goto("/#/");
   await expect(page.locator(".demo-product-sprite").first()).toBeVisible();
   const occasionChips = page.locator(".upcoming-track .occasion-chip");
-  await expect(occasionChips).toHaveCount(4);
+  await expect(occasionChips).toHaveCount(5);
   // Exact standalone assets, not an atlas. Every image has the same square
   // source bounds and occupies exactly the white tile's content box.
   await occasionChips.locator("img.occ-illustration").evaluateAll((images) =>
@@ -152,7 +152,7 @@ test("preview empty and filled mobile screenshots", async ({ page }, testInfo) =
   );
   expect(new Set(uiChecks.map((item) => item.bg)).size).toBe(4);
   expect(uiChecks.map((item) => item.iconKind))
-    .toEqual(["birthday", "new-year", "romantic", "celebration"]);
+    .toEqual(["birthday", "new-year", "romantic", "celebration", "celebration"]);
   expect(uiChecks.every((item) =>
     item.iconSrc.includes(".png") &&
     item.naturalWidth === 540 && item.naturalHeight === 540 &&
