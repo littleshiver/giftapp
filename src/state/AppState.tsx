@@ -20,6 +20,8 @@ interface UiState {
   month: string;
   suggestionIndex: number;
   filterPerson: string;
+  /** UI-only request: open recipient / saved-idea chooser from global FAB. */
+  giftPickerEventId: string;
 }
 interface State {
   upgradeNotice: boolean;
@@ -45,6 +47,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     month: today(),
     suggestionIndex: 0,
     filterPerson: "all",
+    giftPickerEventId: "",
   }));
   const setUi = (patch: Partial<UiState>) =>
     updateUi((current) => ({ ...current, ...patch }));
@@ -73,7 +76,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setEditor(null);
     changePreviewMode(mode);
     setPreviewData(mode === "filled" ? filledDemo() : emptyDemo());
-    updateUi((prev) => ({ ...prev, selectedEvent: "", filterPerson: "all" }));
+    updateUi((prev) => ({ ...prev, selectedEvent: "", filterPerson: "all", giftPickerEventId: "" }));
     try {
       if (mode === "my") sessionStorage.removeItem(PREVIEW_KEY);
       else sessionStorage.setItem(PREVIEW_KEY, mode);
