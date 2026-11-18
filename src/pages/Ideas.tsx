@@ -54,13 +54,21 @@ export function Ideas() {
   const [draftFilters, setDraftFilters] = useState<DiscoveryFilters>(initialFilters);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [likedId, setLikedId] = useState<string | null>(null);
-  const dragStart = useRef<{ x: number; y: number } | null>(null);
+  const dragStart = useRef<{ x: number; y: number; dx: number } | null>(null);
   const [dragX, setDragX] = useState(0);
   const [exiting, setExiting] = useState<"left" | "right" | null>(null);
   const exitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => {
     if (exitTimer.current) clearTimeout(exitTimer.current);
   }, []);
+  useEffect(() => {
+    // Switching tabs never leaves an in-flight gesture that opens a sheet later.
+    if (exitTimer.current) clearTimeout(exitTimer.current);
+    dragStart.current = null;
+    setDragX(0);
+    setExiting(null);
+    setLikedId(null);
+  }, [tab]);
   const isAnimating = exiting !== null;
 
   const hasSeen = (id: string) => data.skipped.includes(id) ||
@@ -96,7 +104,7 @@ export function Ideas() {
     }, 280);
   };
   const releaseDrag = () => {
-    const x = dragX;
+    const x = dragStart.current?.dx ?? dragX;
     dragStart.current = null;
     if (Math.abs(x) > 85) reactToIdea(x > 0 ? "right" : "left");
     else setDragX(0);
@@ -201,7 +209,7 @@ export function Ideas() {
                 }}
                 onPointerDown={e => {
                   if (isAnimating || liked || (e.pointerType === "mouse" && e.button !== 0)) return;
-                  dragStart.current = { x: e.clientX, y: e.clientY };
+                  dragStart.current = { x: e.clientX, y: e.clientY, dx: 0 };
                   e.currentTarget.setPointerCapture(e.pointerId);
                 }}
                 onPointerMove={e => {
@@ -209,7 +217,11 @@ export function Ideas() {
                   const deltaX = e.clientX - dragStart.current.x;
                   const deltaY = e.clientY - dragStart.current.y;
                   if (Math.abs(deltaX) < 8 && Math.abs(deltaY) < 8) return;
-                  if (Math.abs(deltaY) > Math.abs(deltaX) * 1.3 && !dragX) return;
+                  if (Math.abs(deltaY) > Math.abs(deltaX) * 1.3 && !dragStart.current.dx) {
+                    dragStart.current = null;
+                    return;
+                  }
+                  dragStart.current.dx = deltaX;
                   setDragX(Math.max(-170, Math.min(170, deltaX)));
                 }}
                 onPointerUp={releaseDrag}
