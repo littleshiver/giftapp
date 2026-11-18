@@ -186,4 +186,21 @@ test("People birthday badge is compact, only for birthdays within 30 days and ke
   expect(Math.max(...geometry.heights)-Math.min(...geometry.heights)).toBeLessThanOrEqual(1);
   expect(Math.max(...geometry.widths)-Math.min(...geometry.widths)).toBeLessThanOrEqual(1);
   expect(geometry.overflow).toBeLessThanOrEqual(1);
+  const alignment = await cards.first().evaluate((card) => {
+    const title = card.querySelector(".person-gallery-info > strong")!.getBoundingClientRect();
+    const row = card.querySelector(".person-gallery-birthday")!.getBoundingClientRect();
+    const icon = card.querySelector(".person-gallery-birthday svg")!.getBoundingClientRect();
+    const text = card.querySelector(".person-gallery-birthday > span")!.getBoundingClientRect();
+    const badgeIcon = card.querySelector(".person-birthday-countdown svg")!.getBoundingClientRect();
+    const badgeText = card.querySelector(".person-birthday-countdown > span")!.getBoundingClientRect();
+    const center = (box: DOMRect) => (box.top + box.bottom) / 2;
+    return {
+      nameToDateGap:row.top-title.bottom,
+      dateIconCenterDiff:Math.abs(center(icon)-center(text)),
+      badgeIconCenterDiff:Math.abs(center(badgeIcon)-center(badgeText)),
+    };
+  });
+  expect(alignment.nameToDateGap).toBeLessThanOrEqual(5);
+  expect(alignment.dateIconCenterDiff).toBeLessThanOrEqual(1.5);
+  expect(alignment.badgeIconCenterDiff).toBeLessThanOrEqual(1.5);
 });
