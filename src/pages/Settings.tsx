@@ -40,12 +40,11 @@ export function Settings() {
       <section className="data-card">
         <h2>Preview content</h2>
         <p>
-          Check the design with no plans or a filled gift list. This is a
-          temporary sandbox: your saved people, gifts and photos stay untouched.
+          Explore the design with no entries or ten sample people, photographs
+          and gifts. Preview changes are temporary and never overwrite your data.
         </p>
-        <div className="preview-mode-options" role="group" aria-label="Preview content">
+        <div className="preview-mode-options preview-demo-switch" role="group" aria-label="Demo content">
           {([
-            ["my", "My data"],
             ["empty", "Empty"],
             ["filled", "Filled"],
           ] as const).map(([mode, label]) => (
@@ -60,6 +59,11 @@ export function Settings() {
             </button>
           ))}
         </div>
+        <button className="preview-return-personal" type="button"
+          aria-pressed={previewMode === "my"}
+          onClick={() => setPreviewMode("my")}>
+          {previewMode === "my" ? "Viewing my data" : "Return to my data"}
+        </button>
         <p className="section-note">
           {previewMode === "my"
             ? "You're looking at your own saved content."

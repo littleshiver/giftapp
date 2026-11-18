@@ -26,7 +26,9 @@ import demoPhotoSheet from "../assets/demo/catalog-hifi.avif";
 
 import { currency, fmtDate } from "../utils/format";
 import { eventBudget } from "../domain/selectors";
-import { birthdayMonthDay } from "../domain/birthdays";
+import { birthdayMonthDay, nextBirthdayDate } from "../domain/birthdays";
+import { today, parseDate } from "../utils/format";
+import demoPersonSheet from "../assets/demo/people-portraits.webp";
 export { Empty } from "./Primitives";
 export function Navigation() {
   return (
@@ -193,6 +195,20 @@ export function Photo({
 }) {
   const [failed, setFailed] = useState(false);
   useEffect(() => setFailed(false), [src]);
+  if (src?.startsWith("demo-person:")) {
+    const index = Number(src.slice("demo-person:".length));
+    if (Number.isInteger(index) && index >= 0 && index < 4) {
+      return (
+        <span role="img" aria-label={name || "Person portrait"} className="demo-person-sprite"
+          style={{
+            backgroundImage: `url("${demoPersonSheet}")`,
+            backgroundSize: "200% 200%",
+            backgroundPosition: `${index % 2 ? 100 : 0}% ${index >= 2 ? 100 : 0}%`,
+          }}
+        />
+      );
+    }
+  }
   const demoIndex = src?.startsWith("demo-photo:")
     ? Number(src.slice("demo-photo:".length))
     : -1;
@@ -293,30 +309,32 @@ export function Product({
         <button
           type="button"
           className="product-open"
-          aria-label={actionLabel || `${home ? "Open gift" : "Edit"} ${item.name}`}
+          aria-label={actionLabel || `${home ? "View gift" : "Edit"} ${item.name}`}
           onClick={onClick}
         >
           <span className="product-visual" style={{ background: gradientFor(item.name) }}>
             <Photo src={item.image} name={item.name} />
+            {home && <span className="home-gift-placeholder-name" aria-hidden="true">{item.name}</span>}
           </span>
-          <span className="gift-card-copy">
+          {!home && <span className="gift-card-copy">
             <strong className="product-title">{item.name}</strong>
             <span className="product-caption">{caption}</span>
-          </span>
+          </span>}
         </button>
       ) : (
         <div className="product-open">
           <span className="product-visual" style={{ background: gradientFor(item.name) }}>
             <Photo src={item.image} name={item.name} />
+            {home && <span className="home-gift-placeholder-name" aria-hidden="true">{item.name}</span>}
           </span>
-          <span className="gift-card-copy">
+          {!home && <span className="gift-card-copy">
             <strong className="product-title">{item.name}</strong>
             <span className="product-caption">{caption}</span>
-          </span>
+          </span>}
         </div>
       )}
       {gift && <GiftStatus status={gift.status} name={gift.name} onToggle={onToggle || defaultToggle} />}
-      {onClick && showEdit && (
+      {onClick && showEdit && !home && (
         <button type="button" className="gift-card-edit"
           aria-label={`Edit ${gift ? "gift" : "idea"} ${item.name}`}
           title="Edit"
@@ -383,30 +401,58 @@ export function PersonAvatar({
   const tone = [...key].reduce((sum, char) => sum + char.charCodeAt(0), 0) % palette.length;
   return (
     <span className={`person-avatar ${className}`} style={{ background: palette[tone] }} aria-hidden="true">
-      {person?.photo
-        ? <img src={person.photo} alt="" loading="lazy"/>
-        : <span>{person?.name?.[0]?.toUpperCase() || "?"}</span>}
+      {person?.photo?.startsWith("demo-person:") ? (
+        <span className="demo-person-sprite"
+          style={{
+            backgroundImage: `url("${demoPersonSheet}")`,
+            backgroundSize: "200% 200%",
+            backgroundPosition: `${Number(person.photo.slice(12)) % 2 ? 100 : 0}% ${Number(person.photo.slice(12)) >= 2 ? 100 : 0}%`,
+          }}
+        />
+      ) : person?.photo ? (
+        <img src={person.photo} alt="" loading="lazy"/>
+      ) : (
+        <span>{person?.name?.[0]?.toUpperCase() || "?"}</span>
+      )}
     </span>
   );
 }
 
-export function PersonRow({
-  person: p,
-  index: _index = 0,
-}: {
-  person: Person;
-  index?: number;
-}) {
+/**
+ * Compact, birthday-first portrait tile for a small circle of people.
+ * An approaching birthday is the only supplementary signal; occasion and
+ * shopping data belongs to Events, not the People gallery.
+ */
+export function PersonRow({person: p}: {person: Person}) {
   const monthDay = birthdayMonthDay(p.birthday);
   const birthday = monthDay ? fmtDate(`2000-${monthDay}`) : "";
+  const from = today();
+  const nextBirthday = monthDay ? nextBirthdayDate(p.birthday, from) : "";
+  const days = nextBirthday
+    ? Math.round((parseDate(nextBirthday).getTime() - parseDate(from).getTime()) / 86400000)
+    : null;
+  const comingSoon = days !== null && days >= 0 && days <= 30;
+  const countdown = days === 0 ? "Today" : `${days}d`;
   return (
-    <Link className="person-list-item" to={`/people/${p.id}`}>
-      <PersonAvatar person={p} className="item-photo item-avatar" />
-      <span className="item-body">
-        <strong>{p.name}</strong>
-        <small>{birthday ? `Birthday · ${birthday}` : "Birthday not set"}</small>
+    <Link className="person-gallery-card" to={`/people/${p.id}`}>
+      <span className="person-gallery-image">
+        <PersonAvatar person={p} className="person-gallery-portrait" />
+        {comingSoon && (
+          <span className="person-birthday-countdown"
+            aria-label={days === 0 ? "Birthday today" : `Birthday in ${days} days`}
+            title={days === 0 ? "Birthday today" : `Birthday in ${days} days`}>
+            <Cake size={12} aria-hidden="true"/>
+            <span>{countdown}</span>
+          </span>
+        )}
       </span>
-      <ChevronRight size={19} aria-hidden="true" />
+      <span className="person-gallery-info">
+        <strong>{p.name}</strong>
+        <span className="person-gallery-birthday">
+          <Cake size={13} aria-hidden="true"/>
+          <span>{birthday || "Date not set"}</span>
+        </span>
+      </span>
     </Link>
   );
 }
