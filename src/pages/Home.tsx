@@ -7,6 +7,7 @@ import { HomeBudgets } from "../components/HomeBudgets";
 import { HomeInspiration } from "../components/HomeInspiration";
 import { useApp } from "../state/AppState";
 import { OccasionArt } from "../components/OccasionArt";
+import { WAVE_SHAPE_PATH } from "../components/WaveShape";
 import { enabledEvents, giftsFor } from "../domain/selectors";
 import {
   countdown,
@@ -164,7 +165,7 @@ export function Home() {
                 </linearGradient>
               </defs>
               <path
-                d="M0 48 Q0 26 24 20 C97 -6 141 10 209 34 C276 57 332 4 377 23 Q400 31 400 55 L400 500 L0 500 Z"
+                d={WAVE_SHAPE_PATH}
                 fill="url(#givvy-focus-wave)"
               />
             </svg>
