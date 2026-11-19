@@ -237,7 +237,7 @@ export function Home() {
                   <stop offset="0" stopColor={selectedTone.start} />
                   <stop offset=".32" stopColor={selectedTone.middle} />
                   <stop offset=".70" stopColor={selectedTone.end} />
-                  <stop offset="1" stopColor="#FFFFFF" />
+                  <stop offset="1" stopColor={selectedTone.end} />
                 </linearGradient>
               </defs>
               <path
