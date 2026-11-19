@@ -46,14 +46,14 @@ export function HomeInspiration() {
         <div className="home-swipe-card home-swipe-front">
           <div className="home-swipe-image">
             <img src={mug} alt=""/>
-            <span className="home-swipe-overlay home-swipe-like">
-              <Heart size={34} strokeWidth={1.9} fill="currentColor"/>
-            </span>
-            <span className="home-swipe-overlay home-swipe-dislike">
-              <X size={37} strokeWidth={2.7}/>
-            </span>
           </div>
           <span className="home-swipe-caption" aria-hidden="true"/>
+          <span className="home-swipe-overlay home-swipe-like">
+            <Heart size={34} strokeWidth={1.9} fill="currentColor"/>
+          </span>
+          <span className="home-swipe-overlay home-swipe-dislike">
+            <X size={37} strokeWidth={2.7}/>
+          </span>
         </div>
       </div>
     </section>
