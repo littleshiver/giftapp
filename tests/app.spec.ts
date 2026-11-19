@@ -43,7 +43,7 @@ test("Home featured gallery: individual gift cards, event link and prefilled add
   await page.getByRole("button", { name: "Create", exact: true }).click();
   await page.getByRole("button", { name: "Add gift" }).click();
   await expect(page.getByRole("dialog", { name: "Add gift" })).toBeVisible();
-  await expect(page.getByRole("combobox", { name: "Occasion", exact: true })).toHaveValue("e2");
+  await expect(page.getByRole("combobox", { name: "Save to", exact: true })).toHaveValue("e2");
   await page.getByRole("button", { name: "Close", exact: true }).click();
   // Existing deep links from older versions remain supported.
   await page.goto("/#/events/e2?addGift=1");
@@ -59,6 +59,7 @@ test("FAB actions; gift photo/status, membership validation and independent idea
   await page
     .getByRole("button", { name: "Add gift", exact: true })
     .click();
+  await page.getByRole("combobox", { name: "Save to" }).selectOption("");
   await page.getByLabel("Gift name", { exact: true }).fill("A photo idea");
   await page.getByLabel("Estimated price").fill("800");
   await page.getByLabel("Notes", { exact: true }).fill("Important note");
