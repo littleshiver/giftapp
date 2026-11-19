@@ -26,7 +26,7 @@ test("Settings opens sign-in and registration previews without Firebase", async 
   await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
   await expect(page.getByText("Design preview · no account changes")).toBeVisible();
   await expect(page.getByRole("navigation")).toBeHidden();
-  await expect(page.locator(".auth-wordmark")).toHaveText("Givvy");
+  await expect(page.locator(".auth-brand .home-wordmark")).toHaveText("givvy");
   await expect(page.getByRole("button", { name: "Continue with Google" })).toBeVisible();
   await page.getByRole("button", { name: "Continue with Google" }).click();
   await expect(page.getByRole("status").last()).toContainText("Google sign-in wasn\'t started");
@@ -65,4 +65,24 @@ test("Preview registration and reset password never mutate personal data", async
   await expect(page.getByRole("status").last()).toContainText("no reset email");
   const after = await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"));
   expect(after).toBe(before);
+});
+
+
+test("Auth forms fit short phone viewport with the shared logo and no redundant data note",async ({page})=>{
+  for(const size of [{width:390,height:844},{width:320,height:667}]){
+    await page.setViewportSize(size);
+    for(const flow of ["sign-in","sign-up"]){
+      await page.goto("/#/account?preview="+flow);
+      await expect(page.locator(".auth-brand .home-wordmark-spark")).toHaveCount(1);
+      await expect(page.locator(".auth-guest-note")).toHaveCount(0);
+      const bounds=await page.evaluate(()=>{
+        const panel=document.querySelector(".auth-panel")!.getBoundingClientRect();
+        const brand=document.querySelector(".auth-brand")!.getBoundingClientRect();
+        return {panelBottom:panel.bottom,brandTop:brand.top,documentWidth:document.documentElement.scrollWidth,viewport:innerWidth};
+      });
+      expect(bounds.documentWidth).toBeLessThanOrEqual(bounds.viewport+1);
+      expect(bounds.brandTop).toBeGreaterThanOrEqual(0);
+      expect(bounds.panelBottom).toBeLessThanOrEqual(size.height+1);
+    }
+  }
 });
