@@ -873,12 +873,19 @@ test("Home swipe teaching animation loops gently and respects reduced motion", a
   await expect(visual.locator(".home-swipe-overlay")).toHaveCount(2);
   const snapshots = await visual.locator(".home-swipe-card").evaluateAll(cards =>
     cards.map(card => {
-      const image = card.querySelector(".home-swipe-image")!.getBoundingClientRect();
-      const caption = card.querySelector(".home-swipe-caption")!.getBoundingClientRect();
-      return { imageBottom: image.bottom, captionTop: caption.top, captionHeight: caption.height };
+      // Offsets, unlike bounding rects, don't vary with the decorative tilt.
+      const image = card.querySelector(".home-swipe-image") as HTMLElement;
+      const caption = card.querySelector(".home-swipe-caption") as HTMLElement;
+      return {
+        imageBottom: image.offsetTop + image.offsetHeight,
+        captionTop: caption.offsetTop,
+        captionHeight: caption.offsetHeight,
+      };
     }),
   );
-  expect(snapshots.every(c => Math.abs(c.imageBottom - c.captionTop) < 1 && c.captionHeight > 0)).toBe(true);
+  expect(snapshots.every(c =>
+    Math.abs(c.imageBottom - c.captionTop) <= 1 && c.captionHeight > 0,
+  )).toBe(true);
   const overlayWithinImage = await visual.locator(".home-swipe-overlay").evaluateAll(items =>
     items.every(el => {
       const r=el.getBoundingClientRect();
@@ -944,20 +951,26 @@ test("per-event reminder preferences save, reload and turn off independently", a
   await expect(page.locator(".calendar-card")).toBeVisible();
 });
 
-test("Home header and text links use one shared visual system", async ({ page }) => {
+test("Home uses the shared brand and a single fully clickable Inspiration CTA", async ({ page }) => {
   await seed(page);
   await page.goto("/#/");
   await expect(page.locator(".home-heading > .home-brandbar")).toHaveCount(1);
   const view = page.getByRole("link", { name: "View calendar" });
-  const explore = page.getByRole("link", { name: "Explore ideas" });
+  const explore = page.locator(".home-inspiration-link");
   await expect(view).toHaveClass(/section-link/);
-  await expect(explore).toHaveClass(/section-link/);
-  const styles = await Promise.all([view, explore].map((link) =>
-    link.evaluate((el) => {
-      const css = getComputedStyle(el);
-      return { fontSize: css.fontSize, fontWeight: css.fontWeight, textDecoration: css.textDecorationLine };
-    })));
-  expect(styles[0]).toEqual(styles[1]);
+  await expect(explore).toHaveClass(/home-inspiration-taparea/);
+  await expect(explore.locator(".home-inspiration-cta")).toContainText("Explore ideas");
+  await expect(explore.locator(".home-inspiration-copy")).toContainText("every occasion");
+  const bounds = await explore.evaluate(el => {
+    const link = el.getBoundingClientRect();
+    const section = el.parentElement!.getBoundingClientRect();
+    return {
+      left: Math.abs(link.left-section.left),
+      width: Math.abs(link.width-section.width),
+    };
+  });
+  expect(bounds.left).toBeLessThan(1);
+  expect(bounds.width).toBeLessThan(1);
 });
 
 
