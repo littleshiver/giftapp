@@ -14,7 +14,7 @@ import { birthdayFromParts } from "../domain/birthdays";
 import { Button, Field, Sheet } from "./Primitives";
 import { Photo } from "./UI";
 export function EditorSheet() {
-  const { data, editor, commit, closeEditor, notify, openEditor } = useApp(),
+  const { data, editor, commit, closeEditor, notify, openEditor, setUi } = useApp(),
     navigate = useNavigate(),
     [busy, setBusy] = useState(false),
     [saveError, setSaveError] = useState(""),
@@ -42,11 +42,11 @@ export function EditorSheet() {
   const formRef = useRef<HTMLFormElement>(null);
   const [eventId, setEventId] = useState(
       g?.eventId ||
-        editor?.eventId ||
-        data.events.find((e) =>
+        (editor?.type === "idea" && !editor.id ? editor.eventId || "" : editor?.eventId) ||
+        (editor?.type === "idea" && !editor.id ? "" : data.events.find((e) =>
           e.people.includes(editor?.personId || prefill?.personId || ""),
-        )?.id ||
-        (data.events.length === 1 ? data.events[0].id : "") ||
+        )?.id) ||
+        (editor?.type === "idea" && !editor.id ? "" : data.events.length === 1 ? data.events[0].id : "") ||
         "",
     ),
     [personId, setPersonId] = useState(
@@ -59,8 +59,10 @@ export function EditorSheet() {
         "",
     );
   if (!editor) return null;
-  const { type, id } = editor,
-    heading =
+  const { type, id } = editor;
+  const newUnifiedGift = type === "idea" && !id;
+  const saveAsGift = type === "gift" || (newUnifiedGift && Boolean(eventId));
+  const heading =
       type === "person"
         ? id
           ? "Edit person"
@@ -72,7 +74,7 @@ export function EditorSheet() {
           : type === "idea"
             ? id
               ? "Edit idea"
-              : "Save an idea"
+              : "Add gift"
             : id
               ? "Edit gift"
               : "Add gift";
@@ -147,7 +149,7 @@ export function EditorSheet() {
           ? data.events.map((e) => (e.id === id ? value : e))
           : [...data.events, value];
       } else {
-        if (type === "gift") {
+        if (saveAsGift) {
           const selectedOccasion = data.events.find((e) => e.id === eventId);
           if (!selectedOccasion || !data.people.some((p) => p.id === personId))
             throw Error("Choose an occasion and a recipient.");
@@ -173,13 +175,13 @@ export function EditorSheet() {
           ...old,
           id: id || uid(),
           name,
-          personId: type === "gift" ? personId : text("personId"),
+          personId: saveAsGift ? personId : text("personId"),
           price: number("price"),
           link: text("link"),
           note: text("note"),
           image,
         };
-        if (type === "gift") {
+        if (saveAsGift) {
           const gift: Gift = {
             ...value,
             eventId,
@@ -188,7 +190,7 @@ export function EditorSheet() {
               prefill && data.ideas.some((idea) => idea.id === prefill.id) ? prefill.id : undefined
             ),
           };
-          next.gifts = id
+          next.gifts = type === "gift" && id
             ? data.gifts.map((g) => (g.id === id ? gift : g))
             : [...data.gifts, gift];
         } else
@@ -286,7 +288,7 @@ export function EditorSheet() {
       >
         {!lockedBirthday ? (
           <Field
-            label={type === "person" ? "Name" : type === "event" ? "Occasion name" : type === "gift" ? "Gift name" : "Idea name"}
+            label={type === "person" ? "Name" : type === "event" ? "Occasion name" : (type === "gift" || newUnifiedGift) ? "Gift name" : "Idea name"}
           >
             <input
               className="control" name="name" required
@@ -439,96 +441,76 @@ export function EditorSheet() {
           </>
         ) : (
           <>
-            {type === "gift" ? (
+            {newUnifiedGift && (
+              <Field label="Save to">
+                <select className="control" aria-label="Save to" value={eventId}
+                  onChange={(e) => {
+                    const id = e.target.value;
+                    setEventId(id);
+                    const occasion = data.events.find((e) => e.id === id);
+                    setPersonId(occasion?.people.includes(personId) ? personId : occasion?.people[0] || "");
+                  }}>
+                  <option value="">Ideas · save for later</option>
+                  {data.events.map((occasion) => (
+                    <option key={occasion.id} value={occasion.id}>{occasion.name} · planned gift</option>
+                  ))}
+                </select>
+              </Field>
+            )}
+            {saveAsGift ? (
               <div className="form-grid">
-                <Field label="Occasion">
-                  <select
-                    className="control"
-                    name="eventId"
-                    required
-                    value={eventId}
-                    onChange={(e) => {
-                      setEventId(e.target.value);
-                      const event = data.events.find(
-                        (x) => x.id === e.target.value,
-                      );
-                      setPersonId(
-                        event?.people.includes(personId)
-                          ? personId
-                          : event?.people[0] || "",
-                      );
-                    }}
-                  >
-                    <option value="">Choose occasion</option>
-                    {eventId && !data.events.some((e) => e.id === eventId) && (
-                      <option value={eventId}>
-                        Missing occasion — choose another
-                      </option>
-                    )}
-                    {data.events.map((e) => (
-                      <option key={e.id} value={e.id}>
-                        {e.name}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-                <Field label="For">
-                  <select
-                    className="control"
-                    name="personId"
-                    required
-                    value={personId}
-                    onChange={(e) => setPersonId(e.target.value)}
-                  >
-                    <option value="">Choose recipient</option>
-                    {personId &&
-                      !data.people.some((p) => p.id === personId) && (
-                        <option value={personId}>
-                          Missing recipient — choose another
-                        </option>
+                {type === "gift" && (
+                  <Field label="Occasion">
+                    <select className="control" name="eventId" required value={eventId}
+                      onChange={(e) => {
+                        setEventId(e.target.value);
+                        const occasion = data.events.find((x) => x.id === e.target.value);
+                        setPersonId(occasion?.people.includes(personId) ? personId : occasion?.people[0] || "");
+                      }}>
+                      <option value="">Choose occasion</option>
+                      {eventId && !data.events.some(occasion => occasion.id === eventId) && (
+                        <option value={eventId}>Missing occasion — choose another</option>
                       )}
-                    {recipients.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name}
-                        {assignedRecipientIds.has(p.id)
-                          ? ""
-                          : " · add to occasion"}
+                      {data.events.map((occasion) => (
+                        <option key={occasion.id} value={occasion.id}>{occasion.name}</option>
+                      ))}
+                    </select>
+                  </Field>
+                )}
+                <Field label="For">
+                  <select className="control" name="personId" required value={personId}
+                    onChange={(e) => setPersonId(e.target.value)}>
+                    <option value="">Choose recipient</option>
+                    {personId && !data.people.some(recipient => recipient.id === personId) && (
+                      <option value={personId}>Missing recipient — choose another</option>
+                    )}
+                    {recipients.map((recipient) => (
+                      <option key={recipient.id} value={recipient.id}>
+                        {recipient.name}{assignedRecipientIds.has(recipient.id) ? "" : " · add to occasion"}
                       </option>
                     ))}
                   </select>
                 </Field>
                 {recipientNeedsAssignment && (
                   <p className="section-note" role="status">
-                    Saving this gift will also add{" "}
-                    {data.people.find((p) => p.id === personId)?.name} to{" "}
-                    {selectedOccasion?.name}. Their budget will remain unset.
-                  </p>
-                )}
-                {!eventId && (
-                  <p className="section-note">
-                    Choose an occasion first, then choose who will receive the gift.
+                    Saving this gift also adds {data.people.find((p) => p.id === personId)?.name}
+                    {" "}to {selectedOccasion?.name}, with no individual budget set.
                   </p>
                 )}
               </div>
             ) : (
               <Field label="For (optional)">
-                <select
-                  className="control"
-                  name="personId"
-                  defaultValue={idea?.personId || editor.personId || ""}
-                >
+                <select className="control" name="personId" defaultValue={idea?.personId || editor.personId || ""}>
                   <option value="">Anyone</option>
-                  {data.people.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
+                  {data.people.map((recipient) => (
+                    <option key={recipient.id} value={recipient.id}>{recipient.name}</option>
                   ))}
                 </select>
               </Field>
             )}
             <div className="form-grid">
               <Field
-                label={type === "idea" ? "Estimated price (₽)" : "Price (₽)"}
+                label={type === "idea" && !saveAsGift ? "Estimated price (₽)" : "Price (₽)"}
               >
                 <input
                   className="control"
@@ -539,7 +521,7 @@ export function EditorSheet() {
                   defaultValue={source?.price ?? 0}
                 />
               </Field>
-              {type === "gift" && (
+              {saveAsGift && (
                 <Field label="Status">
                   <select
                     className="control"
@@ -571,7 +553,7 @@ export function EditorSheet() {
                     <ImageIcon size={16} aria-hidden="true" />
                     {source?.image || chosenPhotoUrl ? "Change photo" : "Choose photo"}
                     <input
-                      aria-label={type === "gift" ? "Gift photo" : "Idea photo"}
+                      aria-label={saveAsGift || newUnifiedGift ? "Gift photo" : "Idea photo"}
                       name="imageFile"
                       type="file"
                       accept="image/*"
@@ -650,11 +632,23 @@ export function EditorSheet() {
                 Use for an occasion
               </Button>
             )}
-            {type === "gift" && (
-              <p className="section-note">
-                To buy and Bought both count toward occasion costs. Unassigned
-                inspiration lives in Ideas.
-              </p>
+            {saveAsGift && (
+              <>
+                <p className="section-note">
+                  An occasion gift is tracked as To buy or Bought.
+                  Save to Ideas instead to keep an unassigned idea for later.
+                </p>
+                {newUnifiedGift && eventId && (
+                  <button type="button" className="ghostbutton button-full"
+                    data-ph="unified-gift-saved-ideas"
+                    onClick={() => {
+                      closeEditor();
+                      setUi({ giftPickerEventId: eventId });
+                    }}>
+                    Choose from saved ideas
+                  </button>
+                )}
+              </>
             )}
           </>
         )}
@@ -666,7 +660,7 @@ export function EditorSheet() {
         <div className="sheet-cta">
           <Button data-ph={`editor-save-${type}`} className="button-full" type="submit" disabled={busy}>
             <Check size={17} />
-            {busy ? "Saving…" : `Save ${type}`}
+            {busy ? "Saving…" : newUnifiedGift ? (saveAsGift ? "Add to occasion" : "Save idea") : `Save ${type}`}
           </Button>
           {id && (
             <Button data-ph={`editor-delete-${type}`}

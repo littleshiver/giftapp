@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Eye, EyeOff, LockKeyhole, LogOut, Mail, UserRound } from "lucide-react";
 import { Button } from "../components/Primitives";
 import { Title } from "../components/UI";
+import { HomeBrand } from "../components/HomeBrand";
 import { useApp } from "../state/AppState";
 import { useAuth } from "../auth/AuthContext";
 import {
@@ -43,7 +44,7 @@ function AppleMark() {
 
 export function Account() {
   const { status, user } = useAuth();
-  const { personalData } = useApp();
+
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const preview = params.get("preview") === "sign-in" || params.get("preview") === "sign-up";
@@ -60,8 +61,6 @@ export function Account() {
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [resetMode, setResetMode] = useState(false);
-  const hasLocalData =
-    personalData.people.length + personalData.events.length + personalData.gifts.length + personalData.ideas.length > 0;
 
   const setScreen = (screen: "sign-in" | "sign-up") => {
     setMode(screen);
@@ -161,8 +160,7 @@ export function Account() {
           aria-label={preview ? "Back to Settings" : "Back"}>
           <ArrowLeft size={20} aria-hidden="true"/>
         </Link>
-        <div className="auth-wordmark" aria-label="Givvy">Givvy</div>
-        <p>PLAN · TRACK · GIVE</p>
+        <HomeBrand />
       </header>
       <div className="auth-wave" aria-hidden="true">
         <svg viewBox="0 0 400 94" preserveAspectRatio="none">
@@ -176,9 +174,6 @@ export function Account() {
           : "Start planning more thoughtful gifts with Givvy."}</p>
         {preview && (
           <p className="auth-preview-badge" role="status">Design preview · no account changes</p>
-        )}
-        {hasLocalData && !preview && (
-          <p className="auth-guest-note">Everything you've added so far stays with you after you sign in.</p>
         )}
         <form className="auth-form" onSubmit={submit}>
           {mode === "sign-up" && (

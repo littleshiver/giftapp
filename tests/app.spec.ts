@@ -41,9 +41,9 @@ test("Home featured gallery: individual gift cards, event link and prefilled add
   await expect(page.locator(".focus-head h2")).toHaveText("New Year");
   await expect(page.locator(".focus-gifts .product-add")).toHaveCount(0);
   await page.getByRole("button", { name: "Create", exact: true }).click();
-  await page.getByRole("button", { name: "Add gift to occasion" }).click();
+  await page.getByRole("button", { name: "Add gift" }).click();
   await expect(page.getByRole("dialog", { name: "Add gift" })).toBeVisible();
-  await expect(page.getByRole("combobox", { name: "Occasion", exact: true })).toHaveValue("e2");
+  await expect(page.getByRole("combobox", { name: "Save to", exact: true })).toHaveValue("e2");
   await page.getByRole("button", { name: "Close", exact: true }).click();
   // Existing deep links from older versions remain supported.
   await page.goto("/#/events/e2?addGift=1");
@@ -57,13 +57,14 @@ test("FAB actions; gift photo/status, membership validation and independent idea
   await seed(page);
   await page.getByRole("button", { name: "Create", exact: true }).click();
   await page
-    .getByRole("button", { name: "Add gift idea", exact: true })
+    .getByRole("button", { name: "Add gift", exact: true })
     .click();
-  await page.getByLabel("Idea name", { exact: true }).fill("A photo idea");
+  await page.getByRole("combobox", { name: "Save to" }).selectOption("");
+  await page.getByLabel("Gift name", { exact: true }).fill("A photo idea");
   await page.getByLabel("Estimated price").fill("800");
   await page.getByLabel("Notes", { exact: true }).fill("Important note");
   await page.getByLabel("Product link").fill("https://example.com");
-  await page.getByLabel("Idea photo").setInputFiles({
+  await page.getByLabel("Gift photo").setInputFiles({
     name: "mug.jpg",
     mimeType: "image/jpeg",
     buffer: Buffer.from(image("mug").split(",")[1], "base64"),
@@ -401,7 +402,8 @@ test("occasion/gift CRUD and explicit cascade deletion retain independent ideas"
   const event = (await readData(page)).events.find((e) => e.name === "Dinner");
   await page.goto("/#/events/" + event.id);
   await page.getByRole("button", { name: "Create", exact: true }).click();
-  await page.getByRole("button", { name: "Add gift to occasion" }).click();
+  await page.getByRole("button", { name: "Add gift" }).click();
+  await page.getByRole("button", { name: "Choose from saved ideas" }).click();
   await expect(page.getByRole("dialog", { name: "Gift for Anna" })).toBeVisible();
   await page.getByRole("button", { name: "Add a new gift" }).click();
   await page.getByLabel("Gift name", { exact: true }).fill("Flowers");
@@ -489,15 +491,15 @@ test("new recipient assigned to an occasion appears in the gift picker", async (
   await page.goto("/#/ideas");
   await page.getByRole("button", { name: "Saved", exact: true }).click();
   await page.getByRole("button", { name: "Create", exact: true }).click();
-  await page.getByRole("button", { name: "Add gift to occasion" }).click();
-  await expect(page.getByRole("combobox", { name: "Occasion" })).toHaveValue("");
-  await page.getByRole("combobox", { name: "Occasion" }).selectOption("e2");
+  await page.getByRole("button", { name: "Add gift" }).click();
+  await expect(page.getByRole("combobox", { name: "Save to" })).toHaveValue("");
+  await page.getByRole("combobox", { name: "Save to" }).selectOption("e2");
   const personSelector = page.getByRole("combobox", { name: "For", exact: true });
   await expect(personSelector).toContainText("Jamie new");
   await personSelector.selectOption(created.id);
   await page.getByLabel("Gift name", { exact: true }).fill("Board game");
   await page.getByLabel("Price (₽)").fill("1200");
-  await page.getByRole("button", { name: "Save gift", exact: true }).click();
+  await page.getByRole("button", { name: "Add to occasion", exact: true }).click();
 
   await page.reload();
   const saved = await readData(page);
@@ -522,7 +524,8 @@ test("gift editor adds people only to group occasions and does not invent budget
   // A birthday is not an occasion with arbitrarily many recipients.
   await page.goto("/#/events/e1");
   await page.getByRole("button", { name: "Create", exact: true }).click();
-  await page.getByRole("button", { name: "Add gift to occasion" }).click();
+  await page.getByRole("button", { name: "Add gift" }).click();
+  await page.getByRole("button", { name: "Choose from saved ideas" }).click();
   await expect(page.getByRole("dialog", { name: "Gift for Anna" })).toBeVisible();
   await page.getByRole("button", { name: "Add a new gift" }).click();
   await expect(page.getByRole("combobox", { name: "For" }).locator("option")).toHaveCount(2);
@@ -533,14 +536,14 @@ test("gift editor adds people only to group occasions and does not invent budget
   await page.goto("/#/ideas");
   await page.getByRole("button", { name: "Saved", exact: true }).click();
   await page.getByRole("button", { name: "Create", exact: true }).click();
-  await page.getByRole("button", { name: "Add gift to occasion" }).click();
-  await page.getByRole("combobox", { name: "Occasion" }).selectOption("e2");
+  await page.getByRole("button", { name: "Add gift" }).click();
+  await page.getByRole("combobox", { name: "Save to" }).selectOption("e2");
   await page.getByRole("combobox", { name: "For" }).selectOption(created.id);
   await expect(page.locator('.section-note[role="status"]'))
-    .toContainText("Saving this gift will also add Rory new");
+    .toContainText("Saving this gift also adds Rory new");
   await page.getByLabel("Gift name", { exact: true }).fill("Tea set");
   await page.getByLabel("Price (₽)").fill("850");
-  await page.getByRole("button", { name: "Save gift" }).click();
+  await page.getByRole("button", { name: "Add to occasion" }).click();
   const saved = await readData(page);
   const occasion = saved.events.find((e) => e.id === "e2");
   expect(occasion.people).toContain(created.id);
@@ -992,7 +995,7 @@ test("global FAB is the only add entry point on all main and detail pages", asyn
   // FAB inside a person profile retains the recipient prefill.
   await page.goto("/#/people/p1");
   await page.getByRole("button", { name: "Create", exact: true }).click();
-  await page.getByRole("button", { name: "Add gift idea" }).click();
+  await page.getByRole("button", { name: "Add gift" }).click();
   await expect(page.getByRole("combobox", { name: "For" })).toHaveValue("p1");
   await page.getByRole("button", { name: "Close" }).click();
 });
@@ -1047,8 +1050,8 @@ test("FAB-created gift idea is available under Saved → Anyone and remains edit
   await page.goto("/#/ideas");
   await page.getByRole("button", { name: "Saved", exact: true }).click();
   await page.getByRole("button", { name: "Create", exact: true }).click();
-  await page.getByRole("button", { name: "Add gift idea" }).click();
-  await page.getByLabel("Idea name").fill("A new handmade gift");
+  await page.getByRole("button", { name: "Add gift" }).click();
+  await page.getByLabel("Gift name").fill("A new handmade gift");
   await page.getByRole("button", { name: "Save idea", exact: true }).click();
   await page.getByRole("button", { name: "Anyone", exact: true }).click();
   await expect(page.getByRole("button", { name: "Edit idea A new handmade gift" })).toBeVisible();
@@ -1457,4 +1460,36 @@ test("Profile and event covers are edge-to-edge rectangles; event pictures fit t
       expect(Math.abs(geometry.width)).toBeLessThan(1);
     }
   }
+});
+
+
+test("One FAB gift sheet saves either an independent idea or an occasion gift",async ({page})=>{
+  await seed(page);
+  await page.goto("/#/ideas");
+  await page.getByRole("button",{name:"Saved",exact:true}).click();
+  await page.getByRole("button",{name:"Create",exact:true}).click();
+  await expect(page.locator(".fab-menu button")).toHaveCount(3);
+  await page.getByRole("button",{name:"Add gift",exact:true}).click();
+  await expect(page.getByRole("dialog",{name:"Add gift"})).toBeVisible();
+  const saveTo=page.getByRole("combobox",{name:"Save to"});
+  await expect(saveTo).toHaveValue("");
+  await page.getByLabel("Gift name",{exact:true}).fill("Bamboo notebook");
+  await page.getByRole("button",{name:"Save idea",exact:true}).click();
+  let current=await readData(page);
+  expect(current.ideas.some(i=>i.name==="Bamboo notebook")).toBe(true);
+  expect(current.gifts.some(g=>g.name==="Bamboo notebook")).toBe(false);
+
+  await page.getByRole("button",{name:"Create",exact:true}).click();
+  await page.getByRole("button",{name:"Add gift",exact:true}).click();
+  await page.getByRole("combobox",{name:"Save to"}).selectOption("e2");
+  await expect(page.getByRole("combobox",{name:"For"})).toBeVisible();
+  await page.getByRole("combobox",{name:"For"}).selectOption("p2");
+  await page.getByLabel("Gift name",{exact:true}).fill("Warm scarf");
+  await page.getByLabel("Price (₽)").fill("950");
+  await page.getByRole("button",{name:"Add to occasion",exact:true}).click();
+  current=await readData(page);
+  expect(current.gifts.find(g=>g.name==="Warm scarf")).toMatchObject({
+    eventId:"e2",personId:"p2",status:"to_buy",price:950
+  });
+  expect(current.ideas.some(i=>i.name==="Warm scarf")).toBe(false);
 });

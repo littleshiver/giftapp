@@ -278,6 +278,9 @@ export function Home() {
                 </div>
               )}
             </div>
+            <svg className="focus-bottom-wave" viewBox="0 0 400 36" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M0 0 H400 V12 C327 0 265 17 196 12 S56 24 0 13 Z" fill="#FFFFFF"/>
+            </svg>
           </div>
         </section>
       )}

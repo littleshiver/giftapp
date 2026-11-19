@@ -88,7 +88,8 @@ test("group occasion copies one person's saved idea to an independent gift snaps
   await page.goto("/#/events/e2");
   await expect(page.locator(".event-recipient-group")).toHaveCount(3);
   await page.getByRole("button", { name: "Create", exact: true }).click();
-  await page.getByRole("button", { name: "Add gift to occasion" }).click();
+  await page.getByRole("button", { name: "Add gift" }).click();
+  await page.getByRole("button", { name: "Choose from saved ideas" }).click();
   const recipientPicker = page.getByRole("dialog", { name: "Choose recipient" });
   await recipientPicker.getByRole("button", { name: "Anna" }).click();
   const picker = page.getByRole("dialog", { name: "Gift for Anna" });
@@ -115,7 +116,8 @@ test("single-recipient birthday has no group plan and only accepts the celebrant
   await expect(page.locator(".event-person-summary")).toHaveCount(0);
   await expect(page.locator(".event-single-gifts .event-person-gifts-identity")).toContainText("Anna");
   await page.getByRole("button", { name: "Create", exact: true }).click();
-  await page.getByRole("button", { name: "Add gift to occasion" }).click();
+  await page.getByRole("button", { name: "Add gift" }).click();
+  await page.getByRole("button", { name: "Choose from saved ideas" }).click();
   await expect(page.getByRole("dialog", { name: "Gift for Anna" })).toBeVisible();
   await page.getByRole("button", { name: "Add a new gift" }).click();
   await expect(page.getByRole("combobox", { name: "For" })).toHaveValue("p1");

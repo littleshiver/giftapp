@@ -68,10 +68,11 @@ test("exploring first shows real empty states with no placeholder records", asyn
   );
   expect((await readData(page)).people).toEqual([]);
   await page.getByRole("button", { name: "Create", exact: true }).click();
-  await page.getByRole("button", { name: "Add gift to occasion" }).click();
-  await expect(page.getByRole("status")).toContainText(
-    "Add a person to an occasion",
-  );
+  await page.getByRole("button", { name: "Add gift" }).click();
+  await expect(page.getByRole("dialog", { name: "Add gift" })).toBeVisible();
+  await expect(page.getByRole("combobox", { name: "Save to" })).toHaveValue("");
+  await expect(page.getByRole("combobox", { name: "Save to" }).locator("option")).toHaveCount(1);
+  await page.getByRole("button", { name: "Close", exact: true }).click();
   await page.goto("/#/ideas");
   await page.getByRole("button", { name: "Like idea", exact: true }).click();
   await expect(page.getByRole("dialog", { name: "Save this idea for who?" })).toBeVisible();
