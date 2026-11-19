@@ -7,7 +7,6 @@ import { HomeBudgets } from "../components/HomeBudgets";
 import { HomeInspiration } from "../components/HomeInspiration";
 import { useApp } from "../state/AppState";
 import { OccasionArt } from "../components/OccasionArt";
-import { WAVE_SHAPE_PATH } from "../components/WaveShape";
 import { enabledEvents, giftsFor } from "../domain/selectors";
 import { fmtDate, fullDate, today } from "../utils/format";
 import { CountdownBadge, daysUntilDate } from "../components/CountdownBadge";
@@ -242,7 +241,7 @@ export function Home() {
                 </linearGradient>
               </defs>
               <path
-                d={WAVE_SHAPE_PATH}
+                d={`M0 48 Q0 26 24 20 C97 -6 141 10 209 34 C276 57 332 4 377 23 Q400 31 400 55 L400 456 C332 477 255 497 185 480 C100 462 58 499 0 472 Z`}
                 fill="url(#givvy-focus-wave)"
               />
             </svg>
@@ -278,14 +277,11 @@ export function Home() {
                 </div>
               )}
             </div>
-            <svg className="focus-bottom-wave" viewBox="0 0 400 36" preserveAspectRatio="none" aria-hidden="true">
-              <path d="M0 0 H400 V12 C327 0 265 17 196 12 S56 24 0 13 Z" fill="#FFFFFF"/>
-            </svg>
           </div>
         </section>
       )}
-      <HomeBudgets data={data} selected={selected}/>
       <HomeInspiration />
+      <HomeBudgets data={data} selected={selected}/>
     </>
   );
 }
