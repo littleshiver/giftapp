@@ -29,7 +29,7 @@ test("Settings opens sign-in and registration previews without Firebase", async 
   await expect(page.locator(".auth-wordmark")).toHaveText("Givvy");
   await expect(page.getByRole("button", { name: "Continue with Google" })).toBeVisible();
   await page.getByRole("button", { name: "Continue with Google" }).click();
-  await expect(page.getByRole("status").last()).toContainText("no sign-in");
+  await expect(page.getByRole("status").last()).toContainText("Google sign-in wasn\'t started");
   await page.getByRole("button", { name: "Show password" }).click();
   await expect(page.getByRole("button", { name: "Hide password" })).toBeVisible();
 
