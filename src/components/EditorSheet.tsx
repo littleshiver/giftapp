@@ -468,6 +468,9 @@ export function EditorSheet() {
                         setPersonId(occasion?.people.includes(personId) ? personId : occasion?.people[0] || "");
                       }}>
                       <option value="">Choose occasion</option>
+                      {eventId && !data.events.some(occasion => occasion.id === eventId) && (
+                        <option value={eventId}>Missing occasion — choose another</option>
+                      )}
                       {data.events.map((occasion) => (
                         <option key={occasion.id} value={occasion.id}>{occasion.name}</option>
                       ))}
@@ -478,6 +481,9 @@ export function EditorSheet() {
                   <select className="control" name="personId" required value={personId}
                     onChange={(e) => setPersonId(e.target.value)}>
                     <option value="">Choose recipient</option>
+                    {personId && !data.people.some(recipient => recipient.id === personId) && (
+                      <option value={personId}>Missing recipient — choose another</option>
+                    )}
                     {recipients.map((recipient) => (
                       <option key={recipient.id} value={recipient.id}>
                         {recipient.name}{assignedRecipientIds.has(recipient.id) ? "" : " · add to occasion"}
