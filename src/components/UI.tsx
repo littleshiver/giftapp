@@ -59,7 +59,7 @@ export function Navigation() {
   );
 }
 export function CreateMenu() {
-  const { openEditor, ui, setUi, data, notify } = useApp(),
+  const { openEditor, ui } = useApp(),
     [open, setOpen] = useState(false),
     location = useLocation(),
     root = useRef<HTMLDivElement>(null);
@@ -85,8 +85,7 @@ export function CreateMenu() {
       {open && (
         <div className="fab-menu" id="create-menu" aria-label="Create options">
           {[
-            { type: "idea", label: "Add gift idea", Icon: Lightbulb },
-            { type: "gift", label: "Add gift to occasion", Icon: GiftIcon },
+            { type: "idea", label: "Add gift", Icon: GiftIcon },
             { type: "event", label: "Add occasion", Icon: CalendarDays },
             { type: "person", label: "Add person", Icon: UsersRound },
           ].map(({ type, label, Icon }) => (
@@ -103,22 +102,11 @@ export function CreateMenu() {
                 const personId = location.pathname.startsWith("/people/")
                   ? location.pathname.split("/")[2]
                   : undefined;
-                // For an existing occasion, FAB Add gift opens the same
-                // per-recipient saved-idea picker previously shown by inline
-                // Add gift buttons. Other routes still use the global editor.
-                if (type === "gift" && onEventDetail && eventId) {
-                  const event = data.events.find((value) => value.id === eventId);
-                  if (event && !event.people.length) {
-                    notify("Add a recipient to this occasion first.");
-                    openEditor({ type: "event", id: eventId });
-                  } else if (event) {
-                    setUi({ giftPickerEventId: eventId });
-                  }
-                  return;
-                }
+                // One gift form: save as an independent idea, or choose an
+                // occasion + recipient to create a planned gift directly.
                 openEditor({
-                  type: type as "idea" | "gift" | "event" | "person",
-                  eventId,
+                  type: type as "idea" | "event" | "person",
+                  eventId: type === "idea" ? eventId : undefined,
                   personId: type === "idea" ? personId : undefined,
                 });
               }}
