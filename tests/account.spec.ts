@@ -33,7 +33,7 @@ test("Settings opens sign-in and registration previews without Firebase", async 
   await page.getByRole("button", { name: "Show password" }).click();
   await expect(page.getByRole("button", { name: "Hide password" })).toBeVisible();
 
-  await page.getByRole("button", { name: "Create account", exact: true }).click();
+  await page.locator("[data-ph=account-switch-mode]").click();
   await expect(page).toHaveURL(/preview=sign-up/);
   await expect(page.getByRole("heading", { name: "Create your account" })).toBeVisible();
   await expect(page.getByRole("textbox", { name: "Name" })).toBeVisible();
@@ -41,12 +41,12 @@ test("Settings opens sign-in and registration previews without Firebase", async 
 
   await page.getByRole("textbox", { name: "Name" }).fill("Lina");
   await page.getByRole("textbox", { name: "Email" }).fill("test@example.com");
-  await page.getByRole("textbox", { name: "Password", exact: true }).fill("example-password");
-  await page.getByRole("textbox", { name: "Confirm password" }).fill("different-password");
-  await page.getByRole("button", { name: "Create account", exact: true }).click();
+  await page.getByLabel("Password", { exact: true }).fill("example-password");
+  await page.getByLabel("Confirm password").fill("different-password");
+  await page.locator("[data-ph=account-email-sign-up]").click();
   await expect(page.getByRole("alert")).toContainText("Passwords don't match");
   await page.getByRole("textbox", { name: "Confirm password" }).fill("example-password");
-  await page.getByRole("button", { name: "Create account", exact: true }).click();
+  await page.locator("[data-ph=account-email-sign-up]").click();
   await expect(page.getByRole("status").last()).toContainText("Preview only");
   await page.getByRole("link", { name: "Back to Settings" }).last().click();
   await expect(page).toHaveURL(/#\/settings$/);
