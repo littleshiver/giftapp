@@ -282,8 +282,8 @@ export function Home() {
           </div>
         </section>
       )}
-      <HomeInspiration />
       <HomeBudgets data={data}/>
+      <HomeInspiration />
     </>
   );
 }
