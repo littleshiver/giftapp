@@ -162,7 +162,7 @@ test("preview empty and filled mobile screenshots", async ({ page }, testInfo) =
   await expect(page.locator(".home-heading")).not.toContainText("Today");
   await expect(page.locator(".home-heading")).not.toContainText("November");
   await expect(page.locator(".home-wordmark")).toBeVisible();
-  await expect(page.locator(".home-budget-grid > .home-budget-card")).toHaveCount(2);
+  await expect(page.locator(".home-month-budget-card")).toHaveCount(1);
   await expect(page.locator(".home-inspiration")).toBeVisible();
   await expect(page.locator(".focus-gifts .status-tag")).toHaveCount(0);
   await expect(page.locator(".focus-gifts .gift-status-icon.is-bought").first()).toBeVisible();
@@ -730,4 +730,40 @@ test("Collapsed Home greeting also collapses its header spacing", async ({ page 
   await page.waitForTimeout(430);
   const after = await page.locator(".home-heading").evaluate(el => el.getBoundingClientRect().height);
   expect(before - after).toBeGreaterThan(35);
+});
+
+
+test("Home wave is a single curved shape, inspiration is above Budget A without overlaps", async ({ page }) => {
+  await seed(page);
+  for (const width of [320, 390, 430]) {
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto("/#/");
+    const geometry = await page.evaluate(() => {
+      const bounds = (s: string) => document.querySelector(s)!.getBoundingClientRect();
+      const label = bounds(".home-inspiration-copy");
+      const cards = bounds(".home-inspiration-visual");
+      const inspiration = bounds(".home-inspiration");
+      const budget = bounds(".home-budget-section");
+      const upcoming = bounds(".upcoming-track");
+      const featured = bounds(".focus-card");
+      return {
+        copyRight: label.right,
+        visualLeft: cards.left,
+        inspirationBottom: inspiration.bottom,
+        budgetTop: budget.top,
+        upcomingBottom: upcoming.bottom,
+        featuredTop: featured.top,
+        overflow: document.documentElement.scrollWidth - innerWidth
+      };
+    });
+    expect(geometry.overflow).toBeLessThanOrEqual(1);
+    expect(geometry.visualLeft).toBeGreaterThanOrEqual(geometry.copyRight - 2);
+    expect(geometry.budgetTop).toBeGreaterThan(geometry.inspirationBottom);
+    expect(geometry.featuredTop - geometry.upcomingBottom).toBeGreaterThanOrEqual(20);
+    const wave = await page.locator(".focus-wave path").getAttribute("d");
+    expect(wave).toContain("M0 48");
+    expect(wave).toContain("L400 456");
+    await expect(page.locator(".focus-bottom-wave")).toHaveCount(0);
+    await expect(page.locator(".home-inspiration .home-swipe-card")).toHaveCount(3);
+  }
 });

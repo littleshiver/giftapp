@@ -1,109 +1,99 @@
-import { useState, type CSSProperties } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowUpRight, ChevronDown } from "lucide-react";
+import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import type { AppData, Event } from "../domain/models";
-import { enabledEvents, eventBudget, giftsFor, monthSummary, total } from "../domain/selectors";
+import { bought, eventBudget, giftsFor, monthSummary, total } from "../domain/selectors";
 import { currency, today } from "../utils/format";
 
-export function HomeBudgets({ data, selected }: { data: AppData; selected?: Event }) {
-  const events = enabledEvents(data);
-  const [budgetEventId, setBudgetEventId] = useState("");
+/** Budget A: one monthly overview, optional by-occasion breakdown.
+ * The committed (all gifts) amount represents planned spend; only Bought
+ * contributes to the actually spent amount. Both are within the same budget. */
+export function HomeBudgets({ data }: { data: AppData; selected?: Event }) {
+  const [monthOffset, setMonthOffset] = useState(0);
   const [expanded, setExpanded] = useState(false);
-  const event = events.find((e) => e.id === budgetEventId) ?? selected ?? events[0];
-  const month = monthSummary(data, today().slice(0, 7));
-  const monthLabel = new Date().toLocaleDateString("en-US", { month: "long" });
-  const percentage = month.budget > 0 ? Math.round(month.committed / month.budget * 100) : 0;
-  const circleFill = month.budget > 0
-    ? Math.min(100, Math.max(0, month.committed / month.budget * 100))
+  const [year, baseMonth] = today().slice(0, 7).split("-").map(Number);
+  const date = new Date(year, baseMonth - 1 + monthOffset, 1);
+  const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+  const monthLabel = date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  const summary = monthSummary(data, monthKey);
+  const planned = summary.committed;
+  const spent = summary.bought;
+  const remainingPlanned = Math.max(0, planned - spent);
+  const percentage = summary.budget > 0 ? Math.round(planned / summary.budget * 100) : 0;
+  const spentPercent = summary.budget > 0 ? Math.min(100, spent / summary.budget * 100) : 0;
+  const upcomingPercent = summary.budget > 0
+    ? Math.min(100 - spentPercent, remainingPlanned / summary.budget * 100)
     : 0;
-  const ringStyle = { "--month-fill": circleFill + "%" } as CSSProperties;
-  const recipients = event?.people ?? [];
-  const shownRecipients = expanded ? recipients : recipients.slice(0, 3);
-
   return (
     <section className="home-budget-section" aria-labelledby="home-budgets-title">
       <h2 className="home-section-heading" id="home-budgets-title">Gift budgets</h2>
-      <div className="home-budget-grid">
-        <article className="home-budget-card home-budget-month">
-          <div className="home-budget-card-head">
+      <article className="home-month-budget-card">
+        <div className="home-month-budget-nav" aria-label="Budget month navigation">
+          <button type="button" aria-label="Previous month" onClick={() => setMonthOffset(n => n - 1)}>
+            <ChevronLeft size={19} aria-hidden="true"/>
+          </button>
+          <div className="home-month-budget-month">
+            <CalendarDays size={16} aria-hidden="true"/>
             <strong>{monthLabel}</strong>
-            <span>Occasions this month</span>
           </div>
-          <div className="home-budget-ring" style={ringStyle} role="img"
-            aria-label={month.budget > 0
-              ? percentage + "% of budget allocated for " + monthLabel + " gifts"
-              : "No occasion budgets set for " + monthLabel}>
-            <div className="home-budget-ring-center">
-              <strong>{month.budget > 0 ? percentage + "%" : "—"}</strong>
-              <small>planned</small>
-            </div>
+          <button type="button" aria-label="Next month" onClick={() => setMonthOffset(n => n + 1)}>
+            <ChevronRight size={19} aria-hidden="true"/>
+          </button>
+        </div>
+        <div className="home-month-budget-numbers">
+          <div>
+            <span className="home-month-budget-kicker">Planned gifts</span>
+            <strong className="home-month-budget-value">{currency(planned)}</strong>
           </div>
-          <div className="home-budget-total">
-            <strong>{currency(month.committed)}</strong>
-            <span>of {currency(month.budget)}</span>
+          <div className="home-month-budget-limit">
+            <span className="home-month-budget-kicker">Monthly budget</span>
+            <strong>{currency(summary.budget)}</strong>
           </div>
-          {month.committed > month.budget && (
-            <p className="home-budget-warning">{currency(month.committed - month.budget)} over budget</p>
-          )}
-        </article>
-        <article className="home-budget-card home-budget-event">
-          <div className="home-budget-card-head">
-            <strong>By occasion</strong>
-            <span>Gift budget per person</span>
+        </div>
+        <div className="home-month-budget-track" role="progressbar"
+          aria-label={monthLabel + " planned gift budget"}
+          aria-valuemin={0} aria-valuemax={Math.max(summary.budget, 1)}
+          aria-valuenow={Math.min(planned, Math.max(summary.budget,1))}>
+          <span className="home-month-budget-spent" style={{width:`${spentPercent}%`}}/>
+          <span className="home-month-budget-to-buy" style={{width:`${upcomingPercent}%`}}/>
+        </div>
+        <div className="home-month-budget-meta">
+          <span><i className="home-budget-dot home-budget-dot-spent"/>Spent {currency(spent)}</span>
+          <span><i className="home-budget-dot home-budget-dot-planned"/>To buy {currency(remainingPlanned)}</span>
+          {summary.budget > 0 && <span>{percentage}% planned</span>}
+        </div>
+        {planned > summary.budget && (
+          <p className="home-budget-warning" role="status">
+            {currency(planned - summary.budget)} over budget
+          </p>
+        )}
+        <button className="home-month-budget-toggle" type="button"
+          aria-expanded={expanded} aria-controls="home-month-occasions"
+          onClick={() => setExpanded(value => !value)}>
+          <span>By occasion <small>({summary.events.length})</small></span>
+          <ChevronDown size={18} className={expanded ? "is-expanded" : ""} aria-hidden="true"/>
+        </button>
+        {expanded && (
+          <div className="home-month-budget-occasions" id="home-month-occasions">
+            {summary.events.length ? summary.events.map(event => {
+              const gifts = giftsFor(data, event.id);
+              const plannedTotal = total(gifts);
+              const actual = bought(gifts);
+              return (
+                <Link to={`/events/${event.id}`} className="home-month-budget-occasion" key={event.id}>
+                  <span className="home-month-budget-occasion-name">
+                    <strong>{event.name}</strong>
+                    <small>{currency(actual)} spent · {currency(plannedTotal)} planned</small>
+                  </span>
+                  <span className="home-month-budget-occasion-limit">
+                    {currency(eventBudget(event))} <ChevronRight size={15} aria-hidden="true"/>
+                  </span>
+                </Link>
+              );
+            }) : <p className="home-budget-empty">No occasions planned for this month.</p>}
           </div>
-          {event ? (
-            <>
-              <div className="home-budget-picker">
-                <select aria-label="Budget occasion" value={event.id}
-                  onChange={(ev) => { setBudgetEventId(ev.target.value); setExpanded(false); }}>
-                  {events.map((item) => (
-                    <option key={item.id} value={item.id}>{item.name}</option>
-                  ))}
-                </select>
-                <ChevronDown size={15} aria-hidden="true"/>
-              </div>
-              <div className="home-budget-recipients">
-                {shownRecipients.length ? shownRecipients.map((id) => {
-                  const person = data.people.find((p) => p.id === id);
-                  const planned = total(giftsFor(data, event.id, id));
-                  const limit = event.budgets[id];
-                  const hasBudget = Number.isFinite(limit);
-                  const percent = hasBudget && limit > 0
-                    ? Math.min(100, planned / limit * 100)
-                    : planned > 0 ? 100 : 0;
-                  return (
-                    <div className="home-budget-recipient" key={id}>
-                      <div className="home-budget-recipient-label">
-                        <strong title={person?.name ?? "Recipient"}>{person?.name ?? "Recipient"}</strong>
-                        <span>{currency(planned)} / {hasBudget ? currency(limit) : "—"}</span>
-                      </div>
-                      <div className="home-budget-track" role="progressbar"
-                        aria-label={(person?.name ?? "Recipient") + " gift budget"}
-                        aria-valuemin={0}
-                        aria-valuemax={hasBudget ? Math.max(1, limit) : undefined}
-                        aria-valuenow={hasBudget ? Math.min(Math.max(0, planned), Math.max(1, limit)) : undefined}>
-                        <span style={{width: percent + "%"}} className={hasBudget && planned > limit ? "over" : ""}/>
-                      </div>
-                    </div>
-                  );
-                }) : (
-                  <p className="home-budget-empty">Add recipients to plan individual gifts.</p>
-                )}
-                {recipients.length > 3 && (
-                  <button data-ph="home-budget-show-more" type="button" className="home-budget-toggle"
-                    onClick={() => setExpanded((value) => !value)}>
-                    {expanded ? "Show fewer" : "Show " + (recipients.length - 3) + " more"}
-                  </button>
-                )}
-              </div>
-              <Link data-ph="home-budget-occasion" className="home-budget-event-link" to={"/events/" + event.id}>
-                <span>{currency(total(giftsFor(data, event.id)))} of {currency(eventBudget(event))}</span>
-                <ArrowUpRight size={15} aria-hidden="true"/>
-              </Link>
-            </>
-          ) : <p className="home-budget-empty">No occasions yet. Add one to plan gifts.</p>}
-        </article>
-      </div>
+        )}
+      </article>
     </section>
   );
 }
