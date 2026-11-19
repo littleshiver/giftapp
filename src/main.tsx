@@ -16,6 +16,7 @@ import "./styles/notifications.css";
 import "./styles/analytics.css";
 import "./styles/home-polish.css";
 import "./styles/home-iteration.css";
+import "./styles/home-approved-v4.css";
 import "./styles/auth.css";
 initAnalytics();
 createRoot(document.getElementById("root")!).render(
