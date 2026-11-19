@@ -2,14 +2,16 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import { PersonAvatar } from "./UI";
+import { OccasionArt } from "./OccasionArt";
 import type { AppData } from "../domain/models";
-import { bought, monthSummary, total } from "../domain/selectors";
-import { currency, today } from "../utils/format";
+import { bought, eventBudget, giftsFor, monthSummary, total } from "../domain/selectors";
+import { currency, fmtDate, today } from "../utils/format";
 
-/** One monthly budget at a glance, with recipient totals across every
- * occasion in that month (not an occasion-by-occasion accordion). */
+/** Monthly summary with independent views of the same underlying gifts:
+ * by recipient (the default) or by occasion. No data mutations. */
 export function HomeBudgets({ data }: { data: AppData }) {
   const [monthOffset, setMonthOffset] = useState(0);
+  const [view, setView] = useState<"people" | "occasions">("people");
   const [year, baseMonth] = today().slice(0, 7).split("-").map(Number);
   const date = new Date(year, baseMonth - 1 + monthOffset, 1);
   const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
@@ -33,13 +35,14 @@ export function HomeBudgets({ data }: { data: AppData }) {
   const peopleBudgets = [...personIds].map(id => {
     const person = data.people.find(p => p.id === id);
     const gifts = giftsForMonth.filter(g => g.personId === id);
-    const limitEvents = summary.events.filter(event =>
+    const occasions = summary.events.filter(event =>
+      event.people.includes(id) || gifts.some(g => g.eventId === event.id),
+    );
+    const limitEvents = occasions.filter(event =>
       event.people.includes(id) && Number.isFinite(event.budgets[id]),
     );
     return {
-      id,
-      person,
-      spent: bought(gifts),
+      id, person, occasions,
       planned: total(gifts),
       budget: limitEvents.reduce((sum, event) => sum + event.budgets[id], 0),
       hasBudget: limitEvents.length > 0,
@@ -69,8 +72,7 @@ export function HomeBudgets({ data }: { data: AppData }) {
             <strong className="home-month-budget-value">{currency(planned)}</strong>
           </div>
           <div className="home-month-budget-stat home-month-budget-limit">
-            <span className="home-month-budget-kicker">Monthly budget</span>
-            <strong>{currency(summary.budget)}</strong>
+            <strong>of {currency(summary.budget)}</strong>
           </div>
         </div>
         <div className="home-month-budget-track" role="progressbar"
@@ -91,22 +93,49 @@ export function HomeBudgets({ data }: { data: AppData }) {
           </p>
         )}
 
-        <div className="home-month-budget-people" aria-label="Budgets by person">
-          <h3>By person <small>({peopleBudgets.length})</small></h3>
-          {peopleBudgets.length ? peopleBudgets.map(item => (
-            <Link className="home-month-budget-person" key={item.id} to={`/people/${item.id}`}
-              aria-label={`${item.person?.name || "Recipient"}: ${currency(item.planned)} planned`}>
-              <PersonAvatar person={item.person} className="home-month-budget-avatar"/>
-              <span className="home-month-budget-person-name">
-                <strong>{item.person?.name || "Recipient"}</strong>
-                <small>{currency(item.spent)} spent · {currency(item.planned-item.spent)} to buy</small>
-              </span>
-              <span className="home-month-budget-person-total">
-                <strong>{currency(item.planned)}</strong>
-                <small>{item.hasBudget ? "of " + currency(item.budget) : "No limit set"}</small>
-              </span>
-            </Link>
-          )) : <p className="home-budget-empty">No gift budgets planned for this month.</p>}
+        <div className="home-month-budget-tabs" role="group" aria-label="Budget breakdown">
+          <button type="button" className={view === "people" ? "is-active" : ""}
+            aria-pressed={view === "people"} onClick={() => setView("people")}>
+            By people
+          </button>
+          <button type="button" className={view === "occasions" ? "is-active" : ""}
+            aria-pressed={view === "occasions"} onClick={() => setView("occasions")}>
+            By occasion
+          </button>
+        </div>
+        <div className="home-month-budget-people" aria-live="polite">
+          {view === "people" ? (
+            peopleBudgets.length ? peopleBudgets.map(item => (
+              <Link className="home-month-budget-person" key={item.id} to={`/people/${item.id}`}
+                aria-label={`${item.person?.name || "Recipient"}: ${currency(item.planned)} planned`}>
+                <PersonAvatar person={item.person} className="home-month-budget-avatar"/>
+                <span className="home-month-budget-person-name">
+                  <strong>{item.person?.name || "Recipient"}</strong>
+                  <small>{item.occasions.map(event => event.name).join(" · ") || "No occasion"}</small>
+                </span>
+                <span className="home-month-budget-person-total">
+                  <strong>{currency(item.planned)}</strong>
+                  <small>{item.hasBudget ? "of " + currency(item.budget) : "No limit set"}</small>
+                </span>
+              </Link>
+            )) : <p className="home-budget-empty">No gift budgets planned for this month.</p>
+          ) : (
+            summary.events.length ? summary.events.map(event => (
+              <Link className="home-month-budget-person home-month-budget-occasion" key={event.id}
+                to={`/events/${event.id}`}
+                aria-label={`${event.name}: ${currency(total(giftsFor(data, event.id)))} planned`}>
+                <span className="home-month-budget-event-art"><OccasionArt event={event}/></span>
+                <span className="home-month-budget-person-name">
+                  <strong>{event.name}</strong>
+                  <small>{fmtDate(event.date)}</small>
+                </span>
+                <span className="home-month-budget-person-total">
+                  <strong>{currency(total(giftsFor(data, event.id)))}</strong>
+                  <small>of {currency(eventBudget(event))}</small>
+                </span>
+              </Link>
+            )) : <p className="home-budget-empty">No occasions planned for this month.</p>
+          )}
         </div>
       </article>
     </section>
