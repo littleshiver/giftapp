@@ -39,12 +39,13 @@ export async function signInWithEmail(email: string, password: string) {
   await signInWithEmailAndPassword(auth, email.trim(), password);
 }
 
-export async function signUpWithEmail(email: string, password: string) {
+export async function signUpWithEmail(email: string, password: string, name = "") {
   const auth = await getFirebaseAuth(),
-    { createUserWithEmailAndPassword, sendEmailVerification } = await import(
+    { createUserWithEmailAndPassword, sendEmailVerification, updateProfile } = await import(
       "firebase/auth"
     ),
     result = await createUserWithEmailAndPassword(auth, email.trim(), password);
+  if (name.trim()) await updateProfile(result.user, { displayName: name.trim() });
   // Verification is best-effort; an unverified account can still use the app.
   sendEmailVerification(result.user).catch(() => undefined);
 }
