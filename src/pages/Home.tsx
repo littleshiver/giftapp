@@ -283,7 +283,7 @@ export function Home() {
         </section>
       )}
       <HomeInspiration />
-      <HomeBudgets data={data} selected={selected}/>
+      <HomeBudgets data={data}/>
     </>
   );
 }
