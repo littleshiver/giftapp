@@ -14,7 +14,7 @@ import { birthdayFromParts } from "../domain/birthdays";
 import { Button, Field, Sheet } from "./Primitives";
 import { Photo } from "./UI";
 export function EditorSheet() {
-  const { data, editor, commit, closeEditor, notify, openEditor } = useApp(),
+  const { data, editor, commit, closeEditor, notify, openEditor, setUi } = useApp(),
     navigate = useNavigate(),
     [busy, setBusy] = useState(false),
     [saveError, setSaveError] = useState(""),
@@ -288,7 +288,7 @@ export function EditorSheet() {
       >
         {!lockedBirthday ? (
           <Field
-            label={type === "person" ? "Name" : type === "event" ? "Occasion name" : type === "gift" ? "Gift name" : "Idea name"}
+            label={type === "person" ? "Name" : type === "event" ? "Occasion name" : (type === "gift" || newUnifiedGift) ? "Gift name" : "Idea name"}
           >
             <input
               className="control" name="name" required
@@ -504,7 +504,7 @@ export function EditorSheet() {
             )}
             <div className="form-grid">
               <Field
-                label={type === "idea" ? "Estimated price (₽)" : "Price (₽)"}
+                label={type === "idea" && !saveAsGift ? "Estimated price (₽)" : "Price (₽)"}
               >
                 <input
                   className="control"
@@ -547,7 +547,7 @@ export function EditorSheet() {
                     <ImageIcon size={16} aria-hidden="true" />
                     {source?.image || chosenPhotoUrl ? "Change photo" : "Choose photo"}
                     <input
-                      aria-label={type === "gift" ? "Gift photo" : "Idea photo"}
+                      aria-label={saveAsGift || newUnifiedGift ? "Gift photo" : "Idea photo"}
                       name="imageFile"
                       type="file"
                       accept="image/*"
@@ -627,10 +627,22 @@ export function EditorSheet() {
               </Button>
             )}
             {saveAsGift && (
-              <p className="section-note">
-                An occasion gift is tracked as To buy or Bought.
-                Save to Ideas instead to keep an unassigned idea for later.
-              </p>
+              <>
+                <p className="section-note">
+                  An occasion gift is tracked as To buy or Bought.
+                  Save to Ideas instead to keep an unassigned idea for later.
+                </p>
+                {newUnifiedGift && eventId && (
+                  <button type="button" className="ghostbutton button-full"
+                    data-ph="unified-gift-saved-ideas"
+                    onClick={() => {
+                      closeEditor();
+                      setUi({ giftPickerEventId: eventId });
+                    }}>
+                    Choose from saved ideas
+                  </button>
+                )}
+              </>
             )}
           </>
         )}
