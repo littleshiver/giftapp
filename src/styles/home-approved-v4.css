@@ -1,28 +1,105 @@
-/* Home v4 — one continuous wavy surface, not two layers.
- * Keep the shaped SVG authored in Home.tsx; the lower edge is in that SAME
- * path as the upper wave. No white footer mask or secondary shadow. */
-.app-main-home .hscroll.upcoming-track {
-  padding-top: 11px;
-  padding-bottom: 19px;
-  margin-top: -3px;
-  margin-bottom: -8px;
+/* Home — approved composition and polished behavior (2026-11).
+ * Overrides legacy Home-only rules; keeps shared styles on other routes.
+ * No artificial viewport corner radius or gradient overflow. */
+.app-shell {
+  border-radius: 0;
+  box-shadow: none;
 }
-.app-main-home > section:first-of-type .section-top {
-  margin-bottom: 0;
+@media (min-width: 600px) {
+  .app-shell {
+    margin-top: 0;
+    margin-bottom: 0;
+    min-height: 100dvh;
+  }
+  .app-main { min-height: 100dvh; }
+}
+.app-main.app-main-home {
+  overflow-x: clip;
+  background:
+    radial-gradient(ellipse 90% 300px at 10% 0%,
+      rgba(255,225,211,.33) 0%, transparent 88%) no-repeat,
+    var(--bg);
+  background-size: 100% 330px, auto;
+}
+.app-main-home .home-heading::before {
+  /* The old oversized pseudo-element painted outside the page. */
+  content: none;
+  display: none;
+}
+.app-main-home .home-heading {
+  transition:
+    margin-bottom 660ms cubic-bezier(.22,.75,.28,1),
+    padding-bottom 660ms cubic-bezier(.22,.75,.28,1);
+}
+.app-main-home .home-greeting-wrap {
+  display: grid;
+  grid-template-rows: 1fr;
+  min-height: 0;
+  opacity: 1;
+  transition:
+    grid-template-rows 660ms cubic-bezier(.22,.75,.28,1),
+    opacity 580ms ease;
+}
+.app-main-home .home-greeting-wrap.is-dismissed {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  pointer-events: none;
+}
+.app-main-home .home-heading .home-greeting,
+.app-main-home .home-heading .home-greeting.is-dismissed {
+  min-height: 0;
+  max-height: none;
+  line-height: 1.15;
+  overflow: hidden;
+  transition:
+    opacity 570ms ease,
+    transform 660ms cubic-bezier(.22,.75,.28,1);
+}
+.app-main-home .home-heading .home-greeting.is-dismissed {
+  opacity: 0;
+  transform: translateY(-7px);
+  margin: 0;
+  padding: 0;
+}
+.app-main-home .home-greeting:not(.is-dismissed) .greeting-wave {
+  display: inline-block;
+  transform-origin: 70% 80%;
+  animation: givvy-hello-gentle-loop 7.2s ease-in-out infinite both;
+}
+@keyframes givvy-hello-gentle-loop {
+  0%, 6%, 35%, 100% { transform: rotate(-9deg); }
+  11% { transform: rotate(16deg); }
+  16% { transform: rotate(-12deg); }
+  21% { transform: rotate(15deg); }
+  27% { transform: rotate(-9deg); }
+}
+
+/* Compact Coming up heading-to-card gap without clipping carousel shadows.
+   The color feature moves closer to the carousel without touching it. */
+.app-main-home > section:first-of-type .section-top { margin-bottom: 0; }
+.app-main-home .hscroll.upcoming-track {
+  position: relative;
+  z-index: 2;
+  padding-top: 6px;
+  padding-bottom: 23px;
+  margin-top: 0;
+  margin-bottom: -19px;
 }
 .app-main-home .home-featured-section {
-  margin-top: 35px;
+  position: relative;
+  z-index: 1;
+  margin-top: 23px;
   overflow: visible;
   box-shadow: none;
 }
 .app-main-home .home-featured-section .focus-card {
   position: relative;
-  overflow: visible;
+  isolation: isolate;
   margin-top: 0;
   padding-bottom: 17px;
+  overflow: visible;
   background: transparent;
   box-shadow: none;
-  isolation: isolate;
 }
 .app-main-home .focus-card .focus-wave {
   display: block;
@@ -33,74 +110,127 @@
   height: calc(100% + 22px);
   overflow: visible;
   border-radius: 0;
-  filter: drop-shadow(0 6px 6px rgba(41,48,53,.085));
+  /* One broad, subtle shadow following the existing SVG curve. */
+  filter: drop-shadow(0 10px 15px rgba(37,45,52,.055));
   pointer-events: none;
 }
 .app-main-home .focus-card .focus-bottom-wave { display: none; }
-.app-main-home .focus-head { position: relative; z-index: 1; }
-.app-main-home .focus-gifts { position: relative; z-index: 1; padding-bottom: 49px; }
+.app-main-home .focus-head,
+.app-main-home .focus-gifts { position: relative; z-index: 1; }
+.app-main-home .focus-gifts { padding-bottom: 49px; }
 
-/* Inspiration lives openly on the page, always above the budget card.
- * Copy has its own column; motion never paints over it. */
+/* Inspiration stays on the plain background.
+   Its ENTIRE surface is one semantic link and has a balanced CTA. */
 .app-main-home .home-inspiration {
+  display: block;
   position: relative;
   z-index: 1;
+  min-height: 187px;
+  margin: 52px 0 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+}
+.app-main-home .home-inspiration-taparea {
+  position: relative;
+  width: 100%;
   display: grid;
   grid-template-columns: minmax(0,1.12fr) minmax(140px,.88fr);
   gap: 7px;
   align-items: center;
-  min-height: 187px;
-  margin: 55px 0 0;
-  padding: 8px 0 12px;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-  overflow: visible;
+  min-height: 185px;
+  border-radius: 18px;
+  color: var(--ink);
+  text-decoration: none;
+}
+.app-main-home .home-inspiration-taparea:focus-visible {
+  outline: 3px solid #9276c8;
+  outline-offset: 4px;
 }
 .app-main-home .home-inspiration-copy {
-  z-index: 1;
+  position: relative;
+  z-index: 2;
   min-width: 0;
+}
+.app-main-home .home-inspiration-copy h2 {
+  font-size: 21px;
+  line-height: 1.15;
+}
+.app-main-home .home-inspiration-copy p {
+  margin-top: 9px;
+  max-width: 210px;
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+.app-main-home .home-inspiration-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: fit-content;
+  min-height: 39px;
+  margin-top: 15px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: #24282e;
+  color: white;
+  font-size: 12px;
+  font-weight: 840;
+  white-space: nowrap;
+  transition: background .2s ease, transform .2s ease;
+}
+.app-main-home .home-inspiration-taparea:hover .home-inspiration-cta {
+  background: #3a4149;
+}
+.app-main-home .home-inspiration-taparea:active .home-inspiration-cta {
+  transform: scale(.98);
 }
 .app-main-home .home-inspiration-visual {
   position: relative;
-  z-index: 0;
-  min-height: 173px;
-  height: 173px;
+  z-index: 1;
   width: 100%;
-  isolation: isolate;
+  height: 173px;
+  min-height: 173px;
   pointer-events: none;
+  isolation: isolate;
 }
 .app-main-home .home-swipe-card {
-  position: absolute;
   box-sizing: border-box;
+  position: absolute;
   display: flex;
   flex-direction: column;
   width: 105px;
   height: 136px;
   padding: 6px 6px 0;
-  background: white;
   border-radius: 15px;
+  background: white;
+  box-shadow: 0 8px 16px rgba(34,40,45,.14), 0 2px 5px rgba(34,40,45,.04);
   overflow: hidden;
   transform-origin: 50% 85%;
-  box-shadow: 0 8px 16px rgba(34,40,45,.14), 0 2px 5px rgba(34,40,45,.04);
 }
-.app-main-home .home-swipe-card .home-swipe-image {
+.app-main-home .home-swipe-image {
+  flex: 1 1 auto;
   position: relative;
   min-height: 0;
-  flex: 1 1 auto;
   overflow: hidden;
   border-radius: 10px;
 }
-.app-main-home .home-swipe-card img {
+.app-main-home .home-swipe-image img {
   display: block;
-  width: 100%;
   height: 100%;
+  width: 100%;
   max-height: none;
   object-fit: cover;
   border-radius: 10px;
 }
-.app-main-home .home-swipe-caption { display: block; flex: 0 0 19px; }
+.app-main-home .home-swipe-caption {
+  display: block;
+  flex: 0 0 19px;
+  background: white;
+}
 .app-main-home .home-swipe-back { z-index: 0; }
 .app-main-home .home-swipe-back-one { left: 0; top: 24px; transform: rotate(-13deg); }
 .app-main-home .home-swipe-back-two { right: 0; top: 19px; transform: rotate(13deg); }
@@ -111,25 +241,24 @@
   right: auto;
   transform: translateX(-50%) rotate(0deg);
 }
-.app-main-home .home-swipe-overlay {
+.app-main-home .home-swipe-image .home-swipe-overlay {
   position: absolute;
   z-index: 3;
   inset: 0;
-  width: auto;
-  height: auto;
   display: grid;
   place-items: center;
+  width: 100%;
+  height: 100%;
   border: 0;
-  border-radius: inherit;
-  opacity: 0;
+  border-radius: 10px;
   box-shadow: none;
+  opacity: 0;
   color: #fff;
   pointer-events: none;
 }
 .app-main-home .home-swipe-like { background: rgba(210,65,88,.76); }
 .app-main-home .home-swipe-dislike { background: rgba(72,82,91,.73); }
 .app-main-home .home-swipe-icon { display: none; }
-/* One snapshot — right/heart, reset, left/X, reset; no arrows. */
 .app-main-home .home-inspiration-visual.is-played .home-swipe-front {
   animation: givvy-inspiration-tilt 9s ease-in-out infinite both;
 }
@@ -153,15 +282,19 @@
   58%, 68% { opacity: 1; }
 }
 
-/* Approved Budget A — one readable card, month picker and accordion. */
-.app-main-home .home-budget-section { position: relative; z-index: 1; margin: 24px 0 0; }
+/* Budget A — one glanceable month; always-on, non-accordion per-person list. */
+.app-main-home .home-budget-section {
+  position: relative;
+  z-index: 1;
+  margin: 26px 0 0;
+}
 .home-month-budget-card {
   width: 100%;
   min-width: 0;
-  padding: 17px 17px 9px;
+  padding: 17px 17px 15px;
   border: 1px solid rgba(52,59,67,.055);
   border-radius: 23px;
-  background: #fff;
+  background: white;
   box-shadow: 0 9px 25px rgba(36,44,50,.055), 0 2px 7px rgba(36,44,50,.025);
 }
 .home-month-budget-nav {
@@ -169,7 +302,7 @@
   grid-template-columns: 39px minmax(0,1fr) 39px;
   align-items: center;
   gap: 9px;
-  margin-bottom: 20px;
+  margin-bottom: 19px;
 }
 .home-month-budget-nav > button {
   display: grid;
@@ -183,22 +316,60 @@
   color: #313940;
   cursor: pointer;
 }
-.home-month-budget-month { display: flex; gap: 7px; justify-content: center; align-items: center; text-align: center; min-width: 0; }
-.home-month-budget-month strong { font-size: 14px; font-weight: 850; }
-.home-month-budget-month svg { color: #67747f; flex: 0 0 auto; }
-.home-month-budget-numbers {
+.home-month-budget-month {
   display: flex;
+  gap: 7px;
+  justify-content: center;
+  align-items: center;
+  min-width: 0;
+  height: 20px;
+  text-align: center;
+}
+.home-month-budget-month strong {
+  font-size: 14px;
+  font-weight: 850;
+  line-height: 16px;
+}
+.home-month-budget-month svg {
+  width: 16px;
+  height: 16px;
+  color: #67747f;
+}
+.home-month-budget-numbers {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  gap: 14px;
   align-items: end;
-  justify-content: space-between;
-  gap: 12px;
+  min-width: 0;
   margin-bottom: 14px;
+}
+.home-month-budget-numbers > .home-month-budget-stat {
+  display: grid;
+  grid-template-rows: 20px 35px;
+  align-items: end;
   min-width: 0;
 }
-.home-month-budget-numbers > div { display: grid; gap: 3px; min-width: 0; }
-.home-month-budget-kicker { color: #66717b; font-size: 11px; font-weight: 740; }
-.home-month-budget-value { color: #20252c; font-size: clamp(23px,6.6vw,30px); font-weight: 910; letter-spacing: -.7px; white-space: nowrap; }
+.home-month-budget-kicker {
+  color: #66717b;
+  font-size: 11px;
+  font-weight: 740;
+  line-height: 16px;
+  white-space: nowrap;
+}
+.home-month-budget-stat > strong {
+  display: block;
+  align-self: end;
+  line-height: 1;
+  white-space: nowrap;
+}
+.home-month-budget-value {
+  color: #20252c;
+  font-size: clamp(23px,6.6vw,30px);
+  font-weight: 910;
+  letter-spacing: -.7px;
+}
 .home-month-budget-limit { text-align: right; }
-.home-month-budget-limit strong { font-size: 15px; font-weight: 860; white-space: nowrap; }
+.home-month-budget-limit strong { font-size: 17px; font-weight: 860; }
 .home-month-budget-track {
   display: flex;
   overflow: hidden;
@@ -215,67 +386,120 @@
   gap: 9px 15px;
   flex-wrap: wrap;
   align-items: center;
-  padding: 10px 0 13px;
+  padding: 10px 0 16px;
   color: #616c76;
   font-size: 10.5px;
   font-weight: 760;
 }
 .home-month-budget-meta > span { display: inline-flex; align-items: center; gap: 5px; }
 .home-month-budget-meta > span:last-child { margin-left: auto; }
-.home-budget-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; flex: 0 0 auto; }
+.home-budget-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
 .home-budget-dot-spent { background: #9276c8; }
 .home-budget-dot-planned { background: #d5b8e9; }
-.home-month-budget-toggle {
-  display: flex;
-  width: 100%;
-  min-height: 49px;
-  justify-content: space-between;
-  align-items: center;
-  padding: 11px 3px 8px;
-  border: 0;
-  border-top: 1px solid #e9edf0;
-  background: transparent;
+.home-month-budget-people h3 {
+  margin: 2px 0 12px;
   color: #252c33;
-  font: inherit;
   font-size: 13px;
   font-weight: 850;
-  cursor: pointer;
 }
-.home-month-budget-toggle small { color: #7b858d; font-size: 11px; font-weight: 700; }
-.home-month-budget-toggle svg { transition: transform .2s ease; }
-.home-month-budget-toggle svg.is-expanded { transform: rotate(180deg); }
-.home-month-budget-occasions { display: grid; gap: 7px; padding: 0 0 9px; }
-.home-month-budget-occasion {
+.home-month-budget-people h3 small {
+  margin-left: 3px;
+  color: #7b858d;
+  font-size: 11px;
+  font-weight: 700;
+}
+.home-month-budget-person {
   display: flex;
   align-items: center;
   gap: 10px;
-  justify-content: space-between;
-  text-decoration: none;
-  color: #232a32;
-  border-radius: 12px;
-  background: #f6f7f8;
-  padding: 12px;
   min-width: 0;
+  padding: 11px 10px;
+  margin-bottom: 7px;
+  border-radius: 14px;
+  background: #f6f7f8;
+  color: #222b31;
+  text-decoration: none;
 }
-.home-month-budget-occasion-name { display: grid; gap: 5px; min-width: 0; }
-.home-month-budget-occasion-name strong { font-size: 12px; font-weight: 850; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.home-month-budget-occasion-name small { font-size: 10px; color: #63717b; }
-.home-month-budget-occasion-limit { display: inline-flex; gap: 3px; align-items: center; white-space: nowrap; font-size: 11px; font-weight: 810; }
-.home-month-budget-card .home-budget-warning { margin: -2px 0 12px; color: #b63e53; font-size: 11px; }
-.home-month-budget-card button:focus-visible, .home-month-budget-card a:focus-visible {
+.home-month-budget-person:last-child { margin-bottom: 0; }
+.home-month-budget-avatar {
+  display: grid;
+  flex: 0 0 37px;
+  width: 37px;
+  height: 37px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+.home-month-budget-avatar img, .home-month-budget-avatar .demo-person-sprite {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.home-month-budget-person-name {
+  display: grid;
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 4px;
+}
+.home-month-budget-person-name strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 12px;
+  font-weight: 860;
+  white-space: nowrap;
+}
+.home-month-budget-person-name small {
+  color: #68747d;
+  font-size: 10px;
+  line-height: 1.28;
+}
+.home-month-budget-person-total {
+  display: grid;
+  flex: 0 0 auto;
+  gap: 4px;
+  justify-items: end;
+  min-width: 65px;
+  text-align: right;
+  white-space: nowrap;
+}
+.home-month-budget-person-total strong { font-size: 12px; font-weight: 880; }
+.home-month-budget-person-total small { font-size: 10px; color: #68747d; }
+.home-month-budget-card .home-budget-warning {
+  margin: -2px 0 12px;
+  color: #b63e53;
+  font-size: 11px;
+}
+.home-month-budget-card button:focus-visible,
+.home-month-budget-card a:focus-visible {
   outline: 3px solid #9581bc;
   outline-offset: 3px;
 }
 @media (max-width: 360px) {
-  .app-main-home .home-inspiration { grid-template-columns: minmax(0,1fr) minmax(125px,.86fr); }
+  .app-main-home .home-inspiration-taparea {
+    grid-template-columns: minmax(0,1fr) minmax(124px,.87fr);
+  }
   .app-main-home .home-swipe-card { width: 88px; height: 122px; }
-  .home-month-budget-card { padding-inline: 13px; }
+  .app-main-home .home-inspiration-copy h2 { font-size: 19px; }
+  .app-main-home .home-inspiration-cta { padding-inline: 10px; font-size: 11px; }
+  .home-month-budget-card { padding-inline: 12px; }
   .home-month-budget-value { font-size: 23px; }
-  .home-month-budget-limit strong { font-size: 13px; }
+  .home-month-budget-limit strong { font-size: 14px; }
+  .home-month-budget-person { gap: 7px; padding-inline: 8px; }
+  .home-month-budget-avatar { width: 32px; height: 32px; flex-basis: 32px; }
+  .home-month-budget-person-name small { font-size: 9.5px; }
 }
 @media (prefers-reduced-motion: reduce) {
+  .app-main-home .home-heading,
+  .app-main-home .home-greeting-wrap,
+  .app-main-home .home-heading .home-greeting { transition: none; }
+  .app-main-home .home-greeting:not(.is-dismissed) .greeting-wave { animation: none; }
   .app-main-home .home-inspiration-visual.is-played .home-swipe-front,
   .app-main-home .home-inspiration-visual.is-played .home-swipe-overlay { animation: none; }
-  .home-month-budget-track > span,
-  .home-month-budget-toggle svg { transition: none; }
+  .home-month-budget-track > span, .home-inspiration-cta { transition: none; }
 }

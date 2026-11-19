@@ -727,7 +727,7 @@ test("Collapsed Home greeting also collapses its header spacing", async ({ page 
   const before = await page.locator(".home-heading").evaluate(el => el.getBoundingClientRect().height);
   await page.mouse.wheel(0, 450);
   await expect(page.locator(".home-greeting")).toHaveClass(/is-dismissed/);
-  await page.waitForTimeout(430);
+  await page.waitForTimeout(760);
   const after = await page.locator(".home-heading").evaluate(el => el.getBoundingClientRect().height);
   expect(before - after).toBeGreaterThan(35);
 });
@@ -759,11 +759,69 @@ test("Home wave is a single curved shape, inspiration is above Budget A without 
     expect(geometry.overflow).toBeLessThanOrEqual(1);
     expect(geometry.visualLeft).toBeGreaterThanOrEqual(geometry.copyRight - 2);
     expect(geometry.budgetTop).toBeGreaterThan(geometry.inspirationBottom);
-    expect(geometry.featuredTop - geometry.upcomingBottom).toBeGreaterThanOrEqual(20);
+    // The featured wave is now deliberately closer to Coming up.
+    expect(geometry.featuredTop - geometry.upcomingBottom).toBeGreaterThanOrEqual(-3);
+    expect(geometry.featuredTop - geometry.upcomingBottom).toBeLessThanOrEqual(24);
     const wave = await page.locator(".focus-wave path").getAttribute("d");
     expect(wave).toContain("M0 48");
     expect(wave).toContain("L400 456");
     await expect(page.locator(".focus-bottom-wave")).toHaveCount(0);
     await expect(page.locator(".home-inspiration .home-swipe-card")).toHaveCount(3);
   }
+});
+
+
+test("Home outside corners and overshooting header gradient are removed at mobile/desktop widths", async ({ page }) => {
+  await seed(page);
+  for (const width of [320, 390, 430, 700]) {
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto("/#/");
+    const styles = await page.evaluate(() => ({
+      radius: getComputedStyle(document.querySelector(".app-shell")!).borderTopLeftRadius,
+      pseudo: getComputedStyle(document.querySelector(".home-heading")!, "::before").content,
+      bg: getComputedStyle(document.querySelector(".app-main-home")!).backgroundImage,
+      overflow: document.documentElement.scrollWidth - window.innerWidth,
+    }));
+    expect(styles.radius).toBe("0px");
+    expect(styles.pseudo).toBe("none");
+    expect(styles.bg).toMatch(/radial-gradient/);
+    expect(styles.overflow).toBeLessThanOrEqual(1);
+  }
+});
+
+test("Welcome repeats a gentle wave and fades while its height collapses on user scroll", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await seed(page);
+  await page.goto("/#/");
+  const hand = page.locator(".home-greeting .greeting-wave");
+  await expect(hand).toHaveCSS("animation-iteration-count", "infinite");
+  const before = await page.locator(".home-greeting-wrap").evaluate(el => el.getBoundingClientRect().height);
+  await page.mouse.wheel(0, 470);
+  await expect(page.locator(".home-greeting-wrap")).toHaveClass(/is-dismissed/);
+  const middle = await page.locator(".home-greeting-wrap").evaluate(el => el.getBoundingClientRect().height);
+  // Collapsing is animated, not a one-frame display:none cut.
+  expect(middle).toBeGreaterThan(0);
+  await page.waitForTimeout(760);
+  const after = await page.locator(".home-greeting-wrap").evaluate(el => el.getBoundingClientRect().height);
+  expect(before - after).toBeGreaterThan(35);
+  expect(after).toBeLessThan(1);
+});
+
+test("Budget numbers share a baseline and month icon is vertically centered", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await seed(page);
+  await page.goto("/#/");
+  const alignment = await page.evaluate(() => {
+    const rect = (s:string) => document.querySelector(s)!.getBoundingClientRect();
+    const left = rect(".home-month-budget-value");
+    const right = rect(".home-month-budget-limit strong");
+    const icon = rect(".home-month-budget-month svg");
+    const month = rect(".home-month-budget-month strong");
+    return {
+      numberBottomDiff: Math.abs(left.bottom-right.bottom),
+      monthCenterDiff: Math.abs((month.top+month.bottom)/2-(icon.top+icon.bottom)/2),
+    };
+  });
+  expect(alignment.numberBottomDiff).toBeLessThanOrEqual(2);
+  expect(alignment.monthCenterDiff).toBeLessThanOrEqual(2);
 });
