@@ -854,7 +854,7 @@ test("Monthly budget A switches months, expands occasion breakdown and preserves
   await expect(page.locator(".focus-head h2")).toHaveText("Anna's birthday");
   expect(await readData(page)).toEqual(saved);
   await page.locator(".home-month-budget-occasion").first().click();
-  await expect(page).toHaveURL(/#\\/events\\/e2$/);
+  await expect(page).toHaveURL(new RegExp("#/events/e2$"));
 });
 
 test("Home swipe teaching animation loops gently and respects reduced motion", async ({ page }) => {
