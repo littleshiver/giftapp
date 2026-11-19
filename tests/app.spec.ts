@@ -1406,3 +1406,55 @@ test("Single-recipient occasions show person only beside gifts, not in overview"
     await expect(page.locator(".event-single-gifts .event-person-gifts-identity")).toHaveCount(1);
   }
 });
+
+
+test("Profile and event covers are edge-to-edge rectangles; event pictures fit the 2:1 hero", async ({ page }) => {
+  const data = fixture();
+  data.events[0].image = "";
+  data.events[1].image = "";
+  data.events[2].image = "";
+  data.events[2].name = "Housewarming party";
+  await seed(page, data);
+  for (const width of [320, 390, 430]) {
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto("/#/people/p1");
+    const profile = await page.locator(".person-profile-cover").evaluate(el => {
+      const rect = el.getBoundingClientRect();
+      const shell = document.querySelector(".app-shell")!.getBoundingClientRect();
+      return {
+        radius: getComputedStyle(el).borderTopLeftRadius,
+        left: rect.left - shell.left,
+        width: rect.width - shell.width,
+      };
+    });
+    expect(profile.radius).toBe("0px");
+    expect(Math.abs(profile.left)).toBeLessThan(1);
+    expect(Math.abs(profile.width)).toBeLessThan(1);
+    for (const [id, kind] of [["e1","birthday"],["e2","winter"],["e3","celebration"]]) {
+      await page.goto(`/#/events/${id}`);
+      const cover = page.locator(".event-hero-image");
+      await expect(cover).toHaveAttribute("data-cover-kind", kind);
+      await expect.poll(() => cover.evaluate((el) => (el as HTMLImageElement).naturalWidth))
+        .toBeGreaterThanOrEqual(1500);
+      const geometry = await page.locator(".event-hero").evaluate(el => {
+        const photo = el.querySelector(".event-hero-image") as HTMLImageElement;
+        const rect = el.getBoundingClientRect();
+        const shell = document.querySelector(".app-shell")!.getBoundingClientRect();
+        return {
+          ratio: rect.width / rect.height,
+          radius: getComputedStyle(el).borderTopLeftRadius,
+          left: rect.left - shell.left,
+          width: rect.width - shell.width,
+          fit: getComputedStyle(photo).objectFit,
+          naturalRatio: photo.naturalWidth / photo.naturalHeight,
+        };
+      });
+      expect(geometry.radius).toBe("0px");
+      expect(geometry.ratio).toBeCloseTo(2, 1);
+      expect(geometry.naturalRatio).toBeCloseTo(2, 1);
+      expect(geometry.fit).toBe("cover");
+      expect(Math.abs(geometry.left)).toBeLessThan(1);
+      expect(Math.abs(geometry.width)).toBeLessThan(1);
+    }
+  }
+});
