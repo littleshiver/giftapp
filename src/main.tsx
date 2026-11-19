@@ -15,6 +15,7 @@ import "./styles/ideas-refresh.css";
 import "./styles/notifications.css";
 import "./styles/analytics.css";
 import "./styles/home-polish.css";
+import "./styles/home-iteration.css";
 import "./styles/auth.css";
 initAnalytics();
 createRoot(document.getElementById("root")!).render(
