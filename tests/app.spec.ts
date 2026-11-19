@@ -1460,3 +1460,35 @@ test("Profile and event covers are edge-to-edge rectangles; event pictures fit t
     }
   }
 });
+
+
+test("One FAB gift sheet saves either an independent idea or an occasion gift",async ({page})=>{
+  await seed(page);
+  await page.goto("/#/ideas");
+  await page.getByRole("button",{name:"Saved",exact:true}).click();
+  await page.getByRole("button",{name:"Create",exact:true}).click();
+  await expect(page.locator(".fab-menu button")).toHaveCount(3);
+  await page.getByRole("button",{name:"Add gift",exact:true}).click();
+  await expect(page.getByRole("dialog",{name:"Add gift"})).toBeVisible();
+  const saveTo=page.getByRole("combobox",{name:"Save to"});
+  await expect(saveTo).toHaveValue("");
+  await page.getByLabel("Gift name",{exact:true}).fill("Bamboo notebook");
+  await page.getByRole("button",{name:"Save idea",exact:true}).click();
+  let current=await readData(page);
+  expect(current.ideas.some(i=>i.name==="Bamboo notebook")).toBe(true);
+  expect(current.gifts.some(g=>g.name==="Bamboo notebook")).toBe(false);
+
+  await page.getByRole("button",{name:"Create",exact:true}).click();
+  await page.getByRole("button",{name:"Add gift",exact:true}).click();
+  await page.getByRole("combobox",{name:"Save to"}).selectOption("e2");
+  await expect(page.getByRole("combobox",{name:"For"})).toBeVisible();
+  await page.getByRole("combobox",{name:"For"}).selectOption("p2");
+  await page.getByLabel("Gift name",{exact:true}).fill("Warm scarf");
+  await page.getByLabel("Price (₽)").fill("950");
+  await page.getByRole("button",{name:"Add to occasion",exact:true}).click();
+  current=await readData(page);
+  expect(current.gifts.find(g=>g.name==="Warm scarf")).toMatchObject({
+    eventId:"e2",personId:"p2",status:"to_buy",price:950
+  });
+  expect(current.ideas.some(i=>i.name==="Warm scarf")).toBe(false);
+});
