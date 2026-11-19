@@ -162,9 +162,10 @@ export function Account() {
         </Link>
         <HomeBrand />
       </header>
+      <div className="auth-bottom-sheet">
       <div className="auth-wave" aria-hidden="true">
         <svg viewBox="0 0 400 94" preserveAspectRatio="none">
-          <path d="M0 40 C90 -7 140 77 232 48 S348 0 400 32 L400 94 L0 94Z" fill="var(--auth-wave)" />
+          <path d="M0 51 C85 10 142 64 225 41 C302 19 351 35 400 48 L400 94 L0 94 Z" fill="var(--surface)" />
         </svg>
       </div>
       <section className="auth-panel" aria-label={mode === "sign-in" ? "Sign in" : "Create account"}>
@@ -268,6 +269,7 @@ export function Account() {
         </button>
       </div>
       {preview && <Link to="/settings" className="auth-return">Back to Settings</Link>}
+      </div>
     </div>
   );
 }
