@@ -1,0 +1,80 @@
+/* Home polish: contain lateral gradient effects without truncating vertical
+   card shadows or reintroducing a rectangular hero footer. */
+.app-main.app-main-home {
+  overflow-x: clip;
+}
+.app-main-home .home-heading::before {
+  left: calc(-1 * var(--space));
+  right: calc(-1 * var(--space));
+}
+.app-main-home .focus-wave {
+  overflow: hidden;
+  filter: none;
+}
+.app-main-home .home-featured-section {
+  position: relative;
+  margin-top: 10px;
+  z-index: 1;
+}
+.app-main-home .hscroll.upcoming-track {
+  position: relative;
+  z-index: 2;
+  /* The scrolling rail needs actual clearance for shadows. Negative margin
+     recovers the room so the featured event is not pushed far down. */
+  padding-top: 19px;
+  padding-bottom: 45px;
+  margin-bottom: -40px;
+}
+.app-main-home .focus-card {
+  position: relative;
+  overflow: visible;
+  padding-bottom: 12px;
+}
+.app-main-home .focus-bottom-wave {
+  display: block;
+  position: absolute;
+  z-index: 2;
+  bottom: -21px;
+  left: 0;
+  width: 100%;
+  height: 36px;
+  overflow: visible;
+  filter: drop-shadow(0 8px 5px rgba(57,66,72,.12));
+  pointer-events: none;
+}
+.app-main-home .home-budget-section {
+  position: relative;
+  z-index: 0;
+  margin-top: 34px;
+}
+/* Closing both the greeting and its layout gap is one fluid animation. */
+.app-main-home .home-heading {
+  transition: margin-bottom 420ms cubic-bezier(.22,.72,.3,1),
+    padding-bottom 420ms cubic-bezier(.22,.72,.3,1);
+}
+.app-main-home .home-heading .home-greeting {
+  display: block;
+  max-height: 96px;
+  opacity: 1;
+  padding: 0;
+  margin: 0;
+  transform: translateY(0);
+  overflow: hidden;
+  transition:
+    max-height 420ms cubic-bezier(.22,.72,.3,1),
+    opacity 350ms ease,
+    transform 420ms cubic-bezier(.22,.72,.3,1);
+}
+.app-main-home .home-heading .home-greeting.is-dismissed {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-8px);
+}
+.app-main-home .home-heading:has(.home-greeting.is-dismissed) {
+  margin-bottom: 2px;
+  padding-bottom: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-main-home .home-heading,
+  .app-main-home .home-heading .home-greeting { transition: none; }
+}
