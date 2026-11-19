@@ -846,7 +846,11 @@ test("Monthly budget displays people across occasions, switches month, and prese
   await expect(page.locator(".home-month-budget-people")).toBeVisible();
   await expect(page.locator(".home-month-budget-person")).toHaveCount(1);
   await expect(page.locator(".home-month-budget-person").first()).toContainText("Anna");
-  await expect(page.locator(".home-month-budget-person").first()).toContainText("1 900 ₽ spent");
+  await expect(page.locator(".home-month-budget-person").first()).toContainText("Anna's birthday");
+  await expect(page.locator(".home-month-budget-people")).not.toContainText("spent");
+  await expect(page.getByRole("button", { name: "By people" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".home-month-budget-numbers")).toContainText("of 10 000 ₽");
+  await expect(page.locator(".home-month-budget-numbers")).not.toContainText("Monthly budget");
   await expect(page.locator(".home-month-budget-toggle")).toHaveCount(0);
   await expect(page.locator(".home-month-budget-occasion")).toHaveCount(0);
   await expect(page.locator(".home-month-budget-people"))
@@ -859,6 +863,22 @@ test("Monthly budget displays people across occasions, switches month, and prese
   await expect(denis).toContainText("5 000 ₽");
   await expect(page.locator(".focus-head h2")).toHaveText("Anna's birthday");
   expect(await readData(page)).toEqual(saved);
+  await page.getByRole("button", { name: "By occasion" }).click();
+  await expect(page.getByRole("button", { name: "By occasion" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".home-month-budget-occasion")).toHaveCount(1);
+  await expect(page.locator(".home-month-budget-occasion")).toContainText("New Year");
+  await expect(page.locator(".home-month-budget-occasion")).toContainText("Dec 31");
+  await expect(page.locator(".home-month-budget-occasion .occ-illustration")).toHaveCount(1);
+  await page.locator(".home-month-budget-occasion").click();
+  await expect(page).toHaveURL(new RegExp("#/events/e2$"));
+});
+
+test("Person view monthly budget row opens the matching People profile", async ({ page }) => {
+  await seed(page);
+  await page.goto("/#/");
+  await page.getByRole("button", { name: "Next month" }).click();
+  const denis = page.locator(".home-month-budget-person").filter({ hasText: "Denis" });
+  await expect(denis).toBeVisible();
   await denis.click();
   await expect(page).toHaveURL(new RegExp("#/people/p2$"));
 });

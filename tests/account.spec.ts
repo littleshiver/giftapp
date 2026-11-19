@@ -86,3 +86,30 @@ test("Auth forms fit short phone viewport with the shared logo and no redundant 
     }
   }
 });
+
+test("Sign-in and registration have bottom-anchored sheets with a curved padded top", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const screen of ["sign-in", "sign-up"]) {
+    await page.goto("/#/account?preview=" + screen);
+    const geometry = await page.evaluate(() => {
+      const rect = (selector: string) => document.querySelector(selector)!.getBoundingClientRect();
+      const sheet = rect(".auth-bottom-sheet");
+      const logo = rect(".auth-brand");
+      const wave = rect(".auth-wave");
+      const form = rect(".auth-panel");
+      return {
+        bottomSpace: innerHeight - sheet.bottom,
+        emptySpace: wave.top - logo.bottom,
+        waveBottom: wave.bottom,
+        formTop: form.top,
+        panelPadding: parseFloat(getComputedStyle(document.querySelector(".auth-panel")!).paddingTop),
+        overflow: document.documentElement.scrollWidth - innerWidth,
+      };
+    });
+    expect(Math.abs(geometry.bottomSpace)).toBeLessThanOrEqual(2);
+    expect(geometry.emptySpace).toBeGreaterThan(28);
+    expect(geometry.panelPadding).toBeGreaterThanOrEqual(17);
+    expect(geometry.formTop).toBeGreaterThanOrEqual(geometry.waveBottom - 2);
+    expect(geometry.overflow).toBeLessThanOrEqual(1);
+  }
+});

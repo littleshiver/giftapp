@@ -733,7 +733,7 @@ test("Collapsed Home greeting also collapses its header spacing", async ({ page 
 });
 
 
-test("Home wave is a single curved shape, inspiration is above Budget A without overlaps", async ({ page }) => {
+test("Home wave is a single curved shape, budget precedes Inspiration with generous spacing", async ({ page }) => {
   await seed(page);
   for (const width of [320, 390, 430]) {
     await page.setViewportSize({ width, height: 844 });
@@ -749,8 +749,8 @@ test("Home wave is a single curved shape, inspiration is above Budget A without 
       return {
         copyRight: label.right,
         visualLeft: cards.left,
-        inspirationBottom: inspiration.bottom,
-        budgetTop: budget.top,
+        inspirationTop: inspiration.top,
+        budgetBottom: budget.bottom,
         upcomingBottom: upcoming.bottom,
         featuredTop: featured.top,
         overflow: document.documentElement.scrollWidth - innerWidth
@@ -758,7 +758,7 @@ test("Home wave is a single curved shape, inspiration is above Budget A without 
     });
     expect(geometry.overflow).toBeLessThanOrEqual(1);
     expect(geometry.visualLeft).toBeGreaterThanOrEqual(geometry.copyRight - 2);
-    expect(geometry.budgetTop).toBeGreaterThan(geometry.inspirationBottom);
+    expect(geometry.inspirationTop - geometry.budgetBottom).toBeGreaterThanOrEqual(40);
     // The featured wave is now deliberately closer to Coming up.
     expect(geometry.featuredTop - geometry.upcomingBottom).toBeGreaterThanOrEqual(-3);
     expect(geometry.featuredTop - geometry.upcomingBottom).toBeLessThanOrEqual(24);
@@ -824,4 +824,22 @@ test("Budget numbers share a baseline and month icon is vertically centered", as
   });
   expect(alignment.numberBottomDiff).toBeLessThanOrEqual(2);
   expect(alignment.monthCenterDiff).toBeLessThanOrEqual(2);
+});
+
+
+test("Inspiration copy stays in its own three-line column at Pixel-like mobile width", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await seed(page);
+  await page.goto("/#/");
+  const metrics = await page.evaluate(() => {
+    const text = document.querySelector(".home-inspiration-copy p")!;
+    const visual = document.querySelector(".home-inspiration-visual")!;
+    const copy = text.getBoundingClientRect();
+    const art = visual.getBoundingClientRect();
+    const lineHeight = parseFloat(getComputedStyle(text).lineHeight);
+    return { lines: copy.height / lineHeight, right: copy.right, artLeft: art.left };
+  });
+  expect(metrics.lines).toBeGreaterThanOrEqual(2.8);
+  expect(metrics.lines).toBeLessThanOrEqual(3.2);
+  expect(metrics.right).toBeLessThanOrEqual(metrics.artLeft);
 });

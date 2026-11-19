@@ -1,0 +1,257 @@
+/* November 20 final Home polish: maintain the approved mobile composition. */
+.app-main-home .home-budget-section {
+  margin-bottom: 0;
+}
+.app-main-home .home-inspiration {
+  /* Restore meaningful space after the monthly budget. */
+  margin-top: 49px;
+}
+.app-main-home .home-inspiration-taparea {
+  grid-template-columns: minmax(0, 1fr) minmax(130px, .92fr);
+  column-gap: 13px;
+}
+.app-main-home .home-inspiration-copy p {
+  max-width: 166px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  white-space: normal;
+  overflow-wrap: normal;
+  text-wrap: pretty;
+}
+.app-main-home .home-inspiration-visual {
+  overflow: visible;
+}
+
+/* The calendar is centered against the text's visual line box, not
+   an independent baseline or the surrounding nav row. */
+.home-month-budget-month {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 22px;
+  height: auto;
+}
+.home-month-budget-month svg {
+  display: block;
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  align-self: center;
+}
+.home-month-budget-month strong {
+  display: block;
+  line-height: 20px;
+  font-size: 14px;
+  margin: 0;
+  padding: 0;
+}
+
+/* Both numbers visually bottom-align immediately above progress;
+   the right number is a single "of 10 000 ₽" line with no kicker. */
+.home-month-budget-numbers {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 8px;
+  margin-bottom: 13px;
+}
+.home-month-budget-numbers > .home-month-budget-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  min-height: 55px;
+  gap: 4px;
+}
+.home-month-budget-numbers > .home-month-budget-limit {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  min-height: 55px;
+  height: auto;
+  padding-bottom: 0;
+}
+.home-month-budget-stat > strong {
+  display: block;
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+  align-self: auto;
+}
+.home-month-budget-limit strong {
+  font-size: clamp(13px, 4vw, 17px);
+  font-weight: 860;
+  white-space: nowrap;
+  line-height: 1;
+}
+.home-month-budget-value {
+  font-size: clamp(23px, 6.6vw, 30px);
+}
+.home-month-budget-card .home-month-budget-meta { padding-bottom: 17px; }
+
+/* Dedicated segmented view control uses the shared mobile pill language. */
+.home-month-budget-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  margin: 1px 0 12px;
+  border-radius: 15px;
+  background: #eaedf0;
+}
+.home-month-budget-tabs button {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 40px;
+  border: none;
+  border-radius: 12px;
+  padding: 9px 10px;
+  background: transparent;
+  color: #606b76;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.home-month-budget-tabs button.is-active {
+  background: white;
+  color: #23262b;
+  box-shadow: 0 2px 6px rgba(35,41,48,.07);
+}
+.home-month-budget-tabs button:focus-visible {
+  outline: 3px solid #947bc5;
+  outline-offset: 2px;
+}
+.home-month-budget-people {
+  display: grid;
+  gap: 7px;
+}
+.home-month-budget-person {
+  margin: 0;
+}
+.home-month-budget-person-name small {
+  display: -webkit-box;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  line-height: 1.3;
+}
+.home-month-budget-event-art {
+  flex: 0 0 37px;
+  display: grid;
+  place-items: center;
+  width: 37px;
+  height: 37px;
+  background: white;
+  border-radius: 11px;
+  overflow: hidden;
+}
+.home-month-budget-event-art .occ-illustration {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.home-month-budget-occasion .home-month-budget-person-name small {
+  white-space: nowrap;
+}
+
+/* Login and signup: genuine bottom sheet, not a floating mid-screen card.
+   The upper region flexes between the shared wordmark and the form. */
+.app-main:has(.auth-screen) {
+  padding: 0;
+}
+.auth-screen {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  height: auto;
+  padding: 0 13px;
+  overflow-x: clip;
+  background: var(--bg);
+}
+.auth-screen .auth-brand {
+  flex: 0 0 auto;
+  min-height: 94px !important;
+  padding: 29px 14px 5px !important;
+}
+.auth-bottom-sheet {
+  display: flow-root;
+  position: relative;
+  flex: 0 0 auto;
+  margin: auto -13px 0;
+  width: calc(100% + 26px);
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
+  background: white;
+  isolation: isolate;
+}
+/* White sheet starts at the first painted point of its organic top edge. */
+.auth-wave {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 62px;
+  margin: -61px 0 0;
+  padding: 0;
+  overflow: visible;
+  z-index: 1;
+}
+.auth-wave svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.auth-wave::after { content: none; display: none; }
+.auth-panel {
+  padding: 24px clamp(21px, 6vw, 32px) 10px;
+  background: white;
+  border-radius: 0;
+  box-shadow: none;
+}
+.auth-switch {
+  background: white;
+  padding: 10px 13px 4px;
+  margin: 0;
+  text-align: center;
+}
+.auth-return {
+  background: white;
+  margin: 0;
+  padding: 7px 13px 5px;
+}
+@media (max-width: 350px) {
+  .app-main-home .home-inspiration-taparea {
+    grid-template-columns: minmax(0, 1fr) 122px;
+    gap: 8px;
+  }
+  .app-main-home .home-inspiration-copy p {
+    max-width: 143px;
+    font-size: 12px;
+  }
+  .home-month-budget-event-art {
+    width: 32px;
+    height: 32px;
+    flex-basis: 32px;
+  }
+  .home-month-budget-person-total strong { font-size: 11px; }
+  .auth-screen { padding-inline: 10px; }
+  .auth-bottom-sheet { margin-inline: -10px; width: calc(100% + 20px); }
+}
+@media (max-height: 760px) {
+  .auth-screen .auth-brand {
+    min-height: 67px !important;
+    padding: 17px 12px 4px !important;
+  }
+  .auth-wave { height: 42px; margin-top: -41px; }
+  .auth-panel { padding-top: 17px; padding-bottom: 8px; }
+  .auth-switch { padding-top: 8px; }
+}
+@media (max-height: 610px) {
+  .auth-screen .auth-brand { min-height: 53px !important; padding-top: 9px !important; }
+  .auth-wave { height: 30px; margin-top: -29px; }
+  .auth-panel { padding-top: 12px; }
+}
