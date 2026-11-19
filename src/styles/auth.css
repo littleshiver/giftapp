@@ -283,3 +283,67 @@
   .auth-screen { padding-inline: 10px; }
   .auth-wave { width: calc(100% + 20px);margin-inline:-10px; }
 }
+
+/* Brand is now the exact HomeBrand component — one source, one wordmark. */
+.auth-brand .home-brandbar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50px;
+  margin: 0;
+  padding: 0;
+}
+.auth-brand .home-wordmark {
+  color: var(--ink-strong);
+}
+.auth-brand {
+  padding-top: clamp(23px, 4dvh, 38px) !important;
+  padding-bottom: 17px !important;
+  min-height: 100px !important;
+}
+.auth-wave {
+  height: 59px;
+  margin-bottom: -23px;
+}
+.auth-panel {
+  padding-top: 21px;
+  padding-bottom: 21px;
+}
+.auth-form { margin-top: 20px; gap: 10px; }
+.auth-field { min-height: 46px; }
+.auth-field input { height: 43px; }
+.auth-primary { margin-top: 9px; min-height: 47px; }
+.auth-divider { margin: 15px 0 12px; }
+.auth-provider { min-height: 44px; }
+.auth-providers { gap: 8px; }
+.auth-switch { margin-top: 14px; }
+.auth-preview-badge { margin-top: 9px; padding: 7px 10px; }
+/* Layout doesn't steal space for nav that is intentionally absent. */
+.app-shell:has(.auth-screen) .app-main {
+  padding-bottom: 0;
+}
+@media (max-height: 760px) {
+  .auth-brand { padding-top: 17px !important; padding-bottom: 10px !important; min-height: 72px !important; }
+  .auth-brand .home-brandbar { height: 38px; }
+  .auth-brand .home-wordmark { transform: scale(.83); }
+  .auth-wave { height: 38px; margin-bottom: -15px; }
+  .auth-panel { padding: 16px clamp(15px, 5vw, 24px) 16px; }
+  .auth-panel h1 { font-size: 25px; }
+  .auth-intro { margin-top: 5px; font-size: 12px; }
+  .auth-form { margin-top: 13px; gap: 7px; }
+  .auth-field { min-height: 42px; padding-inline: 11px; }
+  .auth-field input { height: 39px; }
+  .auth-primary { margin-top: 3px; min-height: 43px; }
+  .auth-forgot { margin: 7px auto 0; padding: 4px; }
+  .auth-divider { margin: 10px 0 8px; }
+  .auth-provider { min-height: 39px; }
+  .auth-providers { gap: 6px; }
+  .auth-switch { margin-top: 9px; }
+  .auth-return { padding: 7px; }
+  .auth-preview-badge { margin-top: 7px; }
+}
+@media (max-height: 610px) {
+  .auth-brand { min-height: 61px !important; padding-top: 11px !important; padding-bottom: 7px !important; }
+  .auth-wave { height: 25px; }
+  .auth-panel { padding-top: 12px; padding-bottom: 12px; }
+}
