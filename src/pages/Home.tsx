@@ -173,11 +173,13 @@ export function Home() {
     <>
       <header className="home-heading">
         <HomeBrand />
-        <h1 className={`home-greeting ${ui.greetingDismissed ? "is-dismissed" : ""}`}
-          aria-hidden={ui.greetingDismissed}>
-          Hi, {data.settings.name?.trim() || "there"}
-          <span className="greeting-wave" role="img" aria-label="waving hand">👋</span>
-        </h1>
+        <div className={`home-greeting-wrap ${ui.greetingDismissed ? "is-dismissed" : ""}`}>
+          <h1 className={`home-greeting ${ui.greetingDismissed ? "is-dismissed" : ""}`}
+            aria-hidden={ui.greetingDismissed}>
+            Hi, {data.settings.name?.trim() || "there"}
+            <span className="greeting-wave" role="img" aria-label="waving hand">👋</span>
+          </h1>
+        </div>
       </header>
       <section>
         <Section title="Coming up">
