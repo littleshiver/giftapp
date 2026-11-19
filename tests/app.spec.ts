@@ -865,7 +865,7 @@ test("Home swipe teaching animation loops gently and respects reduced motion", a
   await expect(visual).toHaveAttribute("data-played", "true");
   await expect(visual.locator(".home-swipe-card")).toHaveCount(3);
   await expect(visual.locator(".home-swipe-overlay")).toHaveCount(2);
-  await expect(visual.locator(".home-swipe-like")).toHaveCSS("background-color", /rgba\\(210, 65, 88,/);
+  await expect(visual.locator(".home-swipe-like")).toHaveCSS("background-color", /210, 65, 88/);
   const iterations = await visual.locator(".home-swipe-front")
     .evaluate((el) => getComputedStyle(el).animationIterationCount);
   expect(iterations).toBe("infinite");
