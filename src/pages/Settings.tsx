@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Download, Upload, Sparkles, Info, UserRound } from "lucide-react";
+import { Download, Upload, Sparkles, Info, UserRound, LogIn, UserPlus } from "lucide-react";
 import { Title } from "../components/UI";
 import { Button, Field } from "../components/Primitives";
 import { useApp } from "../state/AppState";
@@ -119,11 +119,20 @@ export function Settings() {
       <section className="data-card">
         <h2>Design & first-run flows</h2>
         <p>
-          Explore the onboarding
-          {import.meta.env.DEV
-            ? " and the reusable UI component library."
-            : ". Preview adds preferences only when you finish."}
+          Open the sign-in and registration designs in safe preview mode.
+          You can tap fields, switch forms and check validation without signing
+          out, sending emails or changing your saved data. Onboarding stays as it is.
         </p>
+        <Link data-ph="settings-preview-sign-in" className="button-secondary button-full"
+          style={{ marginTop: 14 }} to="/account?preview=sign-in">
+          <LogIn size={16} />
+          Preview sign in
+        </Link>
+        <Link data-ph="settings-preview-sign-up" className="button-secondary button-full"
+          style={{ marginTop: 10 }} to="/account?preview=sign-up">
+          <UserPlus size={16} />
+          Preview registration
+        </Link>
         <Link data-ph="settings-preview-onboarding"
           className="button-secondary button-full"
           style={{ marginTop: 14 }}
