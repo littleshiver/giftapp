@@ -837,24 +837,30 @@ test("composed Home uses date-first occasion cards, centered logo and single mon
   await expect(page.locator(".focus-bottom-wave")).toHaveCount(0);
 });
 
-test("Monthly budget A switches months, expands occasion breakdown and preserves data", async ({ page }) => {
+test("Monthly budget displays people across occasions, switches month, and preserves data", async ({ page }) => {
   await seed(page);
   await page.goto("/#/");
   const saved = await readData(page);
   await expect(page.locator(".home-month-budget-month")).toContainText("November 2026");
   await expect(page.locator(".home-month-budget-card")).toContainText("7 400 ₽");
+  await expect(page.locator(".home-month-budget-people")).toBeVisible();
+  await expect(page.locator(".home-month-budget-person")).toHaveCount(1);
+  await expect(page.locator(".home-month-budget-person").first()).toContainText("Anna");
+  await expect(page.locator(".home-month-budget-person").first()).toContainText("1 900 ₽ spent");
+  await expect(page.locator(".home-month-budget-toggle")).toHaveCount(0);
   await expect(page.locator(".home-month-budget-occasion")).toHaveCount(0);
-  await page.getByRole("button", { name: "By occasion" }).click();
-  await expect(page.locator(".home-month-budget-occasion")).toHaveCount(1);
-  await expect(page.locator(".home-month-budget-occasion").first()).toContainText("Anna's birthday");
+  await expect(page.locator(".home-month-budget-people"))
+    .toHaveCSS("border-top-width", "0px");
   await page.getByRole("button", { name: "Next month" }).click();
   await expect(page.locator(".home-month-budget-month")).toContainText("December 2026");
-  await expect(page.locator(".home-month-budget-occasion")).toHaveCount(1);
-  await expect(page.locator(".home-month-budget-occasion").first()).toContainText("New Year");
+  await expect(page.locator(".home-month-budget-person")).toHaveCount(3);
+  const denis = page.locator(".home-month-budget-person").filter({ hasText: "Denis" });
+  await expect(denis).toContainText("4 800 ₽");
+  await expect(denis).toContainText("5 000 ₽");
   await expect(page.locator(".focus-head h2")).toHaveText("Anna's birthday");
   expect(await readData(page)).toEqual(saved);
-  await page.locator(".home-month-budget-occasion").first().click();
-  await expect(page).toHaveURL(new RegExp("#/events/e2$"));
+  await denis.click();
+  await expect(page).toHaveURL(new RegExp("#/people/p2$"));
 });
 
 test("Home swipe teaching animation loops gently and respects reduced motion", async ({ page }) => {
@@ -865,6 +871,23 @@ test("Home swipe teaching animation loops gently and respects reduced motion", a
   await expect(visual).toHaveAttribute("data-played", "true");
   await expect(visual.locator(".home-swipe-card")).toHaveCount(3);
   await expect(visual.locator(".home-swipe-overlay")).toHaveCount(2);
+  const snapshots = await visual.locator(".home-swipe-card").evaluateAll(cards =>
+    cards.map(card => {
+      const image = card.querySelector(".home-swipe-image")!.getBoundingClientRect();
+      const caption = card.querySelector(".home-swipe-caption")!.getBoundingClientRect();
+      return { imageBottom: image.bottom, captionTop: caption.top, captionHeight: caption.height };
+    }),
+  );
+  expect(snapshots.every(c => Math.abs(c.imageBottom - c.captionTop) < 1 && c.captionHeight > 0)).toBe(true);
+  const overlayWithinImage = await visual.locator(".home-swipe-overlay").evaluateAll(items =>
+    items.every(el => {
+      const r=el.getBoundingClientRect();
+      const image=el.parentElement!.getBoundingClientRect();
+      return Math.abs(r.bottom-image.bottom)<1 && Math.abs(r.top-image.top)<1;
+    }),
+  );
+  expect(overlayWithinImage).toBe(true);
+
   await expect(visual.locator(".home-swipe-like")).toHaveCSS("background-color", /210, 65, 88/);
   const iterations = await visual.locator(".home-swipe-front")
     .evaluate((el) => getComputedStyle(el).animationIterationCount);
