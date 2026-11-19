@@ -871,9 +871,15 @@ test("Monthly budget displays people across occasions, switches month, and prese
   await expect(page.locator(".home-month-budget-occasion .occ-illustration")).toHaveCount(1);
   await page.locator(".home-month-budget-occasion").click();
   await expect(page).toHaveURL(new RegExp("#/events/e2$"));
+});
+
+test("Person view monthly budget row opens the matching People profile", async ({ page }) => {
+  await seed(page);
   await page.goto("/#/");
   await page.getByRole("button", { name: "Next month" }).click();
-  await page.locator(".home-month-budget-person").filter({ hasText: "Denis" }).click();
+  const denis = page.locator(".home-month-budget-person").filter({ hasText: "Denis" });
+  await expect(denis).toBeVisible();
+  await denis.click();
   await expect(page).toHaveURL(new RegExp("#/people/p2$"));
 });
 
