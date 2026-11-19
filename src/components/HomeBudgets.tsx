@@ -1,16 +1,15 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
-import type { AppData, Event } from "../domain/models";
-import { bought, eventBudget, giftsFor, monthSummary, total } from "../domain/selectors";
+import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
+import { PersonAvatar } from "./UI";
+import type { AppData } from "../domain/models";
+import { bought, monthSummary, total } from "../domain/selectors";
 import { currency, today } from "../utils/format";
 
-/** Budget A: one monthly overview, optional by-occasion breakdown.
- * The committed (all gifts) amount represents planned spend; only Bought
- * contributes to the actually spent amount. Both are within the same budget. */
-export function HomeBudgets({ data }: { data: AppData; selected?: Event }) {
+/** One monthly budget at a glance, with recipient totals across every
+ * occasion in that month (not an occasion-by-occasion accordion). */
+export function HomeBudgets({ data }: { data: AppData }) {
   const [monthOffset, setMonthOffset] = useState(0);
-  const [expanded, setExpanded] = useState(false);
   const [year, baseMonth] = today().slice(0, 7).split("-").map(Number);
   const date = new Date(year, baseMonth - 1 + monthOffset, 1);
   const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
@@ -24,6 +23,29 @@ export function HomeBudgets({ data }: { data: AppData; selected?: Event }) {
   const upcomingPercent = summary.budget > 0
     ? Math.min(100 - spentPercent, remainingPlanned / summary.budget * 100)
     : 0;
+
+  const eventsForMonth = new Set(summary.events.map(event => event.id));
+  const giftsForMonth = data.gifts.filter(gift => eventsForMonth.has(gift.eventId));
+  const personIds = new Set([
+    ...summary.events.flatMap(event => event.people),
+    ...giftsForMonth.map(gift => gift.personId),
+  ]);
+  const peopleBudgets = [...personIds].map(id => {
+    const person = data.people.find(p => p.id === id);
+    const gifts = giftsForMonth.filter(g => g.personId === id);
+    const limitEvents = summary.events.filter(event =>
+      event.people.includes(id) && Number.isFinite(event.budgets[id]),
+    );
+    return {
+      id,
+      person,
+      spent: bought(gifts),
+      planned: total(gifts),
+      budget: limitEvents.reduce((sum, event) => sum + event.budgets[id], 0),
+      hasBudget: limitEvents.length > 0,
+    };
+  });
+
   return (
     <section className="home-budget-section" aria-labelledby="home-budgets-title">
       <h2 className="home-section-heading" id="home-budgets-title">Gift budgets</h2>
@@ -40,12 +62,13 @@ export function HomeBudgets({ data }: { data: AppData; selected?: Event }) {
             <ChevronRight size={19} aria-hidden="true"/>
           </button>
         </div>
+
         <div className="home-month-budget-numbers">
-          <div>
+          <div className="home-month-budget-stat">
             <span className="home-month-budget-kicker">Planned gifts</span>
             <strong className="home-month-budget-value">{currency(planned)}</strong>
           </div>
-          <div className="home-month-budget-limit">
+          <div className="home-month-budget-stat home-month-budget-limit">
             <span className="home-month-budget-kicker">Monthly budget</span>
             <strong>{currency(summary.budget)}</strong>
           </div>
@@ -67,32 +90,24 @@ export function HomeBudgets({ data }: { data: AppData; selected?: Event }) {
             {currency(planned - summary.budget)} over budget
           </p>
         )}
-        <button className="home-month-budget-toggle" type="button"
-          aria-expanded={expanded} aria-controls="home-month-occasions"
-          onClick={() => setExpanded(value => !value)}>
-          <span>By occasion <small>({summary.events.length})</small></span>
-          <ChevronDown size={18} className={expanded ? "is-expanded" : ""} aria-hidden="true"/>
-        </button>
-        {expanded && (
-          <div className="home-month-budget-occasions" id="home-month-occasions">
-            {summary.events.length ? summary.events.map(event => {
-              const gifts = giftsFor(data, event.id);
-              const plannedTotal = total(gifts);
-              const actual = bought(gifts);
-              return (
-                <Link to={`/events/${event.id}`} className="home-month-budget-occasion" key={event.id}>
-                  <span className="home-month-budget-occasion-name">
-                    <strong>{event.name}</strong>
-                    <small>{currency(actual)} spent · {currency(plannedTotal)} planned</small>
-                  </span>
-                  <span className="home-month-budget-occasion-limit">
-                    {currency(eventBudget(event))} <ChevronRight size={15} aria-hidden="true"/>
-                  </span>
-                </Link>
-              );
-            }) : <p className="home-budget-empty">No occasions planned for this month.</p>}
-          </div>
-        )}
+
+        <div className="home-month-budget-people" aria-label="Budgets by person">
+          <h3>By person <small>({peopleBudgets.length})</small></h3>
+          {peopleBudgets.length ? peopleBudgets.map(item => (
+            <Link className="home-month-budget-person" key={item.id} to={`/people/${item.id}`}
+              aria-label={`${item.person?.name || "Recipient"}: ${currency(item.planned)} planned`}>
+              <PersonAvatar person={item.person} className="home-month-budget-avatar"/>
+              <span className="home-month-budget-person-name">
+                <strong>{item.person?.name || "Recipient"}</strong>
+                <small>{currency(item.spent)} spent · {currency(item.planned-item.spent)} to buy</small>
+              </span>
+              <span className="home-month-budget-person-total">
+                <strong>{currency(item.planned)}</strong>
+                <small>{item.hasBudget ? "of " + currency(item.budget) : "No limit set"}</small>
+              </span>
+            </Link>
+          )) : <p className="home-budget-empty">No gift budgets planned for this month.</p>}
+        </div>
       </article>
     </section>
   );
