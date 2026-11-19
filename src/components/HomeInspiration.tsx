@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Heart, X } from "lucide-react";
-import mug from "../assets/discovery/mug.jpg";
-import candle from "../assets/discovery/candle.jpg";
-import blanket from "../assets/discovery/blanket.jpg";
+import blanket from "../assets/discovery/blanket-hires.jpg";
+import romantic from "../assets/events/cover-romantic.jpg";
+import winter from "../assets/events/cover-winter.jpg";
 
 /** The full block navigates to Discover. Decorative Polaroids teach the
  * right/heart and left/X gesture without taking focus from the link. */
@@ -29,7 +29,7 @@ export function HomeInspiration() {
         className="home-inspiration-link home-inspiration-taparea">
         <div className="home-inspiration-copy">
           <h2 id="home-inspiration-title">Need inspiration?</h2>
-          <p>We’ve gathered gift ideas for every occasion. Find your next favorite.</p>
+          <p>We’ve collected gift ideas for every occasion.</p>
           <span className="home-inspiration-cta">
             Explore ideas <ArrowRight size={16} aria-hidden="true"/>
           </span>
@@ -38,16 +38,16 @@ export function HomeInspiration() {
           className={`home-inspiration-visual ${played ? "is-played" : ""}`}
           aria-hidden="true">
           <div className="home-swipe-card home-swipe-back home-swipe-back-one">
-            <div className="home-swipe-image"><img src={candle} alt=""/></div>
+            <div className="home-swipe-image"><img src={romantic} alt=""/></div>
             <span className="home-swipe-caption" />
           </div>
           <div className="home-swipe-card home-swipe-back home-swipe-back-two">
-            <div className="home-swipe-image"><img src={blanket} alt=""/></div>
+            <div className="home-swipe-image"><img src={winter} alt=""/></div>
             <span className="home-swipe-caption" />
           </div>
           <div className="home-swipe-card home-swipe-front">
             <div className="home-swipe-image">
-              <img src={mug} alt=""/>
+              <img src={blanket} alt=""/>
               <span className="home-swipe-overlay home-swipe-like">
                 <Heart size={34} strokeWidth={1.9} fill="currentColor"/>
               </span>
