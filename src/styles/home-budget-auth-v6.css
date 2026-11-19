@@ -180,6 +180,7 @@
   padding: 29px 14px 5px !important;
 }
 .auth-bottom-sheet {
+  display: flow-root;
   position: relative;
   flex: 0 0 auto;
   margin: auto -13px 0;
