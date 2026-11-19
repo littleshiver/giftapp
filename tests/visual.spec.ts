@@ -373,7 +373,8 @@ test("shared gift card stays consistent in group occasions and the saved-idea pi
       fullPage: true, animations: "disabled",
     });
     await page.getByRole("button", { name: "Create", exact: true }).click();
-    await page.getByRole("button", { name: "Add gift to occasion" }).click();
+    await page.getByRole("button", { name: "Add gift" }).click();
+    await page.getByRole("button", { name: "Choose from saved ideas" }).click();
     await page.getByRole("dialog", { name: "Choose recipient" })
       .getByRole("button", { name: "Anna" }).click();
     const chooser = page.getByRole("dialog", { name: "Gift for Anna" });
