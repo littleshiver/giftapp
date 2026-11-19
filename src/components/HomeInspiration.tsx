@@ -29,7 +29,7 @@ export function HomeInspiration() {
         className="home-inspiration-link home-inspiration-taparea">
         <div className="home-inspiration-copy">
           <h2 id="home-inspiration-title">Need inspiration?</h2>
-          <p>We’ve collected gift ideas for every occasion, all in one place.</p>
+          <p>We’ve collected gift ideas for every occasion.</p>
           <span className="home-inspiration-cta">
             Explore ideas <ArrowRight size={16} aria-hidden="true"/>
           </span>
