@@ -6,16 +6,9 @@ import { Button, Sheet } from "../components/Primitives";
 import { WAVE_SHAPE_PATH } from "../components/WaveShape";
 import { useApp } from "../state/AppState";
 import { uid } from "../utils/format";
-// Inline the source images: saving a suggestion must work offline, survive a
-// GitHub Pages rebuild and export/import without depending on a remote URL.
-import artbook from "../assets/discovery/artbook-hires.jpg?inline";
-import blanket from "../assets/discovery/blanket-hires.jpg?inline";
-import mug from "../assets/discovery/mug-hires.jpg?inline";
-import candle from "../assets/discovery/candle-hires.jpg?inline";
+import { discoverySuggestions, ideaFromDiscovery } from "../domain/discovery";
+import type { Audience, Category, Relationship } from "../domain/discovery";
 
-type Audience = "adult" | "child";
-type Relationship = "close" | "friend" | "colleague" | "acquaintance";
-type Category = "home" | "books";
 type Budget = "under1000" | "mid" | "over2000";
 type DiscoveryFilters = {
   audience: Audience | "";
@@ -23,33 +16,7 @@ type DiscoveryFilters = {
   category: Category | "";
   budget: Budget | "";
 };
-type Suggestion = {
-  id: string;
-  name: string;
-  image: string;
-  price: number;
-  note: string;
-  audiences: Audience[];
-  relationships: Relationship[];
-  category: Category;
-};
-
-/** An intentionally small starter catalog. Expand content and taxonomy later;
- * neither a skip nor a saved idea depends on the item's array position. */
-const suggestions: Suggestion[] = [
-  { id: "discovery:ceramic-mug", name: "Ceramic mug", image: mug, price: 1200,
-    note: "Handmade styles and different glazes",
-    audiences: ["adult"], relationships: ["close", "friend", "colleague", "acquaintance"], category: "home" },
-  { id: "discovery:throw-blanket", name: "Throw blanket", image: blanket, price: 2100,
-    note: "Soft textures and cozy corners",
-    audiences: ["adult", "child"], relationships: ["close", "friend"], category: "home" },
-  { id: "discovery:art-book", name: "Art book", image: artbook, price: 1800,
-    note: "Art, photography and illustration",
-    audiences: ["adult"], relationships: ["close", "friend", "acquaintance"], category: "books" },
-  { id: "discovery:scented-candle", name: "Scented candle", image: candle, price: 900,
-    note: "Atmospheric gifts for the home",
-    audiences: ["adult"], relationships: ["close", "friend", "colleague", "acquaintance"], category: "home" },
-];
+const suggestions = discoverySuggestions;
 const initialFilters: DiscoveryFilters = { audience: "", relationship: "", category: "", budget: "" };
 const audienceLabels: Record<Audience, string> = { adult: "Adult", child: "Child" };
 const relationshipLabels: Record<Relationship, string> = {
@@ -155,16 +122,7 @@ export function Ideas() {
       setLikedId(null);
       return;
     }
-    const idea: Idea = {
-      id: uid(),
-      name: liked.name,
-      personId,
-      price: liked.price,
-      image: liked.image,
-      note: liked.note,
-      link: "",
-      sourceDiscoveryId: liked.id,
-    };
+    const idea: Idea = ideaFromDiscovery(liked, personId, uid());
     if (commit({ ...data, ideas: [...data.ideas, idea] })) {
       setLikedId(null);
       notify("Saved to ideas", "success");
