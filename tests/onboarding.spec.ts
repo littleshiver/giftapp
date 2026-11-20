@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { fixture, readData, seed } from "./fixtures";
 import { applySetup, nextHanukkah, nextOccurrence } from "../src/domain/onboarding";
 import { addFirstPerson, saveFirstIdea, planFirstGift, setFirstGiftBought } from "../src/domain/onboardingJourney";
-import { discoverySuggestions } from "../src/domain/discovery";
+import type { DiscoverySuggestion } from "../src/domain/discoveryTypes";
 
 test("guest onboarding creates one real person, birthday, saved idea and planned gift", async ({ page }) => {
   await page.clock.install({ time: new Date("2026-11-15T12:00:00Z") });
@@ -144,7 +144,11 @@ test("onboarding helpers reuse matching records but keep Ideas and Gifts indepen
   const two = addFirstPerson(one.data, "New arrival", "02-29");
   expect(two.person.id).toBe(one.person.id);
   expect(two.event.id).toBe(one.event.id);
-  const choice = discoverySuggestions[0];
+  const choice: DiscoverySuggestion = {
+    id: "discovery:ceramic-mug", name: "Ceramic mug", image: "data:image/png;base64,Zg==",
+    price: 1200, note: "Handmade styles and different glazes",
+    audiences: ["adult"], relationships: ["friend"], category: "home",
+  };
   const liked = saveFirstIdea(two.data, choice, two.person.id);
   const again = saveFirstIdea(liked.data, choice, two.person.id);
   expect(again.idea.id).toBe(liked.idea.id);
