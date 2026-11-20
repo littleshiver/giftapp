@@ -848,6 +848,8 @@ test("Inspiration copy stays in its own three-line column at Pixel-like mobile w
 test("Guided onboarding remains phone-width safe through every person/idea/gift step", async ({ page }) => {
   for (const viewport of [{ width: 320, height: 667 }, { width: 390, height: 844 }]) {
     await page.setViewportSize(viewport);
+    // Route away so React creates a fresh walkthrough instance per viewport.
+    await page.goto("/#/settings");
     await page.goto("/#/onboarding?preview=1");
     const check = async () => {
       const width = await page.evaluate(() => ({
