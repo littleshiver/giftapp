@@ -1,6 +1,6 @@
 import type { AppData, Event, Gift, Idea, Person } from "./models";
-import type { DiscoverySuggestion } from "./discovery";
-import { ideaFromDiscovery } from "./discovery";
+import type { DiscoverySuggestion } from "./discoveryTypes";
+import { ideaFromDiscovery } from "./discoveryTypes";
 import { nextBirthdayDate } from "./birthdays";
 import { uid } from "../utils/format";
 
