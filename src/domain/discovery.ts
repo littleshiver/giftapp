@@ -1,24 +1,12 @@
-import type { Idea } from "./models";
+import type { DiscoverySuggestion } from "./discoveryTypes";
+export type { Audience, Relationship, Category, DiscoverySuggestion } from "./discoveryTypes";
+export { ideaFromDiscovery } from "./discoveryTypes";
 // The discovery catalog is shared by the main Ideas experience and the
 // interactive first-run guide. Keep one source for IDs, images and copy.
 import artbook from "../assets/discovery/artbook-hires.jpg?inline";
 import blanket from "../assets/discovery/blanket-hires.jpg?inline";
 import mug from "../assets/discovery/mug-hires.jpg?inline";
 import candle from "../assets/discovery/candle-hires.jpg?inline";
-
-export type Audience = "adult" | "child";
-export type Relationship = "close" | "friend" | "colleague" | "acquaintance";
-export type Category = "home" | "books";
-export interface DiscoverySuggestion {
-  id: string;
-  name: string;
-  image: string;
-  price: number;
-  note: string;
-  audiences: Audience[];
-  relationships: Relationship[];
-  category: Category;
-}
 
 export const discoverySuggestions: DiscoverySuggestion[] = [
   { id: "discovery:ceramic-mug", name: "Ceramic mug", image: mug, price: 1200,
@@ -35,12 +23,3 @@ export const discoverySuggestions: DiscoverySuggestion[] = [
     audiences: ["adult"], relationships: ["close", "friend", "colleague", "acquaintance"], category: "home" },
 ];
 
-export function ideaFromDiscovery(
-  suggestion: DiscoverySuggestion, personId: string, id: string,
-): Idea {
-  return {
-    id, name: suggestion.name, personId, price: suggestion.price,
-    image: suggestion.image, note: suggestion.note, link: "",
-    sourceDiscoveryId: suggestion.id,
-  };
-}
