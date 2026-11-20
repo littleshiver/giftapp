@@ -18,6 +18,7 @@ import "./styles/home-polish.css";
 import "./styles/home-iteration.css";
 import "./styles/home-approved-v4.css";
 import "./styles/auth.css";
+import "./styles/onboarding-v2.css";
 import "./styles/home-budget-auth-v6.css";
 initAnalytics();
 createRoot(document.getElementById("root")!).render(
