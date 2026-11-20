@@ -135,7 +135,8 @@ test("invalid first birthday does not save partial person or event", async ({ pa
   await page.getByLabel("Birthday day").fill("31");
   await page.getByRole("button", { name: "Add person" }).click();
   await expect(page.getByRole("alert")).toContainText("valid birthday");
-  expect((await readData(page)).people).toEqual([]);
+  // An invalid draft must not create even the first local storage record.
+  expect(await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"))).toBeNull();
 });
 
 test("onboarding helpers reuse matching records but keep Ideas and Gifts independent", () => {
