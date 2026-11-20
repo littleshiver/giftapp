@@ -48,7 +48,7 @@ export function Account() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const preview = params.get("preview") === "sign-in" || params.get("preview") === "sign-up";
-  const requestedMode = params.get("preview") === "sign-up" ? "sign-up" : "sign-in";
+  const requestedMode = params.get("preview") === "sign-up" || (!preview && params.get("mode") === "sign-up") ? "sign-up" : "sign-in";
   const next = params.get("next") || "/settings";
   const [mode, setMode] = useState<"sign-in" | "sign-up">(requestedMode);
   const [name, setName] = useState("");

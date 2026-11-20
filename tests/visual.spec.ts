@@ -843,3 +843,40 @@ test("Inspiration copy stays in its own three-line column at Pixel-like mobile w
   expect(metrics.lines).toBeLessThanOrEqual(3.2);
   expect(metrics.right).toBeLessThanOrEqual(metrics.artLeft);
 });
+
+
+test("Guided onboarding remains phone-width safe through every person/idea/gift step", async ({ page }) => {
+  for (const viewport of [{ width: 320, height: 667 }, { width: 390, height: 844 }]) {
+    await page.setViewportSize(viewport);
+    // Route away so React creates a fresh walkthrough instance per viewport.
+    await page.goto("/#/settings");
+    await page.goto("/#/onboarding?preview=1");
+    const check = async () => {
+      const width = await page.evaluate(() => ({
+        document: document.documentElement.scrollWidth,
+        viewport: innerWidth,
+        stage: document.querySelector(".guided-stage")!.getBoundingClientRect().width,
+      }));
+      expect(width.document).toBeLessThanOrEqual(width.viewport + 1);
+      expect(width.stage).toBeLessThanOrEqual(width.viewport);
+      await expect(page.locator(".guided-topbar .home-brandbar")).toBeVisible();
+    };
+    await check();
+    await page.getByRole("button", { name: "Try as guest" }).click();
+    await check();
+    await page.getByLabel("Name", { exact: true }).fill("Lee");
+    await page.getByLabel("Birthday month").selectOption("05");
+    await page.getByLabel("Birthday day").fill("14");
+    await page.getByRole("button", { name: "Add person" }).click();
+    await check();
+    await page.getByRole("button", { name: "Let's find a gift" }).click();
+    await check();
+    await page.getByRole("button", { name: "Save for Lee" }).click();
+    await check();
+    await page.getByRole("button", { name: "Plan this gift" }).click();
+    await check();
+    await page.getByRole("button", { name: "Finish walkthrough" }).click();
+    await check();
+    await expect(page.getByRole("button", { name: "Back to Settings" })).toBeVisible();
+  }
+});
