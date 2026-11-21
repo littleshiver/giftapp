@@ -366,9 +366,9 @@ export function EditorSheet() {
                     ))}
                   </select>
                 </Field>
-                <Field label="Year (optional)">
+                <Field label="Year">
                   <input className="control" name="birthYear" type="number" min="1900"
-                    max={new Date().getFullYear()} placeholder="Not required" defaultValue={birthYear}/>
+                    max={new Date().getFullYear()} placeholder="Optional" defaultValue={birthYear}/>
                 </Field>
               </div>
             </div>
