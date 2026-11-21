@@ -5,7 +5,7 @@ import { PersonAvatar } from "./UI";
 import { OccasionArt } from "./OccasionArt";
 import type { AppData } from "../domain/models";
 import { bought, eventBudget, giftsFor, monthSummary, total } from "../domain/selectors";
-import { currency, fmtDate, today } from "../utils/format";
+import { currency, fmtDate, today, locale } from "../utils/format";
 
 /** Monthly summary with independent views of the same underlying gifts:
  * by recipient (the default) or by occasion. No data mutations. */
@@ -15,7 +15,7 @@ export function HomeBudgets({ data }: { data: AppData }) {
   const [year, baseMonth] = today().slice(0, 7).split("-").map(Number);
   const date = new Date(year, baseMonth - 1 + monthOffset, 1);
   const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-  const monthLabel = date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  const monthLabel = date.toLocaleDateString(locale, { month: "long", year: "numeric" });
   const summary = monthSummary(data, monthKey);
   const planned = summary.committed;
   const spent = summary.bought;

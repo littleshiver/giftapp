@@ -76,6 +76,9 @@ function validate(d: unknown): AppData {
     !record(d.settings) ||
     !money(d.settings.birthdayBudget) ||
     !optionalText(d.settings.name) ||
+    (d.settings.occasionBudget !== undefined && !money(d.settings.occasionBudget)) ||
+    (d.settings.language !== undefined && !["en","ru"].includes(String(d.settings.language))) ||
+    (d.settings.currency !== undefined && (typeof d.settings.currency !== "string" || !/^[A-Z]{3}$/.test(d.settings.currency))) ||
     (d.settings.holidays !== undefined &&
       (!Array.isArray(d.settings.holidays) ||
         !d.settings.holidays.every(text))) ||

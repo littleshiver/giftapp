@@ -387,6 +387,7 @@ export function BudgetBar({
   );
 }
 export function EventRow({ event: e }: { event: Event }) {
+  const { budgetsEnabled } = useApp();
   return (
     <Link data-ph="occasion-list-item" className="event-list-item" to={`/events/${e.id}`}>
       <span className="item-photo">
@@ -396,8 +397,8 @@ export function EventRow({ event: e }: { event: Event }) {
         <strong>{e.name}</strong>
         <small>
           {fmtDate(e.date)} · {e.people.length}{" "}
-          {e.people.length === 1 ? "person" : "people"} ·{" "}
-          {currency(eventBudget(e))}
+          {e.people.length === 1 ? "person" : "people"}
+          {budgetsEnabled && <> · {currency(eventBudget(e))}</>}
         </small>
       </span>
       <ChevronRight size={19} className="item-arrow" />

@@ -59,6 +59,7 @@ function GiftGroup({
   onView: (gift: Gift) => void;
   onChooseIdeas: () => void;
 }) {
+  const { budgetsEnabled } = useApp();
   const [filter, setFilter] = useState<GiftFilter>("all");
   const visible = filter === "all" ? items : items.filter(g => g.status === filter);
   const spent = bought(items);
@@ -80,10 +81,10 @@ function GiftGroup({
             {recipientIdentity}
           </Link>
         ) : <span className="event-person-gifts-identity">{recipientIdentity}</span>}
-        <span className="event-person-amount">
+        {budgetsEnabled && <span className="event-person-amount">
           <strong>{currency(spent)}</strong>
           {limit !== undefined && <span> / {currency(limit)}</span>}
-        </span>
+        </span>}
       </div>
       {offerIdeas ? (
         <section className="event-saved-ideas" aria-label="Ideas for this occasion">
@@ -111,7 +112,7 @@ function GiftGroup({
 
 export function EventDetail() {
   const { id } = useParams();
-  const { data, openEditor, openGiftPreview, ui, setUi } = useApp();
+  const { data, openEditor, openGiftPreview, ui, setUi, budgetsEnabled } = useApp();
   const [giftPersonId, setGiftPersonId] = useState<string | null>(null);
   const event = data.events.find(item => item.id === id);
   if (!event) return <><Title name="Occasion not found" back="/events"/><Empty>This occasion is unavailable.</Empty></>;
@@ -149,7 +150,7 @@ export function EventDetail() {
           <header className="event-identity">
             <h1>{event.name}</h1>
           </header>
-          <div className="event-summary" aria-label="Occasion summary">
+          {(budgetsEnabled || isGroup || event.people.length === 0) && <div className="event-summary" aria-label="Occasion summary">
             {isGroup && (
               <div className="event-summary-recipients">
                 <div className="event-recipient-summary" aria-label={`${event.people.length} recipients`}>
@@ -176,7 +177,7 @@ export function EventDetail() {
             {event.people.length === 0 && (
               <p className="event-recipient-empty">Add recipients to this occasion to start planning gifts.</p>
             )}
-            <div className="event-summary-budget" role="group" aria-label="Occasion budget">
+            {budgetsEnabled && <div className="event-summary-budget" role="group" aria-label="Occasion budget">
               <div className="event-budget-head">
                 <span>Budget</span>
                 <span><strong>{currency(spent)}</strong> <small>of {currency(budget)} spent</small></span>
@@ -187,8 +188,8 @@ export function EventDetail() {
                 <span style={{width:`${budget ? Math.min(100,spent/budget*100) : spent ? 100 : 0}%`}}/>
               </div>
               {spent > budget && <p className="event-budget-warning">{currency(spent-budget)} over budget</p>}
-            </div>
-          </div>
+            </div>}
+          </div>}
         </div>
       </section>
 

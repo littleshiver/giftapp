@@ -60,7 +60,7 @@ function toneStyle(t: EventTone): CSSProperties {
   } as CSSProperties;
 }
 export function Home() {
-  const { data, ui, setUi, openGiftPreview } = useApp(),
+  const { data, ui, setUi, openGiftPreview, budgetsEnabled } = useApp(),
     navigate = useNavigate(),
     upcoming = enabledEvents(data).filter((e) => e.date >= today()),
     selected = upcoming.find((e) => e.id === ui.selectedEvent) || upcoming[0],
@@ -282,7 +282,7 @@ export function Home() {
           </div>
         </section>
       )}
-      <HomeBudgets data={data}/>
+      {budgetsEnabled && <HomeBudgets data={data}/>}
       <HomeInspiration />
     </>
   );

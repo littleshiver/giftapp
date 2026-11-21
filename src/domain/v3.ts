@@ -53,6 +53,9 @@ export interface Gift extends Idea {
 }
 export interface Settings {
   birthdayBudget: number;
+  occasionBudget?: number;
+  language?: "en" | "ru";
+  currency?: string;
   name?: string;
   holidays?: string[];
   onboardingComplete?: boolean;

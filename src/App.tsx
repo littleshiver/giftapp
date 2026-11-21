@@ -15,7 +15,7 @@ import { Account } from "./pages/Account";
 import { EventDetail, PersonDetail } from "./pages/Details";
 import { useApp } from "./state/AppState";
 export function App() {
-  const { data, editor, giftPreviewId, closeGiftPreview, openGiftPreview, ui, tour, warning, upgradeNotice, closeEditor, openEditor, syncStatus } = useApp(),
+  const { data, editor, giftPreviewId, closeGiftPreview, openGiftPreview, ui, tour, warning, upgradeNotice, closeEditor, openEditor, syncStatus, budgetsEnabled } = useApp(),
     location = useLocation();
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -34,7 +34,7 @@ export function App() {
     }
   }, [location.pathname, location.search]);
   return (
-    <div className="app-shell" data-guided-step={tour?.step || undefined}>
+    <div className="app-shell" data-guided-step={tour?.step || undefined} data-budgets={budgetsEnabled ? "on" : "off"}>
       <div inert={!!(editor || giftPreviewId || tour?.step === "complete")} aria-hidden={editor || giftPreviewId || tour?.step === "complete" ? true : undefined}>
         <main className={[
           "app-main",
@@ -99,7 +99,7 @@ export function App() {
           <>
             <Navigation />
             {/* Account is a settings screen: no "add" action there. */}
-            {location.pathname !== "/account" && !(location.pathname === "/ideas" && ui.ideasTab === "discover") && <CreateMenu />}
+            {location.pathname !== "/account" && location.pathname !== "/settings" && !(location.pathname === "/ideas" && ui.ideasTab === "discover") && <CreateMenu />}
           </>
         )}
       </div>

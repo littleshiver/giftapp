@@ -6,7 +6,7 @@ import { Empty, PersonAvatar, Product, Title } from "../components/UI";
 import { Button, Sheet } from "../components/Primitives";
 import { WAVE_SHAPE_PATH } from "../components/WaveShape";
 import { useApp } from "../state/AppState";
-import { uid } from "../utils/format";
+import { uid, currencyCode } from "../utils/format";
 import { discoverySuggestions, ideaFromDiscovery } from "../domain/discovery";
 import type { Audience, Category, Relationship } from "../domain/discovery";
 
@@ -32,7 +32,7 @@ const matchesBudget = (price: number, budget: Budget) =>
     budget === "mid" ? price >= 1000 && price <= 2000 : price > 2000;
 
 export function Ideas() {
-  const { data, commit, notify, ui, setUi, openEditor, tour, updateTour } = useApp();
+  const { data, commit, notify, ui, setUi, openEditor, tour, updateTour, budgetsEnabled } = useApp();
   const navigate = useNavigate();
   const tab = ui.ideasTab;
   const [filters, setFilters] = useState<DiscoveryFilters>(initialFilters);
@@ -77,7 +77,8 @@ export function Ideas() {
   }, [tab, filters]);
 
   const isAnimating = exiting !== null;
-  const activeFilterCount = Object.values(filters).filter(Boolean).length;
+  const showBudgetFilter = budgetsEnabled && currencyCode === "RUB";
+  const activeFilterCount = Object.values({...filters, budget: showBudgetFilter ? filters.budget : ""}).filter(Boolean).length;
 
   const hasSeen = (id: string) => data.skipped.includes(id) ||
     data.ideas.some(idea => idea.sourceDiscoveryId === id);
@@ -86,7 +87,7 @@ export function Ideas() {
     (!filters.audience || item.audiences.includes(filters.audience)) &&
     (!filters.relationship || item.relationships.includes(filters.relationship)) &&
     (!filters.category || item.category === filters.category) &&
-    (!filters.budget || matchesBudget(item.price, filters.budget)),
+    (!showBudgetFilter || !filters.budget || matchesBudget(item.price, filters.budget)),
   );
   const suggestion = remaining[0];
   const liked = suggestions.find(item => item.id === likedId);
@@ -128,7 +129,7 @@ export function Ideas() {
       setLikedId(null);
       return;
     }
-    const idea: Idea = ideaFromDiscovery(liked, personId, uid());
+    const idea: Idea = ideaFromDiscovery(currencyCode === "RUB" ? liked : {...liked, price:0}, personId, uid());
     if (commit({ ...data, ideas: [...data.ideas, idea] })) {
       setLikedId(null);
       notify("Saved to ideas", "success");
@@ -201,7 +202,7 @@ export function Ideas() {
                     {categoryLabels[filters.category]} <X size={13} aria-hidden="true" />
                   </button>
                 )}
-                {filters.budget && (
+                {showBudgetFilter && filters.budget && (
                   <button type="button" className="ideas-filter-chip"
                     aria-label={`Remove ${budgetLabels[filters.budget]} filter`}
                     onClick={() => setFilters(current => ({ ...current, budget: "" }))}>
@@ -360,7 +361,7 @@ export function Ideas() {
                 <ChevronDown size={18} aria-hidden="true"/>
               </span>
             </label>
-            <label className="ideas-filter-select-field">
+            {showBudgetFilter && <label className="ideas-filter-select-field">
               <span>Budget</span>
               <span className="ideas-filter-select-wrap">
                 <select aria-label="Budget" value={draftFilters.budget}
@@ -372,7 +373,7 @@ export function Ideas() {
                 </select>
                 <ChevronDown size={18} aria-hidden="true"/>
               </span>
-            </label>
+            </label>}
             <div className="ideas-filter-footer">
               <button type="button" className="button-outline"
                 onClick={() => setDraftFilters({ ...initialFilters })}>Clear</button>

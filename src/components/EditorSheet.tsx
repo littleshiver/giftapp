@@ -8,13 +8,13 @@ import {
 } from "lucide-react";
 import { useApp } from "../state/AppState";
 import type { Event, Gift, Idea, Person } from "../domain/models";
-import { today, uid } from "../utils/format";
+import { today, uid, currencyUnit, t } from "../utils/format";
 import { readImage, readAvatar } from "../utils/images";
 import { birthdayFromParts } from "../domain/birthdays";
 import { Button, Field, Sheet } from "./Primitives";
 import { Photo } from "./UI";
 export function EditorSheet() {
-  const { data, editor, commit, closeEditor, notify, openEditor, setUi, tour, updateTour } = useApp(),
+  const { data, editor, commit, closeEditor, notify, openEditor, setUi, tour, updateTour, budgetsEnabled } = useApp(),
     navigate = useNavigate(),
     [busy, setBusy] = useState(false),
     [saveError, setSaveError] = useState(""),
@@ -133,11 +133,11 @@ export function EditorSheet() {
           throw Error(
             "Reassign or delete their gifts before removing a recipient from this occasion.",
           );
-        const budgets = Object.fromEntries(
+        const budgets = budgetsEnabled ? Object.fromEntries(
           people
             .filter((pid) => text("budget_" + pid) !== "")
             .map((pid) => [pid, number("budget_" + pid)]),
-        );
+        ) : Object.fromEntries(Object.entries(event?.budgets || {}).filter(([pid]) => people.includes(pid)));
         const value: Event = {
           ...event,
           id: id || uid(),
@@ -416,7 +416,7 @@ export function EditorSheet() {
               </Field>
             </div>
             )}
-            <div className="field-label">{lockedBirthday ? "Birthday budget (₽)" : "Recipients and budgets (₽)"}</div>
+            <div className="field-label">{budgetsEnabled ? (lockedBirthday ? t("Birthday budget", "Бюджет на день рождения") : t("Recipients and budgets", "Получатели и бюджеты")) + " (" + currencyUnit() + ")" : t("Recipients","Получатели")}</div>
             {data.people.length ? (
               (lockedBirthday && birthdayPerson ? [birthdayPerson] : data.people).map((p) => (
                 <div className="recipient-selector" key={p.id}>
@@ -430,7 +430,7 @@ export function EditorSheet() {
                     />
                     <span>{p.name}</span>
                   </label>
-                  <input
+                  {budgetsEnabled && <input
                     className="control"
                     aria-label={`Budget for ${p.name}`}
                     type="number"
@@ -440,9 +440,9 @@ export function EditorSheet() {
                     defaultValue={
                       event
                         ? (event.budgets[p.id] ?? "")
-                        : data.settings.birthdayBudget
+                        : (data.settings.occasionBudget ?? data.settings.birthdayBudget)
                     }
-                  />
+                  />}
                 </div>
               ))
             ) : (
@@ -450,9 +450,9 @@ export function EditorSheet() {
                 Add people first, then assign them to the occasion.
               </p>
             )}
-            <p className="section-note">
-              Leave a budget blank for not set. Zero is a valid limit.
-            </p>
+            {budgetsEnabled && <p className="section-note">
+              {t("Leave a budget blank for not set. Zero is a valid limit.","Оставьте поле пустым, если лимита нет. Ноль — допустимый лимит.")}
+            </p>}
           </>
         ) : (
           <>
@@ -509,7 +509,7 @@ export function EditorSheet() {
                 {recipientNeedsAssignment && (
                   <p className="section-note" role="status">
                     Saving this gift also adds {data.people.find((p) => p.id === personId)?.name}
-                    {" "}to {selectedOccasion?.name}, with no individual budget set.
+                    {" "}to {selectedOccasion?.name}{budgetsEnabled ? ", with no individual budget set." : "."}
                   </p>
                 )}
               </div>
@@ -525,7 +525,7 @@ export function EditorSheet() {
             )}
             <div className="form-grid">
               <Field
-                label={type === "idea" && !saveAsGift ? "Estimated price (₽)" : "Price (₽)"}
+                label={(type === "idea" && !saveAsGift ? t("Estimated price","Примерная цена") : t("Price","Цена")) + " (" + currencyUnit() + ")"}
               >
                 <input
                   className="control"
