@@ -14,7 +14,7 @@ import { birthdayFromParts } from "../domain/birthdays";
 import { Button, Field, Sheet } from "./Primitives";
 import { Photo } from "./UI";
 export function EditorSheet() {
-  const { data, editor, commit, closeEditor, notify, openEditor, setUi } = useApp(),
+  const { data, editor, commit, closeEditor, notify, openEditor, setUi, tour, updateTour } = useApp(),
     navigate = useNavigate(),
     [busy, setBusy] = useState(false),
     [saveError, setSaveError] = useState(""),
@@ -97,6 +97,10 @@ export function EditorSheet() {
     try {
       const next = { ...data };
       if (type === "person") {
+        if (!id && tour?.step === "home-person" &&
+          (!text("birthMonth") || !text("birthDay"))) {
+          throw Error("For this walkthrough, please enter a name and birthday. The year and photo are optional.");
+        }
         let photo = removePersonPhoto ? "" : p?.photo || "";
         const photoFile = fd.get("personPhoto");
         if (photoFile instanceof File && photoFile.size) photo = await readAvatar(photoFile);
@@ -200,6 +204,19 @@ export function EditorSheet() {
       }
       if (commit(next)) {
         closeEditor();
+        if (type === "person" && !id && tour?.step === "home-person") {
+          const saved = next.people[next.people.length - 1];
+          updateTour({ step: "person-profile", personId: saved.id });
+          navigate(`/people/${saved.id}`);
+        } else if (type === "gift" && !id &&
+          tour?.step === "occasion" &&
+          next.gifts.at(-1)?.sourceIdeaId === tour.ideaId) {
+          updateTour({ step: "gift-status", giftId: next.gifts[next.gifts.length - 1].id });
+        } else if (type === "gift" && id &&
+          tour?.step === "gift-status" &&
+          next.gifts.find(gift => gift.id === id)?.status === "bought") {
+          updateTour({ step: "complete" });
+        }
         notify("Saved ✓");
       } else
         setSaveError(
