@@ -156,3 +156,19 @@
   .app-shell[data-guided-step="discover"] .ideas-reaction,
   .app-shell[data-guided-step="discover-right"] .ideas-reaction {width:44px; height:44px;}
 }
+
+/* Discover onboarding has to stay clickable even on short phones.
+   Keep actual reaction buttons at the same safe viewport height as regular Discover. */
+.app-shell[data-guided-step="discover"] .ideas-reactions,
+.app-shell[data-guided-step="discover-right"] .ideas-reactions,
+.app-shell[data-guided-step="discover-recipient"] .ideas-reactions {
+  position:fixed; z-index:90; bottom:calc(111px + env(safe-area-inset-bottom));
+  left:50%; transform:translateX(-50%); width:240px;
+  margin:0; pointer-events:auto;
+}
+.app-shell[data-guided-step="discover"] .ideas-discovery-card,
+.app-shell[data-guided-step="discover-right"] .ideas-discovery-card,
+.app-shell[data-guided-step="discover-recipient"] .ideas-discovery-card {
+  width:min(238px,calc(100% - 64px),max(136px,calc(100dvh - var(--discover-stage-top,280px) - 220px)));
+}
+.gift-preview-full-link {display:block; text-align:center; margin:14px auto 6px; color:#70568a; font-size:12px; font-weight:820; text-decoration:underline; text-underline-offset:4px;}
