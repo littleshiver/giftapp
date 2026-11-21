@@ -40,7 +40,7 @@ async function planGiftOnRealEvent(page: Page) {
   await expect(page).toHaveURL(/#\/events\/birthday:/);
   await expect(page.locator(".event-overview")).toBeVisible();
   await expect(page.locator(".event-saved-ideas")).toContainText("Throw blanket");
-  await coach(page).getByRole("button", { name: "Choose saved idea" }).click();
+  await page.locator(".event-saved-ideas-choose").click();
   await expect(page.getByRole("dialog", { name: /^Gift for / })).toBeVisible();
   await page.getByRole("dialog").getByRole("button", { name: "Use idea Throw blanket" }).click();
   await expect(page.getByRole("dialog", { name: "Add gift" })).toBeVisible();
@@ -92,7 +92,7 @@ test("guest uses real Home/FAB, People, swipe gestures, Events and read-only gif
     sourceIdeaId: d.ideas[0].id, status: "to_buy",
   });
 
-  await coach(page).getByRole("button", { name: "View gift" }).click();
+  await page.locator('[data-tour-gift="true"] .product-open').click();
   const preview = page.getByRole("dialog", { name: "Gift details" });
   await expect(preview).toContainText("Throw blanket");
   await expect(preview).toContainText("New person's birthday");
@@ -271,4 +271,47 @@ test("annual birthday/holiday setup utilities remain additive and preserve exist
   expect(next.people).toEqual(d.people);
   expect(next.events).toEqual(d.events);
   expect(next.gifts).toEqual(d.gifts);
+});
+
+
+test("spotlight exposes actual actions and Discover keeps its normal geometry", async ({page}) => {
+  await page.setViewportSize({width:390,height:740});
+  await page.goto("/");
+  await page.getByRole("button", {name:"Try in the app"}).click();
+  await expect(page.locator(".tour-spotlight-cutout")).toBeVisible();
+  await addPersonViaRealFab(page,"Test person","12","15");
+  await coach(page).getByRole("button",{name:"Let's find an idea"}).click();
+  const card = page.locator(".ideas-discovery-card");
+  await expect(card).toBeVisible();
+  const guided = await card.boundingBox();
+  await coach(page).getByRole("button",{name:"Skip tutorial"}).click();
+  await expect(page.locator(".tour-spotlight-layer")).toHaveCount(0);
+  const ordinary = await card.boundingBox();
+  expect(guided).not.toBeNull();
+  expect(ordinary).not.toBeNull();
+  expect(Math.abs(guided!.width-ordinary!.width)).toBeLessThan(2);
+  expect(Math.abs(guided!.height-ordinary!.height)).toBeLessThan(2);
+});
+
+test("saved ideas replace the empty gift list outside the tour", async ({page}) => {
+  await page.goto("/");
+  await page.getByRole("button",{name:"Try in the app"}).click();
+  await addPersonViaRealFab(page,"Ada","12","15");
+  await saveIdeaThroughRealDiscover(page,"Ada");
+  await page.locator('[data-guided-event="true"]').click();
+  await coach(page).getByRole("button",{name:"Skip tutorial"}).click();
+  const offer = page.locator(".event-recipient-group .event-saved-ideas");
+  await expect(offer).toContainText("Throw blanket");
+  await expect(page.locator(".event-empty-gifts")).toHaveCount(0);
+  await offer.getByRole("button",{name:"Choose idea"}).click();
+  await page.getByRole("button",{name:"Use idea Throw blanket"}).click();
+  await page.getByRole("button",{name:"Save gift"}).click();
+  await expect(offer).toHaveCount(0);
+  await page.getByRole("button",{name:"View gift Throw blanket"}).click();
+  const dialog=page.getByRole("dialog",{name:"Gift details"});
+  await expect(dialog).toContainText("Throw blanket");
+  await expect(dialog.locator("input, select, textarea")).toHaveCount(0);
+  await dialog.getByRole("button",{name:"Mark as bought"}).click();
+  await expect(dialog).toContainText("Bought");
+  await expect(dialog.getByRole("button",{name:"Edit gift"})).toBeVisible();
 });

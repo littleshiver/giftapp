@@ -5,7 +5,6 @@ import type { Idea } from "../domain/models";
 import { Empty, PersonAvatar, Product, Title } from "../components/UI";
 import { Button, Sheet } from "../components/Primitives";
 import { WAVE_SHAPE_PATH } from "../components/WaveShape";
-import { TourInline } from "../components/OnboardingGuide";
 import { useApp } from "../state/AppState";
 import { uid } from "../utils/format";
 import { discoverySuggestions, ideaFromDiscovery } from "../domain/discovery";
@@ -213,9 +212,6 @@ export function Ideas() {
             )}
           </div>
 
-          <TourInline step="discover"/>
-          <TourInline step="discover-right"/>
-          <TourInline step="discover-recipient"/>
           {suggestion ? (
             <div className="ideas-swipe-stage" ref={stageRef}>
               <svg className="ideas-stage-wave" viewBox="0 0 400 500"

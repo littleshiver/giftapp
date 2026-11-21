@@ -12,7 +12,6 @@ import {
 import { currency, fmtDate, fullDate, today } from "../utils/format";
 import { Button, Sheet } from "../components/Primitives";
 import { EventCover } from "../components/EventCover";
-import { TourInline } from "../components/OnboardingGuide";
 import type { Gift, Person } from "../domain/models";
 
 type GiftFilter = "all" | "to_buy" | "bought";
@@ -33,13 +32,14 @@ function GiftShelf({
   onView: (gift: Gift) => void;
   emptyLabel?: string;
 }) {
+  const { tour } = useApp();
   const scrollable = gifts.length >= 3;
   if (!gifts.length) return <p className="event-empty-gifts">{emptyLabel ?? "No gifts here yet."}</p>;
   return (
     <div className={`detail-gifts event-gift-shelf ${scrollable ? "is-scrollable" : "is-static"}`}
       data-scrollable={scrollable} aria-label="Gifts">
       {gifts.map(gift => (
-        <div className="event-gift-entry" key={gift.id}>
+        <div className="event-gift-entry" key={gift.id} data-tour-gift={gift.id === tour?.giftId ? "true" : undefined}>
           <EventGift gift={gift} onEdit={() => onEdit(gift)} onView={() => onView(gift)}/>
           {!associationValid(data, gift) &&
             <p className="warning">This gift's recipient is not linked to the occasion. Edit the gift to repair.</p>}
@@ -49,7 +49,7 @@ function GiftShelf({
   );
 }
 function GiftGroup({
-  person, items, limit, data, onEdit, onView,
+  person, items, limit, data, onEdit, onView, onChooseIdeas,
 }: {
   person: Person | undefined;
   items: Gift[];
@@ -57,10 +57,14 @@ function GiftGroup({
   data: ReturnType<typeof useApp>["data"];
   onEdit: (gift: Gift) => void;
   onView: (gift: Gift) => void;
+  onChooseIdeas: () => void;
 }) {
   const [filter, setFilter] = useState<GiftFilter>("all");
   const visible = filter === "all" ? items : items.filter(g => g.status === filter);
   const spent = bought(items);
+  const assignedIdeas = person ? data.ideas.filter(idea => idea.personId === person.id) : [];
+  const suggestions = assignedIdeas.length ? assignedIdeas : person ? data.ideas.filter(idea => !idea.personId) : [];
+  const offerIdeas = items.length === 0 && suggestions.length > 0;
   const recipientIdentity = (
     <>
       <PersonAvatar person={person} className="event-person-avatar"/>
@@ -81,6 +85,15 @@ function GiftGroup({
           {limit !== undefined && <span> / {currency(limit)}</span>}
         </span>
       </div>
+      {offerIdeas ? (
+        <section className="event-saved-ideas" aria-label="Ideas for this occasion">
+          <div className="event-saved-ideas-copy"><strong>{assignedIdeas.length ? `Gift ideas for ${person?.name}` : "Saved ideas"}</strong>
+            <small>{suggestions[0].name}{suggestions.length > 1 ? ` + ${suggestions.length - 1} more` : ""}</small></div>
+          <div className="event-saved-ideas-thumbs">{suggestions.slice(0,3).map(idea => <span key={idea.id} className="event-saved-idea-thumb"><Photo src={idea.image} name={idea.name}/></span>)}</div>
+          <p className="event-saved-ideas-explanation">Choose a saved idea and add it to your gifts to buy.</p>
+          <button type="button" className="event-saved-ideas-choose" onClick={onChooseIdeas}>Choose idea</button>
+        </section>
+      ) : <>
       <div className="event-gift-filter" role="group" aria-label={`Filter gifts for ${person?.name || "recipient"}`}>
         {filterOptions.map(option => (
           <button type="button" key={option.value}
@@ -91,6 +104,7 @@ function GiftGroup({
       </div>
       <GiftShelf gifts={visible} data={data} onEdit={onEdit} onView={onView}
         emptyLabel={filter==="all" ? "Add gifts using the + button below." : `No ${filter === "bought" ? "bought" : "to-buy"} gifts yet.`}/>
+      </>}
     </section>
   );
 }
@@ -103,7 +117,6 @@ export function EventDetail() {
   if (!event) return <><Title name="Occasion not found" back="/events"/><Empty>This occasion is unavailable.</Empty></>;
 
   const gifts = giftsFor(data, event.id);
-  const relevantIdeas = data.ideas.filter(idea => !idea.personId || event.people.includes(idea.personId));
   const budget = eventBudget(event);
   const spent = bought(gifts);
   const isGroup = event.people.length > 1;
@@ -179,22 +192,14 @@ export function EventDetail() {
         </div>
       </section>
 
-      <TourInline step="occasion"/>
-      <TourInline step="gift-status"/>
-      {relevantIdeas.length > 0 && (
-        <section className="event-saved-ideas" aria-label="Ideas for this occasion">
-          <div className="event-saved-ideas-copy"><strong>Saved ideas</strong><small>{relevantIdeas[0].name}{relevantIdeas.length > 1 ? ` + ${relevantIdeas.length - 1} more` : ""}</small></div>
-          <div className="event-saved-ideas-thumbs">{relevantIdeas.slice(0,3).map(idea => <span key={idea.id} className="event-saved-idea-thumb"><Photo src={idea.image} name={idea.name}/></span>)}</div>
-          <button type="button" className="event-saved-ideas-choose" onClick={() => setUi({giftPickerEventId:event.id})}>Choose idea</button>
-        </section>
-      )}
       {event.people.length ? (
         <div className={isGroup ? "event-gift-groups is-group event-recipient-groups" : "event-gift-groups is-single event-single-gifts"}>
           {isGroup && <h2 className="event-gifts-title">Gifts by person</h2>}
           {event.people.map(personId => (
             <GiftGroup key={personId} person={data.people.find(p => p.id===personId)}
               items={giftsFor(data,event.id,personId)} limit={event.budgets[personId]} data={data}
-              onEdit={gift => openEditor({type:"gift",id:gift.id})} onView={gift=>openGiftPreview(gift.id)}/>
+              onEdit={gift => openEditor({type:"gift",id:gift.id})} onView={gift=>openGiftPreview(gift.id)}
+              onChooseIdeas={() => { setGiftPersonId(personId); setUi({giftPickerEventId:event.id}); }}/>
           ))}
         </div>
       ) : <div className="event-recipient-empty">No recipients yet. Add people to start planning gifts.</div>}
@@ -319,7 +324,6 @@ export function PersonDetail() {
       {person.note && (
         <p className="person-profile-note">{person.note}</p>
       )}
-      <TourInline step="person-profile"/>
       <section className="section person-ideas" aria-label="Gift collections">
         <div className="pill-tabs person-collection-tabs" role="group" aria-label="Gift collections">
           <button data-ph="person-tab-ideas" type="button" className={`pill-tab ${collection === "ideas" ? "is-active" : ""}`}

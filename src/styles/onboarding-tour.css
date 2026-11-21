@@ -5,24 +5,21 @@
   border-radius:18px; background:rgba(255,255,255,.98);
   color:#30333a; box-shadow:0 7px 24px rgba(37,40,48,.11);
 }
-.tour-coach.is-floating {
-  position:fixed; right:max(13px,calc((100vw - 460px)/2 + 13px)); bottom:168px;
-  max-height:44dvh; overflow-y:auto;
+.tour-spotlight-layer {position:fixed; inset:0; z-index:400; pointer-events:none;}
+.tour-spotlight-cutout {
+  position:fixed; border-radius:15px; pointer-events:none;
+  box-shadow:0 0 0 160vmax rgba(26,24,34,.53);
+  outline:1px solid rgba(255,255,255,.78);
 }
-.tour-coach-home-menu.is-floating {bottom:318px;}
-.tour-coach.is-inline {
-  position:relative; left:auto; top:auto; bottom:auto; right:auto;
-  display:block; width:calc(100% - 28px); max-width:430px; max-height:none;
-  margin:13px auto 17px; box-shadow:0 5px 15px rgba(39,42,52,.075);
-  background:linear-gradient(140deg,#fff 70%,#f8f3fb 100%);
+.tour-spotlight-fallback {position:fixed; inset:0; background:rgba(26,24,34,.43); pointer-events:none;}
+.tour-spotlight-coach {
+  position:fixed; width:min(330px,calc(100vw - 24px)); max-height:calc(100dvh - 24px);
+  pointer-events:auto;
 }
-.tour-coach.is-inline::after,
-.tour-coach.is-floating::after {
-  content:""; position:absolute; bottom:-7px; right:31px; width:12px; height:12px;
-  background:#fff; border-right:1px solid rgba(144,124,173,.21);
-  border-bottom:1px solid rgba(144,124,173,.21); transform:rotate(45deg);
+.tour-spotlight-coach .tour-coach.is-floating {
+  position:relative; inset:auto; width:100%; max-height:calc(100dvh - 24px); overflow:auto;
+  background:#fff; box-shadow:0 9px 28px rgba(20,18,30,.23);
 }
-.tour-coach.is-inline::after {display:none;}
 .tour-coach-header {display:flex; justify-content:space-between; align-items:center; gap:12px; margin:0 0 4px;}
 .tour-coach-eyebrow {color:#866a9d; font-size:10px; font-weight:810; letter-spacing:.035em;}
 .tour-coach-close {
@@ -49,21 +46,6 @@
   margin:0 0 13px; background:#f5eff9; border-radius:12px;
   padding:10px 12px; color:#5a4a6c; line-height:1.42; font-size:12px;
 }
-.app-shell[data-guided-step="home-person"] .fab,
-.app-shell[data-guided-step="home-menu"] [data-ph="create-person"],
-.app-shell[data-guided-step="discover"] .ideas-reaction.ideas-dislike,
-.app-shell[data-guided-step="discover-right"] .ideas-reaction.ideas-like,
-.app-shell[data-guided-step="calendar"] [data-guided-event="true"],
-.app-shell[data-guided-step="person-profile"] .person-profile-panel,
-.app-shell[data-guided-step="occasion"] .event-saved-ideas,
-.app-shell[data-guided-step="gift-status"] .event-gift-shelf {
-  outline:3px solid #a38bc7; outline-offset:4px;
-}
-.app-shell[data-guided-step="home-person"] .fab,
-.app-shell[data-guided-step="home-menu"] [data-ph="create-person"] {
-  box-shadow:0 0 0 8px rgba(160,137,193,.15);
-}
-.app-shell:has(.overlay) .tour-coach {display:none;}
 .tour-finish-screen {
   position:fixed; inset:0; z-index:500; display:flex; align-items:flex-end; justify-content:center;
   padding:15px 15px max(20px,env(safe-area-inset-bottom));
@@ -91,11 +73,9 @@
 .tour-finish-signup {background:#272b31; color:#fff;}
 .tour-finish-guest {background:#eff1f3; color:#39434c;}
 .tour-finish-card > small {margin-top:15px; font-size:11px; color:#77828a; line-height:1.5;}
-@media (min-width:600px) {.tour-finish-screen {align-items:center;}.tour-coach.is-floating {right:max(15px,calc((100vw - 460px)/2 + 15px));}}
+@media (min-width:600px) {.tour-finish-screen {align-items:center;}}
 @media (max-width:359px) {
   .tour-coach {padding:10px 12px;}
-  .tour-coach.is-floating {bottom:168px;}
-  .tour-coach-home-menu.is-floating {bottom:318px;}
   .tour-coach p {font-size:11px;}
   .tour-finish-card {padding:20px 17px;}
   .tour-finish-card h2 {font-size:26px;}

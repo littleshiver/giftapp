@@ -15,20 +15,20 @@ import { Account } from "./pages/Account";
 import { EventDetail, PersonDetail } from "./pages/Details";
 import { useApp } from "./state/AppState";
 export function App() {
-  const { data, editor, giftPreviewId, closeGiftPreview, ui, tour, warning, upgradeNotice, closeEditor, openEditor, syncStatus } = useApp(),
+  const { data, editor, giftPreviewId, closeGiftPreview, openGiftPreview, ui, tour, warning, upgradeNotice, closeEditor, openEditor, syncStatus } = useApp(),
     location = useLocation();
   useEffect(() => {
     window.scrollTo(0, 0);
     closeEditor();
     closeGiftPreview();
     // Deep-linked Home gift actions land on the real occasion page first,
-    // then open its existing editor sheet. This also works on reload/back.
+    // then open its read-only gift sheet. This also works on reload/back.
     const occasionId = location.pathname.match(/^\/events\/([^/]+)$/)?.[1];
     if (!occasionId || !data.events.some((e) => e.id === occasionId)) return;
     const query = new URLSearchParams(location.search);
     const giftId = query.get("gift");
     if (giftId && data.gifts.some((g) => g.id === giftId && g.eventId === occasionId)) {
-      openEditor({ type: "gift", id: giftId });
+      openGiftPreview(giftId);
     } else if (query.get("addGift") === "1") {
       openEditor({ type: "gift", eventId: occasionId });
     }
