@@ -42,7 +42,7 @@ function writeCache(uid: string, data: AppData) {
 import { emptyDemo, filledDemo } from "../domain/demo";
 
 export type PreviewMode = "my" | "empty" | "filled";
-export type TourStep = "home-person" | "person-profile" | "discover" | "calendar" | "occasion" | "gift-status" | "complete";
+export type TourStep = "home-person" | "home-menu" | "person-profile" | "discover" | "discover-right" | "discover-recipient" | "calendar" | "occasion" | "gift-status" | "complete";
 export interface TourState {
   step: TourStep;
   preview: boolean;
@@ -80,6 +80,9 @@ interface State {
   /** "local" for guests; otherwise the state of the account sync. */
   syncStatus: SyncStatus;
   editor: Editor | null;
+  giftPreviewId: string | null;
+  openGiftPreview: (id: string) => void;
+  closeGiftPreview: () => void;
   tour: TourState | null;
   startTour: (preview: boolean) => void;
   updateTour: (patch: Partial<TourState>) => void;
@@ -230,6 +233,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
     if (preview) setPreviewMode("empty");
     setEditor(null);
+    setGiftPreviewId(null);
     persistTour(next);
   };
   const updateTour = (patch: Partial<TourState>) => {
@@ -239,6 +243,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (tour?.preview) setPreviewMode(tour.restoreMode);
     persistTour(null);
   };
+  const [giftPreviewId, setGiftPreviewId] = useState<string | null>(null);
   const [editor, setEditor] = useState<Editor | null>(null),
     [toast, setToast] = useState<{
       message: string;
@@ -327,6 +332,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         commit,
         syncStatus,
         editor,
+        giftPreviewId,
+        openGiftPreview: (id: string) => { setEditor(null); setGiftPreviewId(id); },
+        closeGiftPreview: () => setGiftPreviewId(null),
         tour,
         startTour,
         updateTour,
