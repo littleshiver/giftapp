@@ -845,38 +845,52 @@ test("Inspiration copy stays in its own three-line column at Pixel-like mobile w
 });
 
 
-test("Guided onboarding remains phone-width safe through every person/idea/gift step", async ({ page }) => {
+test("In-app guide stays inside 320px and Pixel viewports while using real screens", async ({ page }) => {
   for (const viewport of [{ width: 320, height: 667 }, { width: 390, height: 844 }]) {
     await page.setViewportSize(viewport);
-    // Route away so React creates a fresh walkthrough instance per viewport.
     await page.goto("/#/settings");
     await page.goto("/#/onboarding?preview=1");
     const check = async () => {
-      const width = await page.evaluate(() => ({
-        document: document.documentElement.scrollWidth,
-        viewport: innerWidth,
-        stage: document.querySelector(".guided-stage")!.getBoundingClientRect().width,
-      }));
-      expect(width.document).toBeLessThanOrEqual(width.viewport + 1);
-      expect(width.stage).toBeLessThanOrEqual(width.viewport);
-      await expect(page.locator(".guided-topbar .home-brandbar")).toBeVisible();
+      const result = await page.evaluate(() => {
+        const coach = document.querySelector(".tour-coach")?.getBoundingClientRect();
+        return {
+          document: document.documentElement.scrollWidth,
+          viewport: innerWidth,
+          coachLeft: coach?.left,
+          coachRight: coach?.right,
+        };
+      });
+      expect(result.document).toBeLessThanOrEqual(result.viewport + 1);
+      if (result.coachLeft !== undefined) {
+        expect(result.coachLeft).toBeGreaterThanOrEqual(0);
+        expect(result.coachRight).toBeLessThanOrEqual(viewport.width + 1);
+      }
     };
     await check();
-    await page.getByRole("button", { name: "Try as guest" }).click();
+    await page.getByRole("button", { name: "Try in the app" }).click();
+    await expect(page.locator(".home-heading > .home-brandbar")).toBeVisible();
     await check();
+    await page.getByRole("button", { name: "Create", exact: true }).click();
+    await page.getByRole("button", { name: "Add person", exact: true }).click();
     await page.getByLabel("Name", { exact: true }).fill("Lee");
-    await page.getByLabel("Birthday month").selectOption("05");
-    await page.getByLabel("Birthday day").fill("14");
-    await page.getByRole("button", { name: "Add person" }).click();
+    await page.getByLabel("Month").selectOption("05");
+    await page.getByLabel("Day").selectOption("14");
+    await page.getByRole("button", { name: "Save person" }).click();
+    await expect(page.locator(".person-profile-hero")).toBeVisible();
     await check();
-    await page.getByRole("button", { name: "Let's find a gift" }).click();
+    await page.getByRole("region", { name: "Givvy walkthrough" })
+      .getByRole("button", { name: "Find a gift idea" }).click();
+    await expect(page.locator(".ideas-discovery-card")).toBeVisible();
     await check();
-    await page.getByRole("button", { name: "Save for Lee" }).click();
+    await page.getByRole("button", { name: "Like idea" }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "Lee" }).click();
+    await expect(page.locator(".calendar-event-card[data-guided-event=true]")).toBeVisible();
     await check();
-    await page.getByRole("button", { name: "Plan this gift" }).click();
+    await page.locator(".calendar-event-card[data-guided-event=true]").click();
+    await expect(page.locator(".event-overview")).toBeVisible();
     await check();
-    await page.getByRole("button", { name: "Finish walkthrough" }).click();
-    await check();
-    await expect(page.getByRole("button", { name: "Back to Settings" })).toBeVisible();
+    await page.getByRole("region", { name: "Givvy walkthrough" })
+      .getByRole("button", { name: "Skip tour" }).click();
+    await expect(page.locator(".tour-coach")).toHaveCount(0);
   }
 });
