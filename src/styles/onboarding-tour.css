@@ -1,0 +1,170 @@
+/* Givvy in-app onboarding — guidance, not a second application. */
+.tour-coach {
+  position: fixed;
+  z-index: 200;
+  bottom: calc(94px + env(safe-area-inset-bottom));
+  left: max(13px, calc((100vw - 470px) / 2 + 13px));
+  width: min(350px, calc(100vw - 26px));
+  max-height: min(54dvh, 365px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 16px 18px 14px;
+  border: 1px solid rgba(143,132,161,.21);
+  border-radius: 21px;
+  background: rgba(255,255,255,.975);
+  box-shadow:
+    0 13px 37px rgba(35,40,49,.16),
+    0 2px 9px rgba(35,40,49,.065);
+  color: #30343b;
+  animation: tour-coach-appear 290ms ease both;
+}
+@keyframes tour-coach-appear {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.tour-coach-home-person {
+  top: max(94px, calc(env(safe-area-inset-top) + 73px));
+  bottom: auto;
+}
+.tour-coach-complete { bottom: calc(95px + env(safe-area-inset-bottom)); }
+.tour-coach-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 7px;
+}
+.tour-coach-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #9472ab;
+  font-size: 10px;
+  font-weight: 880;
+  letter-spacing: .065em;
+  text-transform: uppercase;
+}
+.tour-coach-close {
+  display: grid;
+  place-items: center;
+  width: 33px;
+  height: 33px;
+  border: 0;
+  background: #f3f4f6;
+  color: #63707a;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.tour-coach h2 {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.2;
+  font-weight: 910;
+  letter-spacing: -.25px;
+}
+.tour-coach p {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.48;
+  color: #616b75;
+}
+.tour-coach-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  color: #8469a8;
+  font-size: 11px;
+  font-weight: 840;
+}
+.tour-coach-primary,
+.tour-coach-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 43px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: #262a30;
+  color: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 840;
+  cursor: pointer;
+}
+.tour-coach-secondary {
+  background: #edf0f3;
+  color: #343e49;
+}
+.tour-coach-skip,
+.tour-coach-skip-status {
+  display: block;
+  width: fit-content;
+  margin: 10px auto 0;
+  padding: 6px;
+  border: 0;
+  background: transparent;
+  color: #6d7782;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 780;
+  cursor: pointer;
+}
+.tour-coach-skip-status {
+  margin-left: 0;
+  color: #8b6faa;
+}
+.tour-coach-finish { display: grid; gap: 0; }
+.tour-coach-finish small {
+  margin: 10px 0 0;
+  color: #6b7881;
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+.tour-coach button:focus-visible {
+  outline: 3px solid #a07bc6;
+  outline-offset: 2px;
+}
+/* Highlight actual, existing app controls rather than painting mock versions. */
+.app-shell[data-guided-step="home-person"] .fab,
+.app-shell[data-guided-step="discover"] .ideas-reaction.ideas-like,
+.app-shell[data-guided-step="calendar"] .calendar-event-card[data-guided-event="true"],
+.app-shell[data-guided-step="person-profile"] .person-profile-panel,
+.app-shell[data-guided-step="occasion"] .event-gift-groups,
+.app-shell[data-guided-step="gift-status"] .event-gift-shelf {
+  outline: 3px solid #a48bca;
+  outline-offset: 4px;
+}
+.app-shell[data-guided-step="home-person"] .fab,
+.app-shell[data-guided-step="discover"] .ideas-reaction.ideas-like {
+  box-shadow: 0 0 0 7px rgba(164,139,202,.17);
+}
+.app-shell:has(.overlay) .tour-coach { display: none; }
+@media (max-width: 359px) {
+  .tour-coach {
+    bottom: calc(91px + env(safe-area-inset-bottom));
+    left: 10px;
+    width: calc(100vw - 20px);
+    padding: 12px 14px;
+    max-height: 49dvh;
+  }
+  .tour-coach-home-person {
+    top: max(76px, calc(env(safe-area-inset-top) + 58px));
+    bottom: auto;
+  }
+  .tour-coach h2 { font-size: 15px; }
+  .tour-coach p { font-size: 11px; }
+}
+@media (min-width: 600px) {
+  .tour-coach {
+    left: max(16px, calc((100vw - 480px)/2 + 16px));
+    bottom: 110px;
+  }
+  .tour-coach-home-person { top: 95px; bottom: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tour-coach { animation: none; }
+}
