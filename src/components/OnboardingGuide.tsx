@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Check, ChevronLeft, ChevronRight, LockKeyhole, X } from "lucide-react";
+import { ArrowRight, Check, ChevronLeft, ChevronRight, LockKeyhole, X } from "lucide-react";
 import { useApp, type TourStep } from "../state/AppState";
 import { useAuth } from "../auth/AuthContext";
 import { finishFirstRun } from "../domain/onboardingJourney";
@@ -191,13 +191,15 @@ function TourFinish() {
       <section className="tour-finish-card" role="dialog" aria-modal="true" aria-label="Tutorial complete">
         <div className="tour-finish-check"><Check size={32}/></div>
         <h2>You've got this!</h2>
-        <p>You've added a person, explored gift ideas and seen how to plan a gift for an occasion.</p>
+        <p>{data.gifts.some(g => g.id === tour.giftId)
+          ? "You've added a person, saved an idea and planned your first gift."
+          : "You've explored how to keep people, ideas and occasions together. Your next gift plan is one step away."}</p>
         <div className="tour-finish-sync">
           <LockKeyhole size={20}/>
           <div><strong>Keep your gift plans with you</strong>
           <span>Create a free account to sync them across your devices. No payment needed.</span></div>
         </div>
-        {status === "guest" && (
+        {(status === "guest" || tour.preview) && (
           <button type="button" className="tour-finish-signup" onClick={() => finish(true)}>
             Create free account <ArrowRight size={18}/>
           </button>
