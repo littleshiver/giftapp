@@ -183,7 +183,7 @@ export function EventDetail() {
       <TourInline step="gift-status"/>
       {relevantIdeas.length > 0 && (
         <section className="event-saved-ideas" aria-label="Ideas for this occasion">
-          <div className="event-saved-ideas-copy"><strong>Saved ideas</strong><small>Already saved for these people</small></div>
+          <div className="event-saved-ideas-copy"><strong>Saved ideas</strong><small>{relevantIdeas[0].name}{relevantIdeas.length > 1 ? ` + ${relevantIdeas.length - 1} more` : ""}</small></div>
           <div className="event-saved-ideas-thumbs">{relevantIdeas.slice(0,3).map(idea => <span key={idea.id} className="event-saved-idea-thumb"><Photo src={idea.image} name={idea.name}/></span>)}</div>
           <button type="button" className="event-saved-ideas-choose" onClick={() => setUi({giftPickerEventId:event.id})}>Choose idea</button>
         </section>
