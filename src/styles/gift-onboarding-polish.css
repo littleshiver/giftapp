@@ -128,3 +128,31 @@
 .gift-preview-page-bar button {background:#fff; border:0; padding:10px 12px; border-radius:12px; color:#3f4b55; font-size:12px; font-weight:820;}
 .gift-preview-page-bar strong {font-size:15px; font-weight:850;}
 .gift-preview-page .gift-preview-content {padding:16px; border-radius:20px; background:white;}
+
+/* On a guided Discover screen the teaching note is in document flow.
+   Reclaim vertical space rather than hiding the Like/Dislike controls below nav. */
+.app-shell[data-guided-step="discover"] .ideas-swipe-stage,
+.app-shell[data-guided-step="discover-right"] .ideas-swipe-stage,
+.app-shell[data-guided-step="discover-recipient"] .ideas-swipe-stage {
+  padding-top: clamp(8px,1.5dvh,17px);
+  padding-bottom: max(96px,env(safe-area-inset-bottom));
+}
+.app-shell[data-guided-step="discover"] .ideas-discovery-card,
+.app-shell[data-guided-step="discover-right"] .ideas-discovery-card,
+.app-shell[data-guided-step="discover-recipient"] .ideas-discovery-card {
+  width:min(238px,calc(100% - 64px),max(140px,calc(100dvh - var(--discover-stage-top,280px) - 160px)));
+}
+.app-shell[data-guided-step="discover"] .ideas-discovery-caption,
+.app-shell[data-guided-step="discover-right"] .ideas-discovery-caption {
+  min-height:35px; padding:5px 8px 9px;
+}
+.app-shell[data-guided-step="discover"] .ideas-reactions,
+.app-shell[data-guided-step="discover-right"] .ideas-reactions {
+  margin-top:7px;
+}
+@media(max-height:710px){
+  .app-shell[data-guided-step="discover"] .ideas-discovery-card,
+  .app-shell[data-guided-step="discover-right"] .ideas-discovery-card {width:min(180px,calc(100% - 64px),max(132px,calc(100dvh - var(--discover-stage-top,280px) - 154px)));}
+  .app-shell[data-guided-step="discover"] .ideas-reaction,
+  .app-shell[data-guided-step="discover-right"] .ideas-reaction {width:44px; height:44px;}
+}
