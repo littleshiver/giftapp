@@ -93,6 +93,9 @@ export function GiftPreviewSheet() {
         closeGiftPreview();
         openEditor({ type: "gift", id });
       }}/>
+      <Link className="gift-preview-full-link" to={`/gifts/${giftPreviewId}`} onClick={closeGiftPreview}>
+        Open full gift page
+      </Link>
     </Sheet>
   );
 }
