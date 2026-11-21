@@ -12,6 +12,7 @@ import {
 import { currency, fmtDate, fullDate, today } from "../utils/format";
 import { Button, Sheet } from "../components/Primitives";
 import { EventCover } from "../components/EventCover";
+import { TourInline } from "../components/OnboardingGuide";
 import type { Gift, Person } from "../domain/models";
 
 type GiftFilter = "all" | "to_buy" | "bought";
@@ -102,6 +103,7 @@ export function EventDetail() {
   if (!event) return <><Title name="Occasion not found" back="/events"/><Empty>This occasion is unavailable.</Empty></>;
 
   const gifts = giftsFor(data, event.id);
+  const relevantIdeas = data.ideas.filter(idea => !idea.personId || event.people.includes(idea.personId));
   const budget = eventBudget(event);
   const spent = bought(gifts);
   const isGroup = event.people.length > 1;
@@ -110,7 +112,7 @@ export function EventDetail() {
     giftPickerOpen && event.people.length === 1 ? event.people[0] : null
   );
   const selectedPerson = data.people.find(person => person.id === activePersonId);
-  const savedIdeas = data.ideas.filter(idea => idea.personId === activePersonId);
+  const savedIdeas = data.ideas.filter(idea => !idea.personId || idea.personId === activePersonId);
   const closeGiftPicker = () => {
     setGiftPersonId(null);
     setUi({giftPickerEventId:""});
@@ -177,6 +179,15 @@ export function EventDetail() {
         </div>
       </section>
 
+      <TourInline step="occasion"/>
+      <TourInline step="gift-status"/>
+      {relevantIdeas.length > 0 && (
+        <section className="event-saved-ideas" aria-label="Ideas for this occasion">
+          <div className="event-saved-ideas-copy"><strong>Saved ideas</strong><small>Already saved for these people</small></div>
+          <div className="event-saved-ideas-thumbs">{relevantIdeas.slice(0,3).map(idea => <span key={idea.id} className="event-saved-idea-thumb"><Photo src={idea.image} name={idea.name}/></span>)}</div>
+          <button type="button" className="event-saved-ideas-choose" onClick={() => setUi({giftPickerEventId:event.id})}>Choose idea</button>
+        </section>
+      )}
       {event.people.length ? (
         <div className={isGroup ? "event-gift-groups is-group event-recipient-groups" : "event-gift-groups is-single event-single-gifts"}>
           {isGroup && <h2 className="event-gifts-title">Gifts by person</h2>}
@@ -308,6 +319,7 @@ export function PersonDetail() {
       {person.note && (
         <p className="person-profile-note">{person.note}</p>
       )}
+      <TourInline step="person-profile"/>
       <section className="section person-ideas" aria-label="Gift collections">
         <div className="pill-tabs person-collection-tabs" role="group" aria-label="Gift collections">
           <button data-ph="person-tab-ideas" type="button" className={`pill-tab ${collection === "ideas" ? "is-active" : ""}`}
