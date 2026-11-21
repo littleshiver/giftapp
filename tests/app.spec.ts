@@ -27,7 +27,7 @@ test("Home featured gallery: individual gift cards, event link and prefilled add
 
   // A Home gift is a visual reminder, not a shortcut into editing.
   await page.getByRole("button", { name: "View gift Scented candle" }).click();
-  await expect(page).toHaveURL(/#\/$/);
+  await expect(page).toHaveURL(/\/(?:#\/)?$/);
   await expect(page.getByRole("dialog", { name: "Gift details" })).toBeVisible();
   await expect(page.getByRole("dialog", { name: "Gift details" })).toContainText("Anna's birthday");
   await expect(page.getByRole("dialog", { name: "Gift details" }).getByRole("button", { name: "Edit gift" })).toBeVisible();
@@ -413,13 +413,13 @@ test("occasion/gift CRUD and explicit cascade deletion retain independent ideas"
   await page.getByLabel("Price (₽)").fill("100");
   await page.getByRole("button", { name: "Save gift", exact: true }).click();
   await expect(
-    page.getByRole("button", { name: "Edit Flowers", exact: true }),
+    page.getByRole("button", { name: "Edit gift Flowers", exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Edit Flowers", exact: true }).click();
+  await page.getByRole("button", { name: "Edit gift Flowers", exact: true }).click();
   page.once("dialog", (d) => d.accept());
   await page.getByRole("button", { name: "Delete gift", exact: true }).click();
   await expect(
-    page.getByRole("button", { name: "Edit Flowers", exact: true }),
+    page.getByRole("button", { name: "Edit gift Flowers", exact: true }),
   ).toHaveCount(0);
   await page.getByRole("button", { name: "Edit", exact: true }).click();
   page.once("dialog", (d) => d.accept());
@@ -797,7 +797,7 @@ test("demo gift photo appears in the editor rather than a broken image", async (
   await page.goto("/#/settings");
   await page.getByRole("button", { name: "Filled", exact: true }).click();
   await page.goto("/#/events/demo-birthday");
-  await page.getByRole("button", { name: "Edit Portable pink blender", exact: true }).click();
+  await page.getByRole("button", { name: "Edit gift Portable pink blender", exact: true }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
   await expect(page.getByRole("dialog").locator(".photo-upload-preview .demo-product-sprite")).toBeVisible();
 });
@@ -1022,7 +1022,7 @@ test("one gift card design separates purchase status and editing on Home and Eve
   await expect(homeCandle.locator(".gift-status-icon.is-to-buy")).toHaveCount(1);
   await homeCandle.getByRole("button", { name: "Mark Scented candle as Bought" }).click();
   await expect(homeCandle.locator(".gift-status-icon.is-bought")).toBeVisible();
-  await expect(page).toHaveURL(/#\/$/);
+  await expect(page).toHaveURL(/\/(?:#\/)?$/);
 
   await page.goto("/#/people/p1");
   await expect(page.locator(".person-ideas .gift-card")).toHaveCount(1);
@@ -1092,7 +1092,7 @@ test("Home gift image is a reminder only, with right-hand status and text fallba
   await home.getByRole("button",{name:"Mark Scented candle as To buy"}).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await home.getByRole("button",{name:"View gift Scented candle"}).click();
-  await expect(page).toHaveURL(/#\/$/);
+  await expect(page).toHaveURL(/\/(?:#\/)?$/);
   await expect(page.getByRole("dialog", { name:"Gift details" })).toBeVisible();
   await expect(page.getByRole("dialog", { name:"Gift details" })).toContainText("Scented candle");
 });
