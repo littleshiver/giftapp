@@ -873,8 +873,8 @@ test("In-app guide stays inside 320px and Pixel viewports while using real scree
     await page.getByRole("button", { name: "Create", exact: true }).click();
     await page.getByRole("button", { name: "Add person", exact: true }).click();
     await page.getByLabel("Name", { exact: true }).fill("Lee");
-    await page.getByLabel("Month").selectOption("05");
-    await page.getByLabel("Day").selectOption("14");
+    await page.getByLabel("Month", { exact: true }).selectOption("05");
+    await page.getByLabel("Day", { exact: true }).selectOption("14");
     await page.getByRole("button", { name: "Save person" }).click();
     await expect(page.locator(".person-profile-hero")).toBeVisible();
     await check();
@@ -882,7 +882,7 @@ test("In-app guide stays inside 320px and Pixel viewports while using real scree
       .getByRole("button", { name: "Find a gift idea" }).click();
     await expect(page.locator(".ideas-discovery-card")).toBeVisible();
     await check();
-    await page.getByRole("button", { name: "Like idea" }).click();
+    await page.getByRole("button", { name: "Like idea", exact: true }).click();
     await page.getByRole("dialog").getByRole("button", { name: "Lee" }).click();
     await expect(page.locator(".calendar-event-card[data-guided-event=true]")).toBeVisible();
     await check();
