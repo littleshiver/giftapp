@@ -20,15 +20,16 @@ const filterOptions: {value: GiftFilter; label: string}[] = [
   {value:"to_buy", label:"To buy"},
   {value:"bought", label:"Bought"},
 ];
-function EventGift({gift, onEdit}: {gift: Gift; onEdit: () => void}) {
-  return <Product item={gift} onClick={onEdit}/>;
+function EventGift({gift, onEdit, onView}: {gift: Gift; onEdit: () => void; onView: () => void}) {
+  return <Product item={gift} onClick={onView} onEdit={onEdit}/>;
 }
 function GiftShelf({
-  gifts, data, onEdit, emptyLabel,
+  gifts, data, onEdit, onView, emptyLabel,
 }: {
   gifts: Gift[];
   data: ReturnType<typeof useApp>["data"];
   onEdit: (gift: Gift) => void;
+  onView: (gift: Gift) => void;
   emptyLabel?: string;
 }) {
   const scrollable = gifts.length >= 3;
@@ -38,7 +39,7 @@ function GiftShelf({
       data-scrollable={scrollable} aria-label="Gifts">
       {gifts.map(gift => (
         <div className="event-gift-entry" key={gift.id}>
-          <EventGift gift={gift} onEdit={() => onEdit(gift)}/>
+          <EventGift gift={gift} onEdit={() => onEdit(gift)} onView={() => onView(gift)}/>
           {!associationValid(data, gift) &&
             <p className="warning">This gift's recipient is not linked to the occasion. Edit the gift to repair.</p>}
         </div>
@@ -47,13 +48,14 @@ function GiftShelf({
   );
 }
 function GiftGroup({
-  person, items, limit, data, onEdit,
+  person, items, limit, data, onEdit, onView,
 }: {
   person: Person | undefined;
   items: Gift[];
   limit: number | undefined;
   data: ReturnType<typeof useApp>["data"];
   onEdit: (gift: Gift) => void;
+  onView: (gift: Gift) => void;
 }) {
   const [filter, setFilter] = useState<GiftFilter>("all");
   const visible = filter === "all" ? items : items.filter(g => g.status === filter);
@@ -86,7 +88,7 @@ function GiftGroup({
             onClick={() => setFilter(option.value)}>{option.label}</button>
         ))}
       </div>
-      <GiftShelf gifts={visible} data={data} onEdit={onEdit}
+      <GiftShelf gifts={visible} data={data} onEdit={onEdit} onView={onView}
         emptyLabel={filter==="all" ? "Add gifts using the + button below." : `No ${filter === "bought" ? "bought" : "to-buy"} gifts yet.`}/>
     </section>
   );
@@ -94,7 +96,7 @@ function GiftGroup({
 
 export function EventDetail() {
   const { id } = useParams();
-  const { data, openEditor, ui, setUi } = useApp();
+  const { data, openEditor, openGiftPreview, ui, setUi } = useApp();
   const [giftPersonId, setGiftPersonId] = useState<string | null>(null);
   const event = data.events.find(item => item.id === id);
   if (!event) return <><Title name="Occasion not found" back="/events"/><Empty>This occasion is unavailable.</Empty></>;
@@ -181,7 +183,7 @@ export function EventDetail() {
           {event.people.map(personId => (
             <GiftGroup key={personId} person={data.people.find(p => p.id===personId)}
               items={giftsFor(data,event.id,personId)} limit={event.budgets[personId]} data={data}
-              onEdit={gift => openEditor({type:"gift",id:gift.id})}/>
+              onEdit={gift => openEditor({type:"gift",id:gift.id})} onView={gift=>openGiftPreview(gift.id)}/>
           ))}
         </div>
       ) : <div className="event-recipient-empty">No recipients yet. Add people to start planning gifts.</div>}
@@ -190,7 +192,7 @@ export function EventDetail() {
         <section className="event-needs-attention">
           <h2>Needs attention</h2>
           <p>These gifts are not assigned to a current recipient. Edit them to repair their links.</p>
-          <GiftShelf gifts={unassigned} data={data} onEdit={gift=>openEditor({type:"gift",id:gift.id})}/>
+          <GiftShelf gifts={unassigned} data={data} onEdit={gift=>openEditor({type:"gift",id:gift.id})} onView={gift=>openGiftPreview(gift.id)}/>
         </section>
       )}
       {giftPickerOpen && !selectedPerson && event.people.length > 1 && (
@@ -242,7 +244,7 @@ export function EventDetail() {
 
 export function PersonDetail() {
   const { id } = useParams();
-  const { data, openEditor } = useApp();
+  const { data, openEditor, openGiftPreview } = useApp();
   const [collection, setCollection] = useState<"ideas" | "gifted">("ideas");
   const person = data.people.find((candidate) => candidate.id === id);
   if (!person) return <Title name="Person not found" back="/people"/>;
@@ -334,7 +336,7 @@ export function PersonDetail() {
                 return (
                   <Product key={gift.id} item={gift} statusReadOnly
                     captionText={`${occasion.name} · ${fmtDate(occasion.date)}, ${occasion.date.slice(0, 4)}`}
-                    onClick={() => openEditor({type:"gift", id:gift.id})}/>
+                    onClick={() => openGiftPreview(gift.id)} onEdit={() => openEditor({type:"gift", id:gift.id})}/>
                 );
               })}
             </div>
