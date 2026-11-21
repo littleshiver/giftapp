@@ -35,7 +35,7 @@ export function App() {
   }, [location.pathname, location.search]);
   return (
     <div className="app-shell" data-guided-step={tour?.step || undefined}>
-      <div inert={!!(editor || giftPreviewId)} aria-hidden={editor || giftPreviewId ? true : undefined}>
+      <div inert={!!(editor || giftPreviewId || tour?.step === "complete")} aria-hidden={editor || giftPreviewId || tour?.step === "complete" ? true : undefined}>
         <main className={[
           "app-main",
           location.pathname === "/" ? "app-main-home" : "",
