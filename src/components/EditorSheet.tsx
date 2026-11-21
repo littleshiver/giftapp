@@ -114,7 +114,7 @@ export function EditorSheet() {
 
           likes: text("likes"),
           avoid: text("avoid"),
-          note: text("note"),
+          note: p?.note || "", // Keep legacy notes stored; no obsolete input in new UI.
         };
         next.people = id
           ? data.people.map((p) => (p.id === id ? value : p))
@@ -297,24 +297,21 @@ export function EditorSheet() {
   return (
     <Sheet title={heading} busy={busy} onClose={closeEditor}>
       <form
+        className={type === "person" ? "person-editor-form" : ""}
         ref={formRef}
         onSubmit={(ev) => {
           ev.preventDefault();
           void save(ev.currentTarget);
         }}
       >
-        {!lockedBirthday ? (
-          <Field
-            label={type === "person" ? "Name" : type === "event" ? "Occasion name" : (type === "gift" || newUnifiedGift) ? "Gift name" : "Idea name"}
-          >
-            <input
-              className="control" name="name" required
+        {type !== "person" && (!lockedBirthday ? (
+          <Field label={type === "event" ? "Occasion name" : (type === "gift" || newUnifiedGift) ? "Gift name" : "Idea name"}>
+            <input className="control" name="name" required
               maxLength={type === "gift" || type === "idea" ? 100 : 70}
-              defaultValue={(type === "person" ? p : type === "event" ? event : source)?.name || ""}
-              placeholder={type === "person" ? "Their name" : type === "event" ? "e.g. New Year" : "A lovely thought"}
-            />
+              defaultValue={(type === "event" ? event : source)?.name || ""}
+              placeholder={type === "event" ? "e.g. New Year" : "A lovely thought"}/>
           </Field>
-        ) : <input type="hidden" name="name" value={event?.name || ""} />}
+        ) : <input type="hidden" name="name" value={event?.name || ""} />)}
         {type === "person" ? (
           <>
             <div className="person-editor-identity">
@@ -324,7 +321,7 @@ export function EditorSheet() {
                   <div className="photo-upload-preview person-photo-preview" aria-label="Portrait preview">
                     {chosenPhotoUrl || (!removePersonPhoto && p?.photo) ? (
                       <Photo src={chosenPhotoUrl || p?.photo} name={p?.name || "Person portrait"}/>
-                    ) : <span className="person-photo-placeholder">{p?.name?.[0]?.toUpperCase() || "?"}</span>}
+                    ) : <span className="person-photo-placeholder" aria-hidden="true"/>}
                   </div>
                   <div className="photo-upload-detail">
                     <label className="photo-upload-button">
@@ -347,7 +344,11 @@ export function EditorSheet() {
                   </div>
                 </div>
               </div>
-              <div className="field-label person-birthday-label">Birthday</div>
+              <Field label="Name">
+                  <input className="control" name="name" required maxLength={70}
+                    defaultValue={p?.name || ""} placeholder="Their name"/>
+                </Field>
+                <div className="field-label person-birthday-label">Birthday</div>
               <div className="person-birthday-fields">
                 <Field label="Month">
                   <select className="control" name="birthMonth" defaultValue={birthMonth}>
@@ -365,14 +366,14 @@ export function EditorSheet() {
                     ))}
                   </select>
                 </Field>
-                <Field label="Year (optional)">
+                <Field label="Year">
                   <input className="control" name="birthYear" type="number" min="1900"
-                    max={new Date().getFullYear()} placeholder="Not required" defaultValue={birthYear}/>
+                    max={new Date().getFullYear()} placeholder="Optional" defaultValue={birthYear}/>
                 </Field>
               </div>
             </div>
             <section className="person-editor-preferences" aria-label="About them">
-              <h3 className="person-editor-subtitle">Gift preferences</h3>
+              <p className="person-editor-subtitle">Gift preferences</p>
               <Field label="Good gifts">
                 <textarea className="control textarea" name="likes"
                   defaultValue={[p?.interests, p?.likes].filter(Boolean).join(" · ")}
@@ -382,10 +383,7 @@ export function EditorSheet() {
                 <textarea className="control textarea" name="avoid" defaultValue={p?.avoid || ""}
                   placeholder="Things they dislike or already have…"/>
               </Field>
-              <Field label="Notes">
-                <textarea className="control textarea" name="note" defaultValue={p?.note || ""}
-                  placeholder="Little details worth remembering…"/>
-              </Field>
+
             </section>
           </>
         ) : type === "event" ? (

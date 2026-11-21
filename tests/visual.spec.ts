@@ -85,7 +85,7 @@ for (const width of [320, 375, 390, 430])
     }
     await page.goto("/#/events/e1");
     await page
-      .getByRole("button", { name: "Edit Scented candle", exact: true })
+      .getByRole("button", { name: "Edit gift Scented candle", exact: true })
       .click();
     await expect(page.getByRole("dialog")).toBeVisible();
     expect(
@@ -880,7 +880,7 @@ test("In-app guide stays inside 320px and Pixel viewports while using real scree
     await expect(page.locator(".person-profile-hero")).toBeVisible();
     await check();
     await page.getByRole("region", { name: "Givvy walkthrough" })
-      .getByRole("button", { name: "Find a gift idea" }).click();
+      .getByRole("button", { name: "Let\'s find an idea" }).click();
     await expect(page.locator(".ideas-discovery-card")).toBeVisible();
     await check();
     await page.getByRole("button", { name: "Like idea", exact: true }).click();
@@ -891,7 +891,52 @@ test("In-app guide stays inside 320px and Pixel viewports while using real scree
     await expect(page.locator(".event-overview")).toBeVisible();
     await check();
     await page.getByRole("region", { name: "Givvy walkthrough" })
-      .getByRole("button", { name: "Exit preview" }).click();
+      .getByRole("button", { name: "Exit tutorial preview" }).click();
     await expect(page.locator(".tour-coach")).toHaveCount(0);
+  }
+});
+
+test("Person editor aligns photo first, compact birthday row and consistent fields at 320/390", async ({page}) => {
+  for (const viewport of [{width:320,height:667},{width:390,height:844}]) {
+    await page.setViewportSize(viewport);
+    await page.goto("/#/settings");
+    await page.goto("/#/onboarding?preview=1");
+    await page.getByRole("button",{name:"Try in the app"}).click();
+    await page.getByRole("button",{name:"Create",exact:true}).click();
+    await page.getByRole("button",{name:"Add person",exact:true}).click();
+    const dialog=page.getByRole("dialog",{name:"Add person"});
+    await expect(dialog.getByLabel("Notes",{exact:true})).toHaveCount(0);
+    await expect(dialog.locator(".person-photo-placeholder")).toBeVisible();
+    await expect(dialog.locator(".person-photo-placeholder")).toHaveText("");
+    const geometry=await dialog.evaluate((el)=>{
+      const rect=(selector:string)=>el.querySelector(selector)!.getBoundingClientRect();
+      const month=rect('select[name="birthMonth"]');
+      const day=rect('select[name="birthDay"]');
+      const year=rect('input[name="birthYear"]');
+      const photo=rect('.person-photo-field');
+      const name=rect('input[name="name"]');
+      const title=el.querySelector(".sheet-heading h2");
+      const subtitle=el.querySelector(".person-editor-subtitle")!;
+      const field=el.querySelector('input[name="name"]')!;
+      return {
+        tops:[month.top,day.top,year.top],
+        heights:[month.height,day.height,year.height],
+        widths:[month.width,day.width,year.width],
+        photoBottom:photo.bottom,nameTop:name.top,
+        subtitleFont:parseFloat(getComputedStyle(subtitle).fontSize),
+        controlFont:parseFloat(getComputedStyle(field).fontSize),
+        docWidth:document.documentElement.scrollWidth,
+        vpWidth:innerWidth,
+        titleText:title?.textContent || "",
+      };
+    });
+    expect(Math.max(...geometry.tops)-Math.min(...geometry.tops)).toBeLessThanOrEqual(2);
+    expect(Math.max(...geometry.heights)-Math.min(...geometry.heights)).toBeLessThanOrEqual(2);
+    expect(geometry.widths.every(w=>w>55)).toBe(true);
+    expect(geometry.photoBottom).toBeLessThan(geometry.nameTop);
+    expect(geometry.controlFont).toBeGreaterThanOrEqual(14);
+    expect(geometry.subtitleFont).toBeLessThan(20);
+    expect(geometry.docWidth).toBeLessThanOrEqual(geometry.vpWidth+1);
+    expect(geometry.titleText).toBe("Add person");
   }
 });

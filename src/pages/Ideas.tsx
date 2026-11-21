@@ -5,6 +5,7 @@ import type { Idea } from "../domain/models";
 import { Empty, PersonAvatar, Product, Title } from "../components/UI";
 import { Button, Sheet } from "../components/Primitives";
 import { WAVE_SHAPE_PATH } from "../components/WaveShape";
+import { TourInline } from "../components/OnboardingGuide";
 import { useApp } from "../state/AppState";
 import { uid } from "../utils/format";
 import { discoverySuggestions, ideaFromDiscovery } from "../domain/discovery";
@@ -102,6 +103,7 @@ export function Ideas() {
   const reactToIdea = (direction: "left" | "right") => {
     if (!suggestion || exiting) return;
     const id = suggestion.id;
+    if (direction === "right" && tour?.step === "discover-right") updateTour({ step: "discover-recipient" });
     dragStart.current = null;
     setExiting(direction);
     setDragX((direction === "right" ? 1 : -1) * Math.max(520, window.innerWidth + 90));
@@ -110,7 +112,10 @@ export function Ideas() {
       setExiting(null);
       setDragX(0);
       if (direction === "right") setLikedId(id);
-      else dismissSuggestion(id);
+      else {
+        dismissSuggestion(id);
+        if (tour?.step === "discover") updateTour({ step: "discover-right" });
+      }
     }, 280);
   };
   const releaseDrag = () => {
@@ -128,7 +133,7 @@ export function Ideas() {
     if (commit({ ...data, ideas: [...data.ideas, idea] })) {
       setLikedId(null);
       notify("Saved to ideas", "success");
-      if (tour?.step === "discover" && personId === tour.personId) {
+      if (tour?.step === "discover-recipient" || tour?.step === "discover-right" || tour?.step === "discover") {
         const occasion = data.events.find(event => event.id === tour.eventId) ||
           data.events.find(event => event.kind === "birthday" && event.people[0] === personId);
         updateTour({ step: "calendar", ideaId: idea.id, eventId: occasion?.id });
@@ -208,6 +213,9 @@ export function Ideas() {
             )}
           </div>
 
+          <TourInline step="discover"/>
+          <TourInline step="discover-right"/>
+          <TourInline step="discover-recipient"/>
           {suggestion ? (
             <div className="ideas-swipe-stage" ref={stageRef}>
               <svg className="ideas-stage-wave" viewBox="0 0 400 500"
@@ -382,7 +390,11 @@ export function Ideas() {
       )}
 
       {liked && (
-        <Sheet title="Save this idea for who?" onClose={() => setLikedId(null)}>
+        <Sheet title="Save this idea for who?" onClose={() => {
+          setLikedId(null);
+          if (tour?.step === "discover-recipient") updateTour({ step: "discover-right" });
+        }}>
+          {tour?.step === "discover-recipient" && <p className="tour-recipient-note">Great! Now choose who to save this idea for. You can choose Anyone, too.</p>}
           <div className="ideas-recipient-sheet">
             <button type="button" className="ideas-recipient-option ideas-recipient-anyone"
               onClick={() => saveFor("")}>

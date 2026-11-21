@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Navigation, CreateMenu } from "./components/UI";
 import { EditorSheet } from "./components/EditorSheet";
+import { GiftPreviewSheet, GiftDetailPage } from "./components/GiftPreview";
 import { Onboarding } from "./pages/Onboarding";
 import { OnboardingGuide } from "./components/OnboardingGuide";
 import { Components } from "./pages/Components";
@@ -14,11 +15,12 @@ import { Account } from "./pages/Account";
 import { EventDetail, PersonDetail } from "./pages/Details";
 import { useApp } from "./state/AppState";
 export function App() {
-  const { data, editor, ui, tour, warning, upgradeNotice, closeEditor, openEditor, syncStatus } = useApp(),
+  const { data, editor, giftPreviewId, closeGiftPreview, ui, tour, warning, upgradeNotice, closeEditor, openEditor, syncStatus } = useApp(),
     location = useLocation();
   useEffect(() => {
     window.scrollTo(0, 0);
     closeEditor();
+    closeGiftPreview();
     // Deep-linked Home gift actions land on the real occasion page first,
     // then open its existing editor sheet. This also works on reload/back.
     const occasionId = location.pathname.match(/^\/events\/([^/]+)$/)?.[1];
@@ -33,7 +35,7 @@ export function App() {
   }, [location.pathname, location.search]);
   return (
     <div className="app-shell" data-guided-step={tour?.step || undefined}>
-      <div inert={!!editor} aria-hidden={editor ? true : undefined}>
+      <div inert={!!(editor || giftPreviewId || tour?.step === "complete")} aria-hidden={editor || giftPreviewId || tour?.step === "complete" ? true : undefined}>
         <main className={[
           "app-main",
           location.pathname === "/" ? "app-main-home" : "",
@@ -80,6 +82,7 @@ export function App() {
             />
             <Route path="/events" element={<Events />} />
             <Route path="/events/:id" element={<EventDetail />} />
+            <Route path="/gifts/:id" element={<GiftDetailPage />} />
             <Route path="/people" element={<People />} />
             <Route path="/people/:id" element={<PersonDetail />} />
             <Route path="/ideas" element={<Ideas />} />
@@ -101,6 +104,7 @@ export function App() {
         )}
       </div>
       <OnboardingGuide />
+      <GiftPreviewSheet />
       {editor && (
         <EditorSheet
           key={`${editor.type}-${editor.id || "new"}-${editor.prefill?.id || ""}`}

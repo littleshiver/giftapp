@@ -59,7 +59,7 @@ export function Navigation() {
   );
 }
 export function CreateMenu() {
-  const { openEditor, ui } = useApp(),
+  const { openEditor, ui, tour, updateTour } = useApp(),
     [open, setOpen] = useState(false),
     location = useLocation(),
     root = useRef<HTMLDivElement>(null);
@@ -93,6 +93,7 @@ export function CreateMenu() {
               key={type}
               onClick={() => {
                 setOpen(false);
+                if (type === "person" && tour?.step === "home-menu") updateTour({ step: "home-person" });
                 const onEventDetail = location.pathname.startsWith("/events/");
                 const eventId = onEventDetail
                   ? location.pathname.split("/")[2]
@@ -122,7 +123,11 @@ export function CreateMenu() {
         aria-expanded={open}
         aria-controls="create-menu"
         aria-label={open ? "Close create menu" : "Create"}
-        onClick={() => setOpen(!open)}
+        onClick={() => {
+          setOpen(!open);
+          if (!open && tour?.step === "home-person") updateTour({ step: "home-menu" });
+          if (open && tour?.step === "home-menu") updateTour({ step: "home-person" });
+        }}
       >
         {open ? <X size={26} /> : <Plus size={26} />}
       </button>
@@ -281,6 +286,7 @@ export function Product({
   person = false,
   home = false,
   onClick,
+  onEdit,
   onToggle,
   showEdit = true,
   actionLabel,
@@ -291,6 +297,7 @@ export function Product({
   person?: boolean;
   home?: boolean;
   onClick?: () => void;
+  onEdit?: () => void;
   onToggle?: () => void;
   showEdit?: boolean;
   actionLabel?: string;
@@ -317,7 +324,7 @@ export function Product({
         <button data-ph={home ? "home-gift-open" : "gift-card-open"}
           type="button"
           className="product-open"
-          aria-label={actionLabel || `${home ? "View gift" : "Edit"} ${item.name}`}
+          aria-label={actionLabel || `${gift ? "View gift" : "Edit"} ${item.name}`}
           onClick={onClick}
         >
           <span className="product-visual" style={{ background: gradientFor(item.name) }}>
@@ -347,7 +354,7 @@ export function Product({
         <button data-ph="gift-card-edit" type="button" className="gift-card-edit"
           aria-label={`Edit ${gift ? "gift" : "idea"} ${item.name}`}
           title="Edit"
-          onClick={onClick}>
+          onClick={onEdit || onClick}>
           <Pencil size={16} aria-hidden="true"/>
         </button>
       )}
