@@ -6,10 +6,10 @@
   color:#30333a; box-shadow:0 7px 24px rgba(37,40,48,.11);
 }
 .tour-coach.is-floating {
-  position:fixed; right:max(13px,calc((100vw - 460px)/2 + 13px)); bottom:190px;
+  position:fixed; right:max(13px,calc((100vw - 460px)/2 + 13px)); bottom:168px;
   max-height:44dvh; overflow-y:auto;
 }
-.tour-coach-home-menu.is-floating {bottom:295px;}
+.tour-coach-home-menu.is-floating {bottom:318px;}
 .tour-coach.is-inline {
   position:relative; left:auto; top:auto; bottom:auto; right:auto;
   display:block; width:calc(100% - 28px); max-width:430px; max-height:none;
@@ -94,8 +94,8 @@
 @media (min-width:600px) {.tour-finish-screen {align-items:center;}.tour-coach.is-floating {right:max(15px,calc((100vw - 460px)/2 + 15px));}}
 @media (max-width:359px) {
   .tour-coach {padding:10px 12px;}
-  .tour-coach.is-floating {bottom:180px;}
-  .tour-coach-home-menu.is-floating {bottom:284px;}
+  .tour-coach.is-floating {bottom:168px;}
+  .tour-coach-home-menu.is-floating {bottom:318px;}
   .tour-coach p {font-size:11px;}
   .tour-finish-card {padding:20px 17px;}
   .tour-finish-card h2 {font-size:26px;}
