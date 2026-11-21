@@ -22,7 +22,7 @@ async function saveIdeaThroughRealDiscover(page: Page, name: string) {
   await coach(page).getByRole("button", { name: "Find a gift idea" }).click();
   await expect(page).toHaveURL(/#\/ideas$/);
   await expect(page.locator(".ideas-discovery-card")).toBeVisible();
-  await page.getByRole("button", { name: "Like idea" }).click();
+  await page.getByRole("button", { name: "Like idea", exact: true }).click();
   await expect(page.getByRole("dialog", { name: "Save this idea for who?" })).toBeVisible();
   await page.getByRole("dialog").getByRole("button", { name }).click();
   await expect(page).toHaveURL(/#\/events$/);
@@ -171,8 +171,8 @@ test("in-app tour requires a birthday and prevents partially adding a person", a
   await page.getByRole("button", { name: "Save person" }).click();
   await expect(page.getByRole("status")).toContainText("please enter a name and birthday");
   expect(await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"))).toBeNull();
-  await page.getByLabel("Month").selectOption("02");
-  await page.getByLabel("Day").selectOption("31");
+  await page.getByLabel("Month", { exact: true }).selectOption("02");
+  await page.getByLabel("Day", { exact: true }).selectOption("31");
   await page.getByRole("button", { name: "Save person" }).click();
   await expect(page.getByRole("status")).toContainText("Invalid birthday");
   expect(await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"))).toBeNull();
