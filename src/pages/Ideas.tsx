@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ChevronDown, ChevronRight, Heart, SlidersHorizontal, UsersRound, X } from "lucide-react";
 import type { Idea } from "../domain/models";
 import { Empty, PersonAvatar, Product, Title } from "../components/UI";
@@ -31,7 +32,8 @@ const matchesBudget = (price: number, budget: Budget) =>
     budget === "mid" ? price >= 1000 && price <= 2000 : price > 2000;
 
 export function Ideas() {
-  const { data, commit, notify, ui, setUi, openEditor } = useApp();
+  const { data, commit, notify, ui, setUi, openEditor, tour, updateTour } = useApp();
+  const navigate = useNavigate();
   const tab = ui.ideasTab;
   const [filters, setFilters] = useState<DiscoveryFilters>(initialFilters);
   const [draftFilters, setDraftFilters] = useState<DiscoveryFilters>(initialFilters);
@@ -126,6 +128,13 @@ export function Ideas() {
     if (commit({ ...data, ideas: [...data.ideas, idea] })) {
       setLikedId(null);
       notify("Saved to ideas", "success");
+      if (tour?.step === "discover" && personId === tour.personId) {
+        const occasion = data.events.find(event => event.id === tour.eventId) ||
+          data.events.find(event => event.kind === "birthday" && event.people[0] === personId);
+        updateTour({ step: "calendar", ideaId: idea.id, eventId: occasion?.id });
+        if (occasion) setUi({ month: occasion.date, selected: occasion.date, mode: "calendar" });
+        navigate("/events");
+      }
     } else {
       notify("Couldn't save this idea", "error");
     }
