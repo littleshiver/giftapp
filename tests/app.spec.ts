@@ -180,10 +180,11 @@ test("calendar, reminders, people editing and contextual gift/idea creation", as
   await page.getByRole("link", { name: /Jamie/ }).click();
   await expect(page.getByText("Books", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Edit person" }).click();
-  await page.getByLabel("Notes", { exact: true }).fill("A note");
+  await expect(page.getByLabel("Notes", { exact: true })).toHaveCount(0);
+  await page.getByLabel("Avoid gifting").fill("Duplicates");
   await page.getByRole("button", { name: "Save person", exact: true }).click();
   await page.reload();
-  await expect(page.getByText("A note", { exact: true })).toBeVisible();
+  await expect(page.getByText("Duplicates", { exact: true })).toBeVisible();
 });
 test("Discover like opens the recipient sheet, a canceled like does not save, and dislikes persist", async ({
   page,
