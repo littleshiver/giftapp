@@ -4,7 +4,6 @@ import { Bell, BellOff, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { Empty, Section, Photo } from "../components/UI";
 import { Sheet } from "../components/Primitives";
 import { OccasionArt } from "../components/OccasionArt";
-import { TourInline } from "../components/OnboardingGuide";
 import { useApp } from "../state/AppState";
 import { associationValid, enabledEvents } from "../domain/selectors";
 import type { Event, ReminderDays } from "../domain/models";
@@ -267,7 +266,6 @@ export function Events() {
           </div>
 
           <section className="calendar-agenda" aria-live="polite">
-            <TourInline step="calendar"/>
             <div className="calendar-agenda-heading">
               <div>
                 <h2>{activeDate ? fmtDate(activeDate) : `${monthName(month).split(" ")[0]} events`}</h2>

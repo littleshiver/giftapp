@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowRight, Check, ChevronLeft, ChevronRight, LockKeyhole, X } from "lucide-react";
 import { useApp, type TourStep } from "../state/AppState";
@@ -14,7 +15,7 @@ function phaseIndex(step: TourStep): number {
   return Math.max(0, phases.indexOf(step));
 }
 
-export function TourCoach({ inline = false }: { inline?: boolean }) {
+export function TourCoach() {
   const { tour, updateTour, stopTour, data, commit, setUi, giftPreviewId, openGiftPreview } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
@@ -136,7 +137,7 @@ export function TourCoach({ inline = false }: { inline?: boolean }) {
   const canBack = ["home-menu","discover-right","calendar","occasion","gift-status"].includes(tour.step);
   const isInitial = ["home-person","home-menu"].includes(tour.step);
   return (
-    <aside className={`tour-coach tour-coach-${tour.step} ${inline ? "is-inline" : "is-floating"}`}
+    <aside className={`tour-coach tour-coach-${tour.step} is-floating`}
       role="region" aria-label="Givvy walkthrough" data-tour-step={tour.step}>
       <div className="tour-coach-header">
         <span className="tour-coach-eyebrow">Quick tour · {phaseIndex(tour.step) + 1} of {phases.length}</span>
@@ -166,10 +167,114 @@ export function TourCoach({ inline = false }: { inline?: boolean }) {
   );
 }
 
-export function TourInline({ step }: { step: TourStep }) {
-  const { tour, editor, giftPreviewId } = useApp();
-  if (!tour || tour.step !== step || editor || giftPreviewId) return null;
-  return <TourCoach inline/>;
+type Rect = { left: number; top: number; right: number; bottom: number };
+const targetSelectors: Partial<Record<TourStep, string[]>> = {
+  "home-person": [".fab"],
+  "home-menu": ['[data-ph="create-person"]'],
+  "person-profile": [".person-profile-panel"],
+  "discover": [".ideas-discovery-card", ".ideas-reaction.ideas-dislike"],
+  "discover-right": [".ideas-discovery-card", ".ideas-reaction.ideas-like"],
+  "discover-recipient": [".ideas-discovery-card"],
+  "calendar": ['[data-guided-event="true"]'],
+  "occasion": [".event-saved-ideas-choose"],
+  "gift-status": ['[data-tour-gift="true"] .product-open'],
+};
+
+/** One viewport-level overlay. It never changes the geometry of a real page.
+ * The cutout uses actual client rects and leaves pointer/swipe events untouched. */
+function Spotlight({ step, children }: {step: TourStep; children: ReactNode}) {
+  const location = useLocation();
+  const coach = useRef<HTMLDivElement>(null);
+  const [layout, setLayout] = useState<{rect: Rect | null; top: number; left: number; visible: boolean} | null>(null);
+
+  useLayoutEffect(() => {
+    const shell = document.querySelector(".app-shell");
+    if (!shell) return;
+    let frame = 0;
+    let lastTarget: Element | null = null;
+    const update = () => {
+      frame = 0;
+      const w = window.innerWidth, h = window.innerHeight;
+      const panel = coach.current;
+      if (!panel) return;
+      const visible = !shell.querySelector(".overlay");
+      const candidates = (targetSelectors[step] || []).map(selector => shell.querySelector(selector))
+        .filter((element): element is HTMLElement => element instanceof HTMLElement && element.getClientRects().length > 0);
+      if (!candidates.length && step === "occasion") {
+        const fallback = shell.querySelector(".event-gift-groups");
+        if (fallback instanceof HTMLElement) candidates.push(fallback);
+      }
+      // The actual action is the priority; in Discover the whole card is also
+      // exposed for gestures. Do not scroll or move its normal fixed stage.
+      const target = candidates[candidates.length - 1];
+      const discover = step.startsWith("discover");
+      const nav = shell.querySelector("nav")?.getBoundingClientRect();
+      const safeBottom = nav && nav.top > h / 2 ? nav.top - 8 : h - 12;
+      if (visible && target && target !== lastTarget) {
+        lastTarget = target;
+        const r = target.getBoundingClientRect();
+        if (!discover && (r.top < 12 || r.bottom > safeBottom)) {
+          target.scrollIntoView({block:"center", inline:"nearest", behavior:"auto"});
+        }
+      }
+      const rects = candidates.map(element => element.getBoundingClientRect());
+      const clip = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
+      const rect: Rect | null = rects.length ? {
+        left: clip(Math.min(...rects.map(r=>r.left))-7,0,w),
+        top: clip(Math.min(...rects.map(r=>r.top))-7,0,h),
+        right: clip(Math.max(...rects.map(r=>r.right))+7,0,w),
+        bottom: clip(Math.max(...rects.map(r=>r.bottom))+7,0,h),
+      } : null;
+      const pw = panel.offsetWidth || Math.min(330,w-24), ph = panel.offsetHeight || 150;
+      const maxTop = Math.max(10,h-ph-12);
+      let top = 12;
+      if (rect) {
+        const above = rect.top-ph-12, below = rect.bottom+12;
+        if (above >= 10) top = above;
+        else if (below+ph <= safeBottom) top = below;
+        else if (below+ph <= h-10) top = below;
+        else {
+          // On a short phone, overlap non-interactive content rather than
+          // scaling Discover or covering its reaction buttons.
+          const action = target.getBoundingClientRect();
+          top = action.top-ph-12 >= 10 ? action.top-ph-12 : action.bottom+12;
+        }
+      }
+      top = clip(top,10,maxTop);
+      const center = rect ? (rect.left+rect.right)/2 : w/2;
+      const left = clip(center-pw/2,12,Math.max(12,w-pw-12));
+      const next = {rect,top,left,visible};
+      setLayout(old => JSON.stringify(old)===JSON.stringify(next) ? old : next);
+    };
+    const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
+    const resize = new ResizeObserver(schedule);
+    resize.observe(shell);
+    if (coach.current) resize.observe(coach.current);
+    const mutation = new MutationObserver(schedule);
+    mutation.observe(shell,{childList:true,subtree:true,attributes:true,attributeFilter:["class","style","data-guided-event","data-tour-gift"]});
+    window.addEventListener("scroll",schedule,true);
+    window.addEventListener("resize",schedule);
+    window.visualViewport?.addEventListener("resize",schedule);
+    update();
+    return () => {
+      cancelAnimationFrame(frame);
+      resize.disconnect(); mutation.disconnect();
+      window.removeEventListener("scroll",schedule,true);
+      window.removeEventListener("resize",schedule);
+      window.visualViewport?.removeEventListener("resize",schedule);
+    };
+  },[step,location.pathname]);
+
+  const rect = layout?.rect;
+  return createPortal(
+    <div className="tour-spotlight-layer" style={{visibility:layout?.visible ? "visible" : "hidden"}}>
+      {rect && <div className="tour-spotlight-cutout" aria-hidden="true"
+        style={{left:rect.left,top:rect.top,width:Math.max(0,rect.right-rect.left),height:Math.max(0,rect.bottom-rect.top)}}/>}
+      {!rect && <div className="tour-spotlight-fallback" aria-hidden="true"/>}
+      <div ref={coach} className="tour-spotlight-coach" style={{top:layout?.top ?? 12,left:layout?.left ?? 12}}>
+        {children}
+      </div>
+    </div>,document.body);
 }
 
 function TourFinish() {
@@ -213,7 +318,7 @@ function TourFinish() {
   );
 }
 
-/** Watches route-level transitions; inline tips live beside real UI targets. */
+/** Watches real route transitions; the tour is exclusively a viewport overlay. */
 export function OnboardingGuide() {
   const { tour, data, updateTour, editor, giftPreviewId } = useApp();
   const location=useLocation();
@@ -234,6 +339,5 @@ export function OnboardingGuide() {
   if (!tour || location.pathname==="/onboarding") return null;
   if (tour.step==="complete") return <TourFinish/>;
   if (editor || giftPreviewId) return null;
-  if (tour.step==="home-person" || tour.step==="home-menu") return <TourCoach/>;
-  return null;
+  return <Spotlight key={tour.step} step={tour.step}><TourCoach/></Spotlight>;
 }

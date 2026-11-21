@@ -20,8 +20,7 @@ function GiftOverview({ id, onEdit, onDone }: {
       gifts: data.gifts.map(g => g.id === gift.id ? { ...g, status: "bought" as const } : g),
     })) {
       notify("Marked as bought ✓", "success");
-      if (isTourGift) updateTour({ step: "complete" });
-      onDone?.();
+      if (isTourGift) { updateTour({ step: "complete" }); onDone?.(); }
     }
   };
   const keepToBuy = () => {
