@@ -42,6 +42,19 @@ function writeCache(uid: string, data: AppData) {
 import { emptyDemo, filledDemo } from "../domain/demo";
 
 export type PreviewMode = "my" | "empty" | "filled";
+export type TourStep = "home-person" | "person-profile" | "discover" | "calendar" | "occasion" | "gift-status" | "complete";
+export interface TourState {
+  step: TourStep;
+  preview: boolean;
+  /** Return to the exact Settings sandbox the user was using before preview. */
+  restoreMode: PreviewMode;
+  peopleBefore: string[];
+  personId?: string;
+  eventId?: string;
+  ideaId?: string;
+  giftId?: string;
+}
+const TOUR_KEY = "givvy_guided_tour_v2";
 const PREVIEW_KEY = "givvy_preview_mode";
 interface UiState {
   selectedEvent: string;
@@ -67,6 +80,10 @@ interface State {
   /** "local" for guests; otherwise the state of the account sync. */
   syncStatus: SyncStatus;
   editor: Editor | null;
+  tour: TourState | null;
+  startTour: (preview: boolean) => void;
+  updateTour: (patch: Partial<TourState>) => void;
+  stopTour: () => void;
   openEditor: (e: Editor) => void;
   closeEditor: () => void;
   notify: (
@@ -192,6 +209,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
       else sessionStorage.setItem(PREVIEW_KEY, mode);
     } catch { /* Preview still works without session storage. */ }
   };
+  const [tour, setTour] = useState<TourState | null>(() => {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(TOUR_KEY) || "null");
+      return saved && typeof saved.step === "string" &&
+        Array.isArray(saved.peopleBefore) ? saved as TourState : null;
+    } catch { return null; }
+  });
+  const persistTour = (next: TourState | null) => {
+    setTour(next);
+    try {
+      if (next) sessionStorage.setItem(TOUR_KEY, JSON.stringify(next));
+      else sessionStorage.removeItem(TOUR_KEY);
+    } catch { /* Session-only guide still works without storage. */ }
+  };
+  const startTour = (preview: boolean) => {
+    const next: TourState = {
+      step: "home-person", preview, restoreMode: previewMode,
+      peopleBefore: preview ? [] : data.people.map(person => person.id),
+    };
+    if (preview) setPreviewMode("empty");
+    setEditor(null);
+    persistTour(next);
+  };
+  const updateTour = (patch: Partial<TourState>) => {
+    if (tour) persistTour({ ...tour, ...patch });
+  };
+  const stopTour = () => {
+    if (tour?.preview) setPreviewMode(tour.restoreMode);
+    persistTour(null);
+  };
   const [editor, setEditor] = useState<Editor | null>(null),
     [toast, setToast] = useState<{
       message: string;
@@ -280,6 +327,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         commit,
         syncStatus,
         editor,
+        tour,
+        startTour,
+        updateTour,
+        stopTour,
         openEditor,
         closeEditor: () => setEditor(null),
         notify,

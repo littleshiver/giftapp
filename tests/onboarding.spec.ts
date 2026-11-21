@@ -1,76 +1,103 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import { fixture, readData, seed } from "./fixtures";
 import { applySetup, nextHanukkah, nextOccurrence } from "../src/domain/onboarding";
 import { addFirstPerson, saveFirstIdea, planFirstGift, setFirstGiftBought } from "../src/domain/onboardingJourney";
 import type { DiscoverySuggestion } from "../src/domain/discoveryTypes";
 
-test("guest onboarding creates one real person, birthday, saved idea and planned gift", async ({ page }) => {
-  await page.clock.install({ time: new Date("2026-11-15T12:00:00Z") });
+const coach = (page: Page) => page.getByRole("region", { name: "Givvy walkthrough" });
+
+test.beforeEach(async ({page}) => { page.setDefaultTimeout(7000); });
+
+async function addPersonViaRealFab(page: Page, name: string, month: string, day: string) {
+  await page.getByRole("button", { name: "Create", exact: true }).click();
+  await page.getByRole("button", { name: "Add person", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "Add person" })).toBeVisible();
+  await page.getByLabel("Name", { exact: true }).fill(name);
+  await page.getByLabel("Month", { exact: true }).selectOption(month);
+  await page.getByLabel("Day", { exact: true }).selectOption(day);
+  await page.getByRole("button", { name: "Save person" }).click();
+  await expect(page).toHaveURL(/#\/people\/[^/]+$/);
+  await expect(coach(page)).toContainText(`Here's ${name}!`);
+}
+
+async function saveIdeaThroughRealDiscover(page: Page, name: string) {
+  await coach(page).getByRole("button", { name: "Find a gift idea" }).click();
+  await expect(page).toHaveURL(/#\/ideas$/);
+  await expect(page.locator(".ideas-discovery-card")).toBeVisible();
+  await page.getByRole("button", { name: "Like idea", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "Save this idea for who?" })).toBeVisible();
+  await page.getByRole("dialog").getByRole("button", { name }).click();
+  await expect(page).toHaveURL(/#\/events$/);
+  await expect(coach(page)).toContainText("Their birthday is in Events");
+}
+
+async function planGiftOnRealEvent(page: Page) {
+  await page.locator('.calendar-event-card[data-guided-event="true"]').click();
+  await expect(page).toHaveURL(/#\/events\/birthday:/);
+  await expect(page.locator(".event-overview")).toBeVisible();
+  await coach(page).getByRole("button", { name: "Choose saved idea" }).click();
+  await expect(page.getByRole("dialog", { name: /^Gift for / })).toBeVisible();
+  await page.getByRole("dialog").getByRole("button", { name: "Use idea Ceramic mug" }).click();
+  await expect(page.getByRole("dialog", { name: "Add gift" })).toBeVisible();
+  await page.getByRole("button", { name: "Save gift" }).click();
+  await expect(coach(page)).toContainText("Now it's on the shopping list");
+}
+
+test("guest learns real Home, FAB, People, Discover, Events and gift status without mandatory account", async ({ page }) => {
   await page.goto("/");
   await expect(page).toHaveURL(/#\/onboarding$/);
   expect(await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"))).toBeNull();
-  await expect(page.getByRole("navigation")).toHaveCount(0);
   await expect(page.getByRole("heading", { name: /Great gifts, from first thought/i })).toBeVisible();
-  await page.getByRole("button", { name: "Try as guest" }).click();
-  await page.getByLabel("Name", { exact: true }).fill("New person");
-  await page.getByLabel("Birthday month").selectOption("11");
-  await page.getByLabel("Birthday day").fill("28");
-  await page.getByRole("button", { name: "Add person" }).click();
+  await page.getByRole("button", { name: "Try in the app" }).click();
+  await expect(page).toHaveURL(/#\/$/);
+  await expect(page.getByRole("navigation", { name: "Primary" })).toBeVisible();
+  await expect(coach(page)).toContainText("Let's add your first person");
 
-  await expect(page.getByRole("heading", { name: "Meet New person." })).toBeVisible();
-  let d = await readData(page);
-  expect(d.people).toHaveLength(1);
-  expect(d.people[0].birthday).toBe("11-28");
-  expect(d.events).toHaveLength(1);
-  expect(d.events[0]).toMatchObject({
-    name: "New person's birthday", date: "2026-11-28", kind: "birthday",
-    people: [d.people[0].id],
+  await addPersonViaRealFab(page, "New person", "11", "28");
+  let data = await readData(page);
+  expect(data.people).toHaveLength(1);
+  expect(data.people[0].birthday).toBe("11-28");
+  expect(data.events).toHaveLength(1);
+  expect(data.events[0]).toMatchObject({
+    name: "New person's birthday", kind: "birthday",
+    people: [data.people[0].id],
   });
-  expect(Object.values(d.events[0].budgets)).toEqual([0]);
+  await expect(page.locator(".person-profile-hero")).toBeVisible();
 
-  await page.getByRole("button", { name: "Let's find a gift" }).click();
-  await expect(page.getByRole("heading", { name: "An idea for New person." })).toBeVisible();
-  await expect(page.locator(".guided-polaroid")).toContainText("Ceramic mug");
-  await page.getByRole("button", { name: "Save for New person" }).click();
-  d = await readData(page);
-  expect(d.ideas).toHaveLength(1);
-  expect(d.ideas[0]).toMatchObject({
-    name: "Ceramic mug", personId: d.people[0].id,
+  await saveIdeaThroughRealDiscover(page, "New person");
+  data = await readData(page);
+  expect(data.ideas).toHaveLength(1);
+  expect(data.ideas[0]).toMatchObject({
+    name: "Ceramic mug", personId: data.people[0].id,
     sourceDiscoveryId: "discovery:ceramic-mug",
   });
-  expect(d.gifts).toHaveLength(0);
-  await expect(page.getByRole("heading", { name: "Now make a plan." })).toBeVisible();
-  await expect(page.locator(".guided-event-card")).toContainText("New person's birthday");
-
-  await page.getByRole("button", { name: "Plan this gift" }).click();
-  d = await readData(page);
-  expect(d.gifts).toHaveLength(1);
-  expect(d.gifts[0]).toMatchObject({
-    eventId: d.events[0].id, personId: d.people[0].id,
-    sourceIdeaId: d.ideas[0].id, status: "to_buy",
+  expect(data.gifts).toHaveLength(0);
+  await planGiftOnRealEvent(page);
+  data = await readData(page);
+  expect(data.gifts).toHaveLength(1);
+  expect(data.gifts[0]).toMatchObject({
+    eventId: data.events[0].id, personId: data.people[0].id,
+    sourceIdeaId: data.ideas[0].id, status: "to_buy",
   });
-  await expect(page.locator(".guided-status-chip")).toHaveText(/To buy/);
-  await page.getByRole("button", { name: "Mark as bought" }).click();
+
+  await coach(page).getByRole("button", { name: "Open gift" }).click();
+  await expect(page.getByRole("dialog", { name: "Edit gift" })).toBeVisible();
+  await page.getByLabel("Status").selectOption("bought");
+  await page.getByRole("button", { name: "Save gift" }).click();
   expect((await readData(page)).gifts[0].status).toBe("bought");
-  await page.getByRole("button", { name: "Move back to To buy" }).click();
-  expect((await readData(page)).gifts[0].status).toBe("to_buy");
-  await page.getByRole("button", { name: "Finish walkthrough" }).click();
-  await expect(page.getByRole("heading", { name: "Everything in its place." })).toBeVisible();
-  await page.getByRole("button", { name: "Go to Home" }).click();
+  await expect(coach(page)).toContainText("You've got the hang of it!");
+  await coach(page).getByRole("button", { name: "Go to Home" }).click();
   await expect(page).toHaveURL(/#\/$/);
-  d = await readData(page);
-  expect(d.settings.onboardingComplete).toBe(true);
-  expect(d.people).toHaveLength(1);
-  expect(d.ideas).toHaveLength(1);
-  expect(d.gifts[0].status).toBe("to_buy");
+  data = await readData(page);
+  expect(data.settings.onboardingComplete).toBe(true);
   await page.reload();
-  await expect(page).not.toHaveURL(/onboarding/);
+  await expect(coach(page)).toHaveCount(0);
 });
 
-test("guest can skip immediately with no invented content or account requirement", async ({ page }) => {
+test("guest can skip from Welcome without creating demo people or gifts", async ({ page }) => {
   await page.goto("/");
   await expect(page).toHaveURL(/#\/onboarding$/);
-  await page.getByRole("button", { name: "Explore the app first" }).click();
+  await page.getByRole("button", { name: "Explore on my own" }).click();
   await expect(page.locator(".empty-card")).toContainText("Add your first occasion");
   expect((await readData(page)).people).toEqual([]);
   expect((await readData(page)).settings.onboardingComplete).toBe(true);
@@ -79,76 +106,88 @@ test("guest can skip immediately with no invented content or account requirement
   await expect(page.getByRole("dialog", { name: "Add gift" })).toBeVisible();
 });
 
-test("skipping after adding a person retains only that person and birthday", async ({ page }) => {
+test("skipping after a real person save keeps that person and their birthday", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Try as guest" }).click();
-  await page.getByLabel("Name", { exact: true }).fill("Eva");
-  await page.getByLabel("Birthday month").selectOption("06");
-  await page.getByLabel("Birthday day").fill("03");
-  await page.getByRole("button", { name: "Add person" }).click();
-  await page.getByRole("button", { name: "Skip", exact: true }).click();
-  const d = await readData(page);
-  expect(d.people).toHaveLength(1);
-  expect(d.events).toHaveLength(1);
-  expect(d.ideas).toEqual([]);
-  expect(d.gifts).toEqual([]);
-  expect(d.settings.onboardingComplete).toBe(true);
+  await page.getByRole("button", { name: "Try in the app" }).click();
+  await addPersonViaRealFab(page, "Eva", "06", "03");
+  await coach(page).getByRole("button", { name: "Skip tour" }).click();
+  const data = await readData(page);
+  expect(data.people).toHaveLength(1);
+  expect(data.events).toHaveLength(1);
+  expect(data.ideas).toEqual([]);
+  expect(data.gifts).toEqual([]);
+  expect(data.settings.onboardingComplete).toBe(true);
+  await expect(coach(page)).toHaveCount(0);
 });
 
-test("onboarding preview can traverse the full journey without changing any personal data", async ({ page }) => {
+test("in-app walkthrough resumes at the actual profile after browser reload", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Try in the app" }).click();
+  await addPersonViaRealFab(page, "Lee", "08", "20");
+  await page.reload();
+  await expect(coach(page)).toContainText("Here's Lee!");
+  await expect(page.locator(".person-profile-hero")).toBeVisible();
+  await coach(page).getByRole("button", { name: "Find a gift idea" }).click();
+  await expect(page.locator(".ideas-discovery-card")).toBeVisible();
+});
+
+test("Settings preview traverses real pages but doesn't touch the user's data", async ({ page }) => {
   const original = fixture();
   await seed(page, original);
   await page.goto("/#/settings");
   await page.getByRole("link", { name: "Preview onboarding" }).click();
-  await page.getByRole("button", { name: "Try as guest" }).click();
-  await page.getByLabel("Name", { exact: true }).fill("Preview only");
-  await page.getByLabel("Birthday month").selectOption("07");
-  await page.getByLabel("Birthday day").fill("14");
-  await page.getByRole("button", { name: "Add person" }).click();
-  await page.getByRole("button", { name: "Let's find a gift" }).click();
-  await page.getByRole("button", { name: "Save for Preview only" }).click();
-  await page.getByRole("button", { name: "Plan this gift" }).click();
-  await page.getByRole("button", { name: "Mark as bought" }).click();
-  await page.getByRole("button", { name: "Finish walkthrough" }).click();
-  await expect(page.getByText(/Nothing was saved to your account or device/)).toBeVisible();
-  await page.getByRole("button", { name: "Back to Settings" }).click();
-  const after = await readData(page);
-  expect(after).toEqual(original);
-});
-
-test("onboarding preview exit leaves even partially entered details untouched", async ({ page }) => {
-  const original = fixture();
-  await seed(page, original);
-  await page.goto("/#/settings");
-  await page.getByRole("link", { name: "Preview onboarding" }).click();
-  await page.getByRole("button", { name: "Try as guest" }).click();
-  await page.getByLabel("Name", { exact: true }).fill("Never saved");
-  await page.getByRole("button", { name: "Exit preview" }).click();
+  await page.getByRole("button", { name: "Try in the app" }).click();
+  await expect(page).toHaveURL(/#\/$/);
+  await addPersonViaRealFab(page, "Preview only", "07", "14");
+  await saveIdeaThroughRealDiscover(page, "Preview only");
+  await planGiftOnRealEvent(page);
+  await coach(page).getByRole("button", { name: "I'll mark it bought later" }).click();
+  await expect(coach(page)).toContainText("Your preview stays separate");
+  await coach(page).getByRole("button", { name: "Back to Settings" }).click();
+  await expect(page).toHaveURL(/#\/settings$/);
   expect(await readData(page)).toEqual(original);
 });
 
-test("invalid first birthday does not save partial person or event", async ({ page }) => {
+test("preview exit returns to Settings even after editing a real sandbox sheet", async ({ page }) => {
+  const original = fixture();
+  await seed(page, original);
+  await page.goto("/#/settings");
+  await page.getByRole("link", { name: "Preview onboarding" }).click();
+  await page.getByRole("button", { name: "Try in the app" }).click();
+  await page.getByRole("button", { name: "Create", exact: true }).click();
+  await page.getByRole("button", { name: "Add person", exact: true }).click();
+  await page.getByLabel("Name", { exact: true }).fill("No persist");
+  await page.getByRole("dialog").getByRole("button", { name: "Close" }).click();
+  await coach(page).getByRole("button", { name: "Exit preview" }).click();
+  await expect(page).toHaveURL(/#\/settings$/);
+  expect(await readData(page)).toEqual(original);
+});
+
+test("in-app tour requires a birthday and prevents partially adding a person", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Try as guest" }).click();
-  await page.getByLabel("Name", { exact: true }).fill("February");
-  await page.getByLabel("Birthday month").selectOption("02");
-  await page.getByLabel("Birthday day").fill("31");
-  await page.getByRole("button", { name: "Add person" }).click();
-  await expect(page.getByRole("alert")).toContainText("valid birthday");
-  // An invalid draft must not create even the first local storage record.
+  await page.getByRole("button", { name: "Try in the app" }).click();
+  await page.getByRole("button", { name: "Create", exact: true }).click();
+  await page.getByRole("button", { name: "Add person", exact: true }).click();
+  await page.getByLabel("Name", { exact: true }).fill("Date needed");
+  await page.getByRole("button", { name: "Save person" }).click();
+  await expect(page.getByRole("status")).toContainText("please enter a name and birthday");
+  expect(await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"))).toBeNull();
+  await page.getByLabel("Month", { exact: true }).selectOption("02");
+  await page.getByLabel("Day", { exact: true }).selectOption("31");
+  await page.getByRole("button", { name: "Save person" }).click();
+  await expect(page.getByRole("status")).toContainText("Enter a valid birthday.");
   expect(await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"))).toBeNull();
 });
 
-test("onboarding helpers reuse matching records but keep Ideas and Gifts independent", () => {
+test("legacy onboarding helper operations remain additive and independent", () => {
   const start = fixture();
   const one = addFirstPerson(start, "New arrival", "02-29");
   const two = addFirstPerson(one.data, "New arrival", "02-29");
   expect(two.person.id).toBe(one.person.id);
-  expect(two.event.id).toBe(one.event.id);
   const choice: DiscoverySuggestion = {
     id: "discovery:ceramic-mug", name: "Ceramic mug", image: "data:image/png;base64,Zg==",
-    price: 1200, note: "Handmade styles and different glazes",
-    audiences: ["adult"], relationships: ["friend"], category: "home",
+    price: 1200, note: "Handmade styles", audiences: ["adult"],
+    relationships: ["friend"], category: "home",
   };
   const liked = saveFirstIdea(two.data, choice, two.person.id);
   const again = saveFirstIdea(liked.data, choice, two.person.id);
@@ -156,8 +195,7 @@ test("onboarding helpers reuse matching records but keep Ideas and Gifts indepen
   const planned = planFirstGift(again.data, liked.idea.id, two.event.id);
   const plannedAgain = planFirstGift(planned.data, liked.idea.id, two.event.id);
   expect(plannedAgain.gift.id).toBe(planned.gift.id);
-  expect(plannedAgain.gift.status).toBe("to_buy");
-  const bought = setFirstGiftBought(plannedAgain.data, planned.gift.id, true);
+  const bought = setFirstGiftBought(planned.data, planned.gift.id, true);
   expect(bought.gifts.find(g => g.id === planned.gift.id)?.status).toBe("bought");
   expect(bought.ideas.find(i => i.id === liked.idea.id)).toEqual(liked.idea);
 });

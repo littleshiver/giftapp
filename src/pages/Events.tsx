@@ -35,12 +35,15 @@ function occasionTone(index: number): CSSProperties {
 function MonthEventCard({
   event,
   index,
+  highlighted,
 }: {
   event: Event;
   index: number;
+  highlighted?: boolean;
 }) {
   return (
     <Link data-ph="calendar-occasion"
+      data-guided-event={highlighted ? "true" : undefined}
       to={`/events/${event.id}`}
       className="calendar-event-card"
       style={occasionTone(index)}
@@ -117,7 +120,7 @@ function ReminderEventRow({
 }
 
 export function Events() {
-  const { data, ui, setUi, commit, openEditor } = useApp();
+  const { data, ui, setUi, commit, openEditor, tour } = useApp();
   const [params] = useSearchParams();
   const { mode } = ui;
   const month = parseDate(ui.month);
@@ -283,6 +286,7 @@ export function Events() {
                     key={event.id}
                     event={event}
                     index={monthEvents.indexOf(event)}
+                    highlighted={tour?.step === "calendar" && tour.eventId === event.id}
                   />
                 ))}
               </div>

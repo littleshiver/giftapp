@@ -3,6 +3,7 @@ import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Navigation, CreateMenu } from "./components/UI";
 import { EditorSheet } from "./components/EditorSheet";
 import { Onboarding } from "./pages/Onboarding";
+import { OnboardingGuide } from "./components/OnboardingGuide";
 import { Components } from "./pages/Components";
 import { Home } from "./pages/Home";
 import { Events } from "./pages/Events";
@@ -13,7 +14,7 @@ import { Account } from "./pages/Account";
 import { EventDetail, PersonDetail } from "./pages/Details";
 import { useApp } from "./state/AppState";
 export function App() {
-  const { data, editor, ui, warning, upgradeNotice, closeEditor, openEditor, syncStatus } = useApp(),
+  const { data, editor, ui, tour, warning, upgradeNotice, closeEditor, openEditor, syncStatus } = useApp(),
     location = useLocation();
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -31,7 +32,7 @@ export function App() {
     }
   }, [location.pathname, location.search]);
   return (
-    <div className="app-shell">
+    <div className="app-shell" data-guided-step={tour?.step || undefined}>
       <div inert={!!editor} aria-hidden={editor ? true : undefined}>
         <main className={[
           "app-main",
@@ -62,6 +63,7 @@ export function App() {
               path="/"
               element={
                 !warning &&
+                !tour &&
                 // Wait for a signed-in account to load before deciding the
                 // user is new (a fresh device starts with an empty cache).
                 syncStatus !== "loading" &&
@@ -98,6 +100,7 @@ export function App() {
           </>
         )}
       </div>
+      <OnboardingGuide />
       {editor && (
         <EditorSheet
           key={`${editor.type}-${editor.id || "new"}-${editor.prefill?.id || ""}`}
