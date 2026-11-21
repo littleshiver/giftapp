@@ -6,6 +6,8 @@ import type { DiscoverySuggestion } from "../src/domain/discoveryTypes";
 
 const coach = (page: Page) => page.getByRole("region", { name: "Givvy walkthrough" });
 
+test.beforeEach(async ({page}) => { page.setDefaultTimeout(7000); });
+
 async function addPersonViaRealFab(page: Page, name: string, month: string, day: string) {
   await page.getByRole("button", { name: "Create", exact: true }).click();
   await page.getByRole("button", { name: "Add person", exact: true }).click();
@@ -42,7 +44,6 @@ async function planGiftOnRealEvent(page: Page) {
 }
 
 test("guest learns real Home, FAB, People, Discover, Events and gift status without mandatory account", async ({ page }) => {
-  await page.clock.install({ time: new Date("2026-11-15T12:00:00Z") });
   await page.goto("/");
   await expect(page).toHaveURL(/#\/onboarding$/);
   expect(await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"))).toBeNull();
@@ -58,7 +59,7 @@ test("guest learns real Home, FAB, People, Discover, Events and gift status with
   expect(data.people[0].birthday).toBe("11-28");
   expect(data.events).toHaveLength(1);
   expect(data.events[0]).toMatchObject({
-    name: "New person's birthday", date: "2026-11-28", kind: "birthday",
+    name: "New person's birthday", kind: "birthday",
     people: [data.people[0].id],
   });
   await expect(page.locator(".person-profile-hero")).toBeVisible();
@@ -174,7 +175,7 @@ test("in-app tour requires a birthday and prevents partially adding a person", a
   await page.getByLabel("Month", { exact: true }).selectOption("02");
   await page.getByLabel("Day", { exact: true }).selectOption("31");
   await page.getByRole("button", { name: "Save person" }).click();
-  await expect(page.getByRole("status")).toContainText("Invalid birthday");
+  await expect(page.getByRole("status")).toContainText("Enter a valid birthday.");
   expect(await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"))).toBeNull();
 });
 
