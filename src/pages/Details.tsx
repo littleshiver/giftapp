@@ -1,3 +1,4 @@
+import { t } from "../utils/format";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Pencil, Plus, Minus, ChevronRight, Cake } from "lucide-react";
@@ -92,7 +93,7 @@ function GiftGroup({
             <small>{suggestions[0].name}{suggestions.length > 1 ? ` + ${suggestions.length - 1} more` : ""}</small></div>
           <div className="event-saved-ideas-thumbs">{suggestions.slice(0,3).map(idea => <span key={idea.id} className="event-saved-idea-thumb"><Photo src={idea.image} name={idea.name}/></span>)}</div>
           <p className="event-saved-ideas-explanation">Choose a saved idea and add it to your gifts to buy.</p>
-          <button type="button" className="event-saved-ideas-choose" onClick={onChooseIdeas}>Choose idea</button>
+          <button type="button" className="event-saved-ideas-choose" onClick={onChooseIdeas}>{t("Choose idea","Выбрать идею")}</button>
         </section>
       ) : <>
       <div className="event-gift-filter" role="group" aria-label={`Filter gifts for ${person?.name || "recipient"}`}>
@@ -179,7 +180,7 @@ export function EventDetail() {
             )}
             {budgetsEnabled && <div className="event-summary-budget" role="group" aria-label="Occasion budget">
               <div className="event-budget-head">
-                <span>Budget</span>
+                <span>{t("Budget","Бюджет")}</span>
                 <span><strong>{currency(spent)}</strong> <small>of {currency(budget)} spent</small></span>
               </div>
               <div className="event-budget-track" role="progressbar" aria-label="Budget spent"
@@ -213,7 +214,7 @@ export function EventDetail() {
         </section>
       )}
       {giftPickerOpen && !selectedPerson && event.people.length > 1 && (
-        <Sheet title="Choose recipient" onClose={closeGiftPicker}>
+        <Sheet title={t("Choose recipient","Выберите получателя")} onClose={closeGiftPicker}>
           <div className="gift-recipient-choices">
             {event.people.map(personId => {
               const person = data.people.find(candidate => candidate.id === personId);
@@ -284,7 +285,7 @@ export function PersonDetail() {
           <PersonAvatar person={person} className="person-profile-photo" />
           <BackLink to="/people" className="person-photo-action person-photo-back" />
           <button data-ph="person-edit" type="button" className="person-photo-action person-photo-edit"
-            aria-label="Edit person" onClick={() => openEditor({type:"person", id:person.id})}>
+            aria-label={t("Edit person","Редактировать профиль")} onClick={() => openEditor({type:"person", id:person.id})}>
             <Pencil size={16} strokeWidth={2} aria-hidden="true"/>
           </button>
           <p className="person-profile-birthday">
@@ -302,7 +303,7 @@ export function PersonDetail() {
                 <div className="person-guidance person-guidance-positive">
                   <div className="person-guidance-heading">
                     <Plus size={16} aria-hidden="true"/>
-                    <strong>Good gifts</strong>
+                    <strong>{t("Good gifts","Что подарить")}</strong>
                   </div>
                   <p>{positive}</p>
                 </div>
@@ -311,7 +312,7 @@ export function PersonDetail() {
                 <div className="person-guidance person-guidance-negative">
                   <div className="person-guidance-heading">
                     <Minus size={16} aria-hidden="true"/>
-                    <strong>Avoid gifting</strong>
+                    <strong>{t("Avoid gifting","Что не дарить")}</strong>
                   </div>
                   <p>{negative}</p>
                 </div>

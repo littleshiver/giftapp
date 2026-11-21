@@ -563,7 +563,9 @@ test("empty and filled previews never overwrite personal storage or photo data",
   await seed(page);
   const savedBefore = await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"));
   await page.goto("/#/settings");
+  if (!(await page.locator(".settings-developer").getAttribute("open") !== null)) await page.locator(".settings-developer summary").click();
   await expect(page.getByRole("button", { name: "Viewing my data" })).toHaveAttribute("aria-pressed", "true");
+  if (!(await page.locator(".settings-developer").getAttribute("open") !== null)) await page.locator(".settings-developer summary").click();
   await page.getByRole("button", { name: "Filled", exact: true }).click();
   await expect(page.getByRole("button", { name: "Filled", exact: true })).toHaveAttribute("aria-pressed", "true");
   await page.goto("/#/");
@@ -584,10 +586,12 @@ test("empty and filled previews never overwrite personal storage or photo data",
   expect(decoded).toEqual({ loaded: true, width: 1920, height: 768 });
 
   await page.goto("/#/settings");
+  if (!(await page.locator(".settings-developer").getAttribute("open") !== null)) await page.locator(".settings-developer summary").click();
   await page.getByRole("button", { name: "Empty", exact: true }).click();
   await page.goto("/#/");
   await expect(page.getByText("Add your first occasion to start planning.")).toBeVisible();
   await page.goto("/#/settings");
+  if (!(await page.locator(".settings-developer").getAttribute("open") !== null)) await page.locator(".settings-developer summary").click();
   await page.getByRole("button", { name: "Return to my data", exact: true }).click();
   await page.goto("/#/");
   await expect(page.getByText("Anna's birthday", { exact: true }).first()).toBeVisible();
@@ -602,6 +606,7 @@ test("changes in filled preview are temporary and cannot modify the personal bac
   await seed(page);
   const savedBefore = await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"));
   await page.goto("/#/settings");
+  if (!(await page.locator(".settings-developer").getAttribute("open") !== null)) await page.locator(".settings-developer summary").click();
   await page.getByRole("button", { name: "Filled", exact: true }).click();
   await page.goto("/#/people");
   await page.getByRole("button", { name: "Create", exact: true }).click();
@@ -612,6 +617,7 @@ test("changes in filled preview are temporary and cannot modify the personal bac
 
   await page.goto("/#/settings");
   await expect(page.getByRole("button", { name: "Import JSON" })).toBeDisabled();
+  if (!(await page.locator(".settings-developer").getAttribute("open") !== null)) await page.locator(".settings-developer summary").click();
   await page.getByRole("button", { name: "Return to my data", exact: true }).click();
   await page.goto("/#/people");
   await expect(page.getByText("Temporary tester")).toHaveCount(0);
@@ -692,6 +698,7 @@ test("calendar marker colors and gift statuses reflect actual enabled events", a
 test("empty calendar is navigable without adding duplicate create buttons", async ({ page }) => {
   await seed(page);
   await page.goto("/#/settings");
+  if (!(await page.locator(".settings-developer").getAttribute("open") !== null)) await page.locator(".settings-developer summary").click();
   await page.getByRole("button", { name: "Empty", exact: true }).click();
   await page.goto("/#/events");
   await expect(page.locator(".calendar-card")).toBeVisible();
@@ -795,6 +802,7 @@ test("gift sheet previews its existing image and the replacement before saving",
 test("demo gift photo appears in the editor rather than a broken image", async ({ page }) => {
   await seed(page);
   await page.goto("/#/settings");
+  if (!(await page.locator(".settings-developer").getAttribute("open") !== null)) await page.locator(".settings-developer summary").click();
   await page.getByRole("button", { name: "Filled", exact: true }).click();
   await page.goto("/#/events/demo-birthday");
   await page.getByRole("button", { name: "Edit gift Portable pink blender", exact: true }).click();
@@ -1561,4 +1569,52 @@ test("One FAB gift sheet saves either an independent idea or an occasion gift",a
     eventId:"e2",personId:"p2",status:"to_buy",price:950
   });
   expect(current.ideas.some(i=>i.name==="Warm scarf")).toBe(false);
+});
+
+
+test("Settings groups developer controls and budget-free preview preserves recorded budgets and prices", async ({page}) => {
+  await seed(page);
+  const before = await readData(page);
+  await page.goto("/#/settings");
+  await expect(page.getByRole("heading",{name:"Language & currency"})).toBeVisible();
+  await expect(page.locator(".settings-developer")).not.toHaveAttribute("open", "");
+  await page.locator(".settings-developer summary").click();
+  const toggle = page.getByRole("switch",{name:"Show budgets"});
+  await expect(toggle).toBeChecked();
+  await toggle.uncheck();
+  await expect(page.locator(".settings-budgets-card")).toHaveCount(0);
+  await page.goto("/#/");
+  await expect(page.locator(".home-budget-section")).toHaveCount(0);
+  await page.goto("/#/events/e1");
+  await expect(page.locator(".event-summary-budget")).toHaveCount(0);
+  await expect(page.locator(".event-person-amount")).toHaveCount(0);
+  await page.getByRole("button",{name:"Edit",exact:true}).click();
+  await expect(page.getByRole("dialog").locator('input[name^="budget_"]')).toHaveCount(0);
+  await page.getByRole("dialog").getByRole("button",{name:"Close"}).click();
+  await page.goto("/#/settings");
+  await page.reload();
+  await expect(page.locator(".app-shell")).toHaveAttribute("data-budgets","off");
+  await page.getByRole("button",{name:"Restore budgets"}).click();
+  await page.goto("/#/");
+  await expect(page.locator(".home-budget-section")).toBeVisible();
+  expect(await readData(page)).toEqual(before);
+});
+
+test("currency and language settings persist without changing stored numeric amounts", async ({page}) => {
+  await seed(page);
+  const before=await readData(page);
+  await page.goto("/#/settings");
+  page.once("dialog",dialog=>dialog.accept());
+  await page.getByLabel("Currency",{exact:true}).selectOption("EUR");
+  await expect(page.getByLabel("Default birthday budget (EUR)")).toBeVisible();
+  const changed=await readData(page);
+  expect(changed.settings.currency).toBe("EUR");
+  expect(changed.gifts).toEqual(before.gifts);
+  expect(changed.events).toEqual(before.events);
+  await page.getByLabel("Language",{exact:true}).selectOption("ru");
+  await expect(page.getByRole("heading",{name:"Настройки",exact:true})).toBeVisible();
+  await expect(page.getByRole("navigation",{name:"Primary"}).getByText("Люди")).toBeVisible();
+  await page.reload();
+  await expect(page.getByLabel("Язык",{exact:true})).toHaveValue("ru");
+  await expect(page.getByLabel("Валюта",{exact:true})).toHaveValue("EUR");
 });

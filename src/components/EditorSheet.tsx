@@ -65,19 +65,19 @@ export function EditorSheet() {
   const heading =
       type === "person"
         ? id
-          ? "Edit person"
-          : "Add person"
+          ? t("Edit person","Редактировать профиль")
+          : t("Add person","Добавить человека")
         : type === "event"
           ? id
-            ? "Edit occasion"
-            : "Add occasion"
+            ? t("Edit occasion","Редактировать событие")
+            : t("Add occasion","Добавить событие")
           : type === "idea"
             ? id
-              ? "Edit idea"
-              : "Add gift"
+              ? t("Edit idea","Редактировать идею")
+              : t("Add gift","Добавить подарок")
             : id
-              ? "Edit gift"
-              : "Add gift";
+              ? t("Edit gift","Редактировать подарок")
+              : t("Add gift","Добавить подарок");
   const save = async (form: HTMLFormElement) => {
     const fd = new FormData(form),
       text = (k: string) => String(fd.get(k) || "").trim(),
@@ -339,28 +339,28 @@ export function EditorSheet() {
                     </label>
                     {p?.photo && !removePersonPhoto && !chosenPhotoUrl && (
                       <button data-ph="person-photo-remove" className="person-photo-remove" type="button"
-                        onClick={() => setRemovePersonPhoto(true)}>Remove photo</button>
+                        onClick={() => setRemovePersonPhoto(true)}>{t("Remove photo","Удалить фото")}</button>
                     )}
                   </div>
                 </div>
               </div>
-              <Field label="Name">
+              <Field label={t("Name","Имя")}>
                   <input className="control" name="name" required maxLength={70}
                     defaultValue={p?.name || ""} placeholder="Their name"/>
                 </Field>
-                <div className="field-label person-birthday-label">Birthday</div>
+                <div className="field-label person-birthday-label">{t("Birthday","День рождения")}</div>
               <div className="person-birthday-fields">
-                <Field label="Month">
+                <Field label={t("Month","Месяц")}>
                   <select className="control" name="birthMonth" defaultValue={birthMonth}>
-                    <option value="">Month</option>
+                    <option value="">{t("Month","Месяц")}</option>
                     {months.map((m, i) => (
                       <option key={m} value={String(i + 1).padStart(2, "0")}>{m}</option>
                     ))}
                   </select>
                 </Field>
-                <Field label="Day">
+                <Field label={t("Day","День")}>
                   <select className="control" name="birthDay" defaultValue={birthDay}>
-                    <option value="">Day</option>
+                    <option value="">{t("Day","День")}</option>
                     {Array.from({length: 31}, (_, i) => (
                       <option key={i + 1} value={String(i + 1).padStart(2, "0")}>{i + 1}</option>
                     ))}
@@ -373,13 +373,13 @@ export function EditorSheet() {
               </div>
             </div>
             <section className="person-editor-preferences" aria-label="About them">
-              <p className="person-editor-subtitle">Gift preferences</p>
-              <Field label="Good gifts">
+              <p className="person-editor-subtitle">{t("Gift preferences","Предпочтения")}</p>
+              <Field label={t("Good gifts","Что подарить")}>
                 <textarea className="control textarea" name="likes"
                   defaultValue={[p?.interests, p?.likes].filter(Boolean).join(" · ")}
                   placeholder="What do they love? Hobbies, wishes, favorite things…"/>
               </Field>
-              <Field label="Avoid gifting">
+              <Field label={t("Avoid gifting","Что не дарить")}>
                 <textarea className="control textarea" name="avoid" defaultValue={p?.avoid || ""}
                   placeholder="Things they dislike or already have…"/>
               </Field>
@@ -394,7 +394,7 @@ export function EditorSheet() {
               </p>
             ) : (
             <div className="form-grid">
-              <Field label="Date">
+              <Field label={t("Date","Дата")}>
                 <input
                   className="control"
                   type="date"
@@ -403,13 +403,13 @@ export function EditorSheet() {
                   defaultValue={event?.date || today()}
                 />
               </Field>
-              <Field label="Type">
+              <Field label={t("Type","Тип")}>
                 <select
                   className="control"
                   name="kind"
                   defaultValue={event?.kind || "birthday"}
                 >
-                  {event?.kind === "birthday" && <option value="birthday">Birthday</option>}
+                  {event?.kind === "birthday" && <option value="birthday">{t("Birthday","День рождения")}</option>}
                   <option value="holiday">Holiday</option>
                   <option value="other">Other</option>
                 </select>
@@ -457,8 +457,8 @@ export function EditorSheet() {
         ) : (
           <>
             {newUnifiedGift && (
-              <Field label="Save to">
-                <select className="control" aria-label="Save to" value={eventId}
+              <Field label={t("Save to","Сохранить в")}>
+                <select className="control" aria-label={t("Save to","Сохранить в")} value={eventId}
                   onChange={(e) => {
                     const id = e.target.value;
                     setEventId(id);
@@ -475,7 +475,7 @@ export function EditorSheet() {
             {saveAsGift ? (
               <div className="form-grid">
                 {type === "gift" && (
-                  <Field label="Occasion">
+                  <Field label={t("Occasion","Событие")}>
                     <select className="control" name="eventId" required value={eventId}
                       onChange={(e) => {
                         setEventId(e.target.value);
@@ -492,10 +492,10 @@ export function EditorSheet() {
                     </select>
                   </Field>
                 )}
-                <Field label="For">
+                <Field label={t("For","Для кого")}>
                   <select className="control" name="personId" required value={personId}
                     onChange={(e) => setPersonId(e.target.value)}>
-                    <option value="">Choose recipient</option>
+                    <option value="">{t("Choose recipient","Выберите получателя")}</option>
                     {personId && !data.people.some(recipient => recipient.id === personId) && (
                       <option value={personId}>Missing recipient — choose another</option>
                     )}
@@ -514,9 +514,9 @@ export function EditorSheet() {
                 )}
               </div>
             ) : (
-              <Field label="For (optional)">
+              <Field label={t("For (optional)","Для кого (необязательно)")}>
                 <select className="control" name="personId" defaultValue={idea?.personId || editor.personId || ""}>
-                  <option value="">Anyone</option>
+                  <option value="">{t("Anyone","Для кого угодно")}</option>
                   {data.people.map((recipient) => (
                     <option key={recipient.id} value={recipient.id}>{recipient.name}</option>
                   ))}
@@ -537,20 +537,20 @@ export function EditorSheet() {
                 />
               </Field>
               {saveAsGift && (
-                <Field label="Status">
+                <Field label={t("Status","Статус")}>
                   <select
                     className="control"
                     name="status"
                     defaultValue={g?.status || "to_buy"}
                   >
-                    <option value="to_buy">To buy</option>
-                    <option value="bought">Bought</option>
+                    <option value="to_buy">{t("To buy","Купить")}</option>
+                    <option value="bought">{t("Bought","Куплено")}</option>
                   </select>
                 </Field>
               )}
             </div>
             <div className="field">
-              <span className="field-label">Photo (optional)</span>
+              <span className="field-label">{t("Photo (optional)","Фото (необязательно)")}</span>
               <div className="photo-upload">
                 <div className="photo-upload-preview" aria-label="Photo preview">
                   {chosenPhotoUrl || source?.image ? (
@@ -586,7 +586,7 @@ export function EditorSheet() {
                 </div>
               </div>
             </div>
-            <Field label="Product link (optional)">
+            <Field label={t("Product link (optional)","Ссылка (необязательно)")}>
               <input
                 className="control"
                 name="link"
@@ -595,7 +595,7 @@ export function EditorSheet() {
                 placeholder="https://…"
               />
             </Field>
-            <Field label="Notes">
+            <Field label={t("Notes","Заметки")}>
               <textarea
                 className="control textarea"
                 name="note"

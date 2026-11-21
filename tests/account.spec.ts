@@ -21,6 +21,7 @@ test("the account screen has no add button", async ({ page }) => {
 
 test("Settings opens sign-in and registration previews without Firebase", async ({ page }) => {
   await page.goto("/#/settings");
+  if (!(await page.locator(".settings-developer").getAttribute("open") !== null)) await page.locator(".settings-developer summary").click();
   await page.getByRole("link", { name: "Preview sign in" }).click();
   await expect(page).toHaveURL(/preview=sign-in/);
   await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
@@ -55,6 +56,7 @@ test("Settings opens sign-in and registration previews without Firebase", async 
 test("Preview registration and reset password never mutate personal data", async ({ page }) => {
   await page.goto("/#/settings");
   const before = await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"));
+  if (!(await page.locator(".settings-developer").getAttribute("open") !== null)) await page.locator(".settings-developer summary").click();
   await page.getByRole("link", { name: "Preview registration" }).click();
   await expect(page.getByRole("heading", { name: "Create your account" })).toBeVisible();
   await page.getByRole("button", { name: "Sign in", exact: true }).click();

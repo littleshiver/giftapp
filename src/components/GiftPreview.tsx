@@ -1,3 +1,4 @@
+import { t } from "../utils/format";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { CalendarDays, Check, ExternalLink, Gift, Heart, Pencil, ShoppingBasket, UserRound } from "lucide-react";
 import { useApp } from "../state/AppState";
@@ -47,15 +48,15 @@ function GiftOverview({ id, onEdit, onDone }: {
         </span>
       </div>
       <div className="gift-preview-facts">
-        <div><UserRound size={17}/><span>For</span>
+        <div><UserRound size={17}/><span>{t("For","Для кого")}</span>
           {person ? <Link to={`/people/${person.id}`}>{person.name}</Link> : <strong>Recipient not assigned</strong>}
         </div>
-        <div><CalendarDays size={17}/><span>Occasion</span>
+        <div><CalendarDays size={17}/><span>{t("Occasion","Событие")}</span>
           {event ? <Link to={`/events/${event.id}`}>{event.name} · {fullDate(event.date)}</Link> : <strong>Occasion missing</strong>}
         </div>
-        <div><Heart size={17}/><span>Price</span><strong>{currency(gift.price)}</strong></div>
+        <div><Heart size={17}/><span>{t("Price","Цена")}</span><strong>{currency(gift.price)}</strong></div>
       </div>
-      {gift.note && <section className="gift-preview-notes"><h3>Details</h3><p>{gift.note}</p></section>}
+      {gift.note && <section className="gift-preview-notes"><h3>{t("Details","Подробности")}</h3><p>{gift.note}</p></section>}
       {safeLink && <a className="gift-preview-product-link" href={safeLink} target="_blank" rel="noopener noreferrer">
         Product link <ExternalLink size={16}/>
       </a>}
@@ -86,7 +87,7 @@ export function GiftPreviewSheet() {
   const { giftPreviewId, closeGiftPreview, openEditor } = useApp();
   if (!giftPreviewId) return null;
   return (
-    <Sheet title="Gift details" onClose={closeGiftPreview}>
+    <Sheet title={t("Gift details","Информация о подарке")} onClose={closeGiftPreview}>
       <GiftOverview id={giftPreviewId} onDone={closeGiftPreview} onEdit={() => {
         const id = giftPreviewId;
         closeGiftPreview();
@@ -109,7 +110,7 @@ export function GiftDetailPage() {
     <div className="gift-preview-page">
       <div className="gift-preview-page-bar">
         <button type="button" onClick={() => navigate(gift ? `/events/${gift.eventId}` : "/events")}>‹ Back to occasion</button>
-        <strong>Gift details</strong>
+        <strong>{t("Gift details","Информация о подарке")}</strong>
       </div>
       <GiftOverview id={id} onEdit={() => openEditor({ type: "gift", id })}/>
     </div>

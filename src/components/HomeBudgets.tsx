@@ -1,3 +1,4 @@
+import { t } from "../utils/format";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
@@ -51,7 +52,7 @@ export function HomeBudgets({ data }: { data: AppData }) {
 
   return (
     <section className="home-budget-section" aria-labelledby="home-budgets-title">
-      <h2 className="home-section-heading" id="home-budgets-title">Gift budgets</h2>
+      <h2 className="home-section-heading" id="home-budgets-title">{t("Gift budgets","Бюджеты подарков")}</h2>
       <article className="home-month-budget-card">
         <div className="home-month-budget-nav" aria-label="Budget month navigation">
           <button type="button" aria-label="Previous month" onClick={() => setMonthOffset(n => n - 1)}>
@@ -68,7 +69,7 @@ export function HomeBudgets({ data }: { data: AppData }) {
 
         <div className="home-month-budget-numbers">
           <div className="home-month-budget-stat">
-            <span className="home-month-budget-kicker">Planned gifts</span>
+            <span className="home-month-budget-kicker">{t("Planned gifts","Запланировано")}</span>
             <strong className="home-month-budget-value">{currency(planned)}</strong>
           </div>
           <div className="home-month-budget-stat home-month-budget-limit">

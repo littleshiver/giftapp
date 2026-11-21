@@ -1,3 +1,4 @@
+import { t } from "../utils/format";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import {
   House,
@@ -51,7 +52,7 @@ export function Navigation() {
             }
           >
             <Icon size={20} />
-            <span>{name}</span>
+            <span>{t(name, ({Ideas:"Идеи",People:"Люди",Home:"Главная",Events:"События",Settings:"Настройки"} as Record<string,string>)[name] || name)}</span>
           </NavLink>
         ))}
       </nav>
@@ -113,7 +114,7 @@ export function CreateMenu() {
               }}
             >
               <Icon size={20} />
-              {label}
+              {t(label, ({"Add gift":"Добавить подарок","Add occasion":"Добавить событие","Add person":"Добавить человека"} as Record<string,string>)[label] || label)}
             </button>
           ))}
         </div>

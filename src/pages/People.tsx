@@ -1,3 +1,4 @@
+import { t } from "../utils/format";
 import { useState } from "react";
 import { Search } from "lucide-react";
 import { Empty, PersonRow, Title } from "../components/UI";
@@ -23,7 +24,7 @@ export function People() {
 
   return (
     <>
-      <Title name="People" />
+      <Title name={t("People","Люди")} />
       {data.people.length > 20 && (
         <label className="people-search">
           <Search size={18} aria-hidden="true"/>

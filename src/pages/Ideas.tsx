@@ -1,3 +1,4 @@
+import { t } from "../utils/format";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown, ChevronRight, Heart, SlidersHorizontal, UsersRound, X } from "lucide-react";
@@ -155,7 +156,7 @@ export function Ideas() {
 
   return (
     <div className="ideas-page">
-      <Title name="Ideas" />
+      <Title name={t("Ideas","Идеи")} />
       <div className="pill-tabs ideas-mode-tabs" role="group" aria-label="Ideas views">
         <button type="button" className={`pill-tab ${tab === "discover" ? "is-active" : ""}`}
           aria-pressed={tab === "discover"} onClick={() => setUi({ ideasTab: "discover" })}>
@@ -321,12 +322,12 @@ export function Ideas() {
       )}
 
       {filtersOpen && (
-        <Sheet title="Filters" onClose={() => setFiltersOpen(false)}>
+        <Sheet title={t("Filters","Фильтры")} onClose={() => setFiltersOpen(false)}>
           <div className="ideas-filter-sheet">
             <label className="ideas-filter-select-field">
-              <span>Age</span>
+              <span>{t("Age","Возраст")}</span>
               <span className="ideas-filter-select-wrap">
-                <select aria-label="Age" value={draftFilters.audience}
+                <select aria-label={t("Age","Возраст")} value={draftFilters.audience}
                   onChange={e => setDraftFilters(current => ({ ...current, audience: e.target.value as Audience | "" }))}>
                   <option value="">Any age</option>
                   <option value="adult">Adult</option>
@@ -336,11 +337,11 @@ export function Ideas() {
               </span>
             </label>
             <label className="ideas-filter-select-field">
-              <span>Relationship</span>
+              <span>{t("Relationship","Кем приходится")}</span>
               <span className="ideas-filter-select-wrap">
-                <select aria-label="Relationship" value={draftFilters.relationship}
+                <select aria-label={t("Relationship","Кем приходится")} value={draftFilters.relationship}
                   onChange={e => setDraftFilters(current => ({ ...current, relationship: e.target.value as Relationship | "" }))}>
-                  <option value="">Anyone</option>
+                  <option value="">{t("Anyone","Для кого угодно")}</option>
                   <option value="close">Close person</option>
                   <option value="friend">Friend</option>
                   <option value="colleague">Colleague</option>
@@ -350,11 +351,11 @@ export function Ideas() {
               </span>
             </label>
             <label className="ideas-filter-select-field">
-              <span>Category</span>
+              <span>{t("Category","Категория")}</span>
               <span className="ideas-filter-select-wrap">
-                <select aria-label="Category" value={draftFilters.category}
+                <select aria-label={t("Category","Категория")} value={draftFilters.category}
                   onChange={e => setDraftFilters(current => ({ ...current, category: e.target.value as Category | "" }))}>
-                  <option value="">Any category</option>
+                  <option value="">{t("Any category","Любая категория")}</option>
                   <option value="home">Home &amp; living</option>
                   <option value="books">Books &amp; art</option>
                 </select>
@@ -362,11 +363,11 @@ export function Ideas() {
               </span>
             </label>
             {showBudgetFilter && <label className="ideas-filter-select-field">
-              <span>Budget</span>
+              <span>{t("Budget","Бюджет")}</span>
               <span className="ideas-filter-select-wrap">
-                <select aria-label="Budget" value={draftFilters.budget}
+                <select aria-label={t("Budget","Бюджет")} value={draftFilters.budget}
                   onChange={e => setDraftFilters(current => ({ ...current, budget: e.target.value as Budget | "" }))}>
-                  <option value="">Any budget</option>
+                  <option value="">{t("Any budget","Любой бюджет")}</option>
                   <option value="under1000">Under 1,000</option>
                   <option value="mid">1,000–2,000</option>
                   <option value="over2000">Over 2,000</option>
@@ -376,11 +377,11 @@ export function Ideas() {
             </label>}
             <div className="ideas-filter-footer">
               <button type="button" className="button-outline"
-                onClick={() => setDraftFilters({ ...initialFilters })}>Clear</button>
+                onClick={() => setDraftFilters({ ...initialFilters })}>{t("Clear","Сбросить")}</button>
               <Button type="button" onClick={() => {
                 setFilters({ ...draftFilters });
                 setFiltersOpen(false);
-              }}>Apply filters</Button>
+              }}>{t("Apply filters","Применить")}</Button>
             </div>
           </div>
         </Sheet>
@@ -398,7 +399,7 @@ export function Ideas() {
               <span className="ideas-recipient-anyone-icon" aria-hidden="true">
                 <UsersRound size={21} aria-hidden="true"/>
               </span>
-              <span className="ideas-recipient-text"><strong>Anyone</strong>
+              <span className="ideas-recipient-text"><strong>{t("Anyone","Для кого угодно")}</strong>
                 <small>A universal idea</small></span>
               <ChevronRight size={19} className="ideas-recipient-chevron" aria-hidden="true"/>
             </button>
