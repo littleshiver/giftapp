@@ -846,6 +846,7 @@ test("Inspiration copy stays in its own three-line column at Pixel-like mobile w
 
 
 test("In-app guide stays inside 320px and Pixel viewports while using real screens", async ({ page }) => {
+  page.setDefaultTimeout(7000);
   for (const viewport of [{ width: 320, height: 667 }, { width: 390, height: 844 }]) {
     await page.setViewportSize(viewport);
     await page.goto("/#/settings");
