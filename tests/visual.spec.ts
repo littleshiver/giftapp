@@ -85,7 +85,7 @@ for (const width of [320, 375, 390, 430])
     }
     await page.goto("/#/events/e1");
     await page
-      .getByRole("button", { name: "Edit Scented candle", exact: true })
+      .getByRole("button", { name: "Edit gift Scented candle", exact: true })
       .click();
     await expect(page.getByRole("dialog")).toBeVisible();
     expect(
