@@ -891,7 +891,7 @@ test("In-app guide stays inside 320px and Pixel viewports while using real scree
     await expect(page.locator(".event-overview")).toBeVisible();
     await check();
     await page.getByRole("region", { name: "Givvy walkthrough" })
-      .getByRole("button", { name: "Skip tour" }).click();
+      .getByRole("button", { name: "Exit preview" }).click();
     await expect(page.locator(".tour-coach")).toHaveCount(0);
   }
 });
