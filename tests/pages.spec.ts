@@ -49,7 +49,6 @@ test("Pages production assets, mandatory login and legacy local-data safety on m
       viewport: { width: 390, height: 844 },
     });
     const page = await context.newPage();
-    await page.clock.install({ time: new Date("2026-11-15T12:00:00Z") });
     await page.addInitScript((data) => {
       if (!localStorage.getItem("givvy_dashboard_v3"))
         localStorage.setItem(
