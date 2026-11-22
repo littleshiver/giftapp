@@ -28,6 +28,11 @@ export function EditorSheet({standalone=false,editId}:{standalone?:boolean;editI
     [removePersonPhoto, setRemovePersonPhoto] = useState(false);
   const editor = standalone && editId ? ({type:"gift",id:editId} as Editor) : activeEditor;
   const closeEditor = () => {
+    // Never carry unsaved crop or a pending filename into another editing session.
+    setCroppedPhoto("");
+    setChosenPhotoName("");
+    setChosenPhotoUrl("");
+    setCropSource("");
     if(standalone && editId) navigate(`/gifts/${editId}`,{replace:true});
     else closeGlobalEditor();
   };
