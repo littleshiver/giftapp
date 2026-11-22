@@ -1,3 +1,4 @@
+import { t } from "../utils/format";
 import {
   cloneElement,
   useEffect,
@@ -114,7 +115,7 @@ export function Sheet({
           <button
             type="button"
             className="sheet-close"
-            aria-label="Close"
+            aria-label={t("Close","Закрыть")}
             disabled={busy}
             onClick={onClose}
           >

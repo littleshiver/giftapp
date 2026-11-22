@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from "react";
 import type { AppData, Editor } from "../domain/models";
-import { today } from "../utils/format";
+import { today, setFormatPreferences } from "../utils/format";
 import { CheckCircle2, AlertCircle, Info } from "lucide-react";
 import { ensureBirthdayOccasions } from "../domain/birthdays";
 import { load, write } from "../persistence/storage";
@@ -76,6 +76,8 @@ interface State {
   personalData: AppData;
   previewMode: PreviewMode;
   setPreviewMode: (mode: PreviewMode) => void;
+  budgetsEnabled: boolean;
+  setBudgetsEnabled: (enabled: boolean) => void;
   commit: (data: AppData, recovery?: boolean) => boolean;
   /** "local" for guests; otherwise the state of the account sync. */
   syncStatus: SyncStatus;
@@ -201,6 +203,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     previewMode === "filled" ? filledDemo() : emptyDemo(),
   );
   const data = previewMode === "my" ? personalData : previewData;
+  // Developer-only, tab-local and reversible. Never write this flag or alter saved budgets.
+  const [budgetsEnabled, changeBudgetsEnabled] = useState(() => {
+    try { return sessionStorage.getItem("givvy_budget_preview") !== "off"; }
+    catch { return true; }
+  });
+  const setBudgetsEnabled = (enabled: boolean) => {
+    changeBudgetsEnabled(enabled);
+    try {
+      if (enabled) sessionStorage.removeItem("givvy_budget_preview");
+      else sessionStorage.setItem("givvy_budget_preview", "off");
+    } catch { /* Still works for the current session. */ }
+  };
+  setFormatPreferences(data.settings);
   const setPreviewMode = (mode: PreviewMode) => {
     if (mode === previewMode) return;
     setEditor(null);
@@ -329,6 +344,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         personalData,
         previewMode,
         setPreviewMode,
+        budgetsEnabled,
+        setBudgetsEnabled,
         commit,
         syncStatus,
         editor,

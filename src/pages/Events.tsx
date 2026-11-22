@@ -1,3 +1,4 @@
+import { t } from "../utils/format";
 import { useEffect, useState, type CSSProperties } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Bell, BellOff, Check, ChevronLeft, ChevronRight } from "lucide-react";
@@ -9,6 +10,7 @@ import { associationValid, enabledEvents } from "../domain/selectors";
 import type { Event, ReminderDays } from "../domain/models";
 import {
   fmtDate,
+  locale,
   iso,
   monthName,
   parseDate,
@@ -96,7 +98,7 @@ function ReminderEventRow({
         >
           {parseDate(event.date).getDate()}
           <small>
-            {parseDate(event.date).toLocaleDateString("en-US", { month: "short" }).toUpperCase()}
+            {parseDate(event.date).toLocaleDateString(locale, { month: "short" }).toUpperCase()}
           </small>
         </span>
         <Link data-ph="reminder-occasion" className="reminder-event-info" to={`/events/${event.id}`}>
@@ -186,7 +188,7 @@ export function Events() {
   return (
     <>
       <header className="page-heading events-page-heading">
-        <h1 className="title-xl">Events</h1>
+        <h1 className="title-xl">{t("Events","События")}</h1>
       </header>
       <div className="events-mode-row">
         <div className="pill-tabs" role="group" aria-label="Events view">
@@ -198,7 +200,7 @@ export function Events() {
               aria-pressed={mode === view}
               onClick={() => setUi({ mode: view })}
             >
-              {view === "calendar" ? "Calendar" : "Reminders"}
+              {view === "calendar" ? t("Calendar","Календарь") : t("Reminders","Напоминания")}
             </button>
           ))}
         </div>

@@ -1,3 +1,4 @@
+import { t } from "../utils/format";
 import { useEffect, useRef, type CSSProperties } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, ArrowUpRight, CalendarDays } from "lucide-react";
@@ -60,7 +61,7 @@ function toneStyle(t: EventTone): CSSProperties {
   } as CSSProperties;
 }
 export function Home() {
-  const { data, ui, setUi, openGiftPreview } = useApp(),
+  const { data, ui, setUi, openGiftPreview, budgetsEnabled } = useApp(),
     navigate = useNavigate(),
     upcoming = enabledEvents(data).filter((e) => e.date >= today()),
     selected = upcoming.find((e) => e.id === ui.selectedEvent) || upcoming[0],
@@ -176,13 +177,13 @@ export function Home() {
         <div className={`home-greeting-wrap ${ui.greetingDismissed ? "is-dismissed" : ""}`}>
           <h1 className={`home-greeting ${ui.greetingDismissed ? "is-dismissed" : ""}`}
             aria-hidden={ui.greetingDismissed}>
-            Hi, {data.settings.name?.trim() || "there"}
+            {t("Hi,","Привет,")} {data.settings.name?.trim() || t("there","друг")}
             <span className="greeting-wave" role="img" aria-label="waving hand">👋</span>
           </h1>
         </div>
       </header>
       <section>
-        <Section title="Coming up">
+        <Section title={t("Coming up","Скоро")}>
           <Link data-ph="home-view-calendar" className="section-link" to="/events">
             View calendar
             <ArrowRight size={16} />
@@ -282,7 +283,7 @@ export function Home() {
           </div>
         </section>
       )}
-      <HomeBudgets data={data}/>
+      {budgetsEnabled && <HomeBudgets data={data}/>}
       <HomeInspiration />
     </>
   );
