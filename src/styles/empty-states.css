@@ -23,3 +23,12 @@
 .home-empty-gifts .empty-state-copy h3{color:#343b42;}
 .home-empty-gifts .empty-state-copy p{color:#617079;}
 .event-gift-groups .givvy-empty-state{margin-inline:0;}
+
+/* Home was a fixed-height passive placeholder. Give its real action room. */
+.app-main-home .focus-gifts .home-empty-gifts {height:auto;min-height:195px;padding:0;border:0;background:transparent;box-shadow:none;display:block;}
+.app-main-home .focus-gifts .home-empty-gifts .givvy-empty-state {min-height:195px;justify-content:center;padding:13px 14px;gap:7px;}
+.app-main-home .focus-gifts .home-empty-gifts .empty-state-symbol {width:31px;height:31px;border-radius:11px;}
+.app-main-home .focus-gifts .home-empty-gifts .empty-state-copy {gap:3px;}
+.app-main-home .focus-gifts .home-empty-gifts .empty-state-copy h3 {font-size:13px;}
+.app-main-home .focus-gifts .home-empty-gifts .empty-state-copy p {font-size:12px;line-height:1.35;}
+.app-main-home .focus-gifts .home-empty-gifts .empty-state-action {min-height:42px;}
