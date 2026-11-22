@@ -60,7 +60,7 @@ export function Navigation() {
   );
 }
 export function CreateMenu() {
-  const { openEditor, ui, tour, updateTour } = useApp(),
+  const { openEditor, ui, setUi, tour, updateTour } = useApp(),
     [open, setOpen] = useState(false),
     location = useLocation(),
     root = useRef<HTMLDivElement>(null);

@@ -7,7 +7,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useApp } from "../state/AppState";
-import type { Event, Gift, Idea, Person } from "../domain/models";
+import type { Event, Gift, Idea, Person, Editor } from "../domain/models";
 import { today, uid, currencyUnit, t } from "../utils/format";
 import { readImage, readAvatar } from "../utils/images";
 import { birthdayFromParts } from "../domain/birthdays";
@@ -26,7 +26,7 @@ export function EditorSheet({standalone=false,editId}:{standalone?:boolean;editI
     [croppedPhoto, setCroppedPhoto] = useState(""),
     [cropSource, setCropSource] = useState(""),
     [removePersonPhoto, setRemovePersonPhoto] = useState(false);
-  const editor = standalone && editId ? ({type:"gift",id:editId} as const) : activeEditor;
+  const editor = standalone && editId ? ({type:"gift",id:editId} as Editor) : activeEditor;
   const closeEditor = () => {
     if(standalone && editId) navigate(`/gifts/${editId}`,{replace:true});
     else closeGlobalEditor();
