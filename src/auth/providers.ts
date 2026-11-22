@@ -56,6 +56,34 @@ export async function resetPassword(email: string) {
   await sendPasswordResetEmail(auth, email.trim());
 }
 
+/** Change account profile name in Firebase, not only browser preferences. */
+export async function updateAccountName(name: string) {
+  const auth=await getFirebaseAuth();
+  if(!auth.currentUser) throw Error("Not signed in");
+  const {updateProfile}=await import("firebase/auth");
+  await updateProfile(auth.currentUser,{displayName:name.trim()});
+}
+
+/** Firebase confirms the new email through a verification link first. */
+export async function requestAccountEmailChange(email: string,currentPassword?:string) {
+  const auth=await getFirebaseAuth();
+  const u=auth.currentUser;
+  if(!u) throw Error("Not signed in");
+  const {EmailAuthProvider,reauthenticateWithCredential,verifyBeforeUpdateEmail}=await import("firebase/auth");
+  if(currentPassword && u.email) {
+    await reauthenticateWithCredential(u,EmailAuthProvider.credential(u.email,currentPassword));
+  }
+  await verifyBeforeUpdateEmail(u,email.trim());
+}
+export async function updateAccountPassword(currentPassword:string,nextPassword:string) {
+  const auth=await getFirebaseAuth();
+  const u=auth.currentUser;
+  if(!u || !u.email) throw Error("No email account");
+  const {EmailAuthProvider,reauthenticateWithCredential,updatePassword}=await import("firebase/auth");
+  await reauthenticateWithCredential(u,EmailAuthProvider.credential(u.email,currentPassword));
+  await updatePassword(u,nextPassword);
+}
+
 export async function signOutUser() {
   const auth = await getFirebaseAuth(),
     { signOut } = await import("firebase/auth");
@@ -76,6 +104,11 @@ const messages: Record<string, string> = {
     "This email is already used with another sign-in method. Use that method instead.",
   "auth/operation-not-allowed": "This sign-in method isn't enabled yet.",
   "auth/unauthorized-domain": "This site isn't allowed to sign in yet (authorized domains).",
+  "auth/requires-recent-login": "For security, sign in again and retry this change.",
+  "auth/invalid-new-email": "Enter a valid new email address.",
+  "auth/email-change-needs-verification": "Verify your email before trying again.",
+  "auth/user-disabled": "This account is unavailable.",
+  "auth/password-does-not-meet-requirements": "Choose a stronger password.",
 };
 
 /** Returns null for user-cancelled flows, which need no message. */

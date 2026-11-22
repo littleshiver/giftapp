@@ -1,10 +1,9 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Eye, EyeOff, LockKeyhole, LogOut, Mail, UserRound } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, LockKeyhole, Mail, UserRound } from "lucide-react";
 import { Button } from "../components/Primitives";
-import { Title } from "../components/UI";
 import { HomeBrand } from "../components/HomeBrand";
-import { useApp } from "../state/AppState";
+import { AccountProfile } from "./AccountProfile";
 import { useAuth } from "../auth/AuthContext";
 import {
   authErrorMessage,
@@ -12,18 +11,11 @@ import {
   signInWithApple,
   signInWithEmail,
   signInWithGoogle,
-  signOutUser,
   signUpWithEmail,
 } from "../auth/providers";
 
 // Apple is only an actual sign-in option when configured by the owner.
 const appleEnabled = import.meta.env.VITE_AUTH_APPLE === "1";
-const providerNames: Record<string, string> = {
-  "google.com": "Google",
-  "apple.com": "Apple",
-  password: "Email",
-};
-
 function GoogleMark() {
   return (
     <svg width="19" height="19" viewBox="0 0 48 48" aria-hidden="true">
@@ -43,7 +35,7 @@ function AppleMark() {
 }
 
 export function Account() {
-  const { status, user } = useAuth();
+  const { status } = useAuth();
 
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -129,29 +121,8 @@ export function Account() {
       <Link className="button-secondary" to="/welcome">Back</Link>
     </div>;
 
-  if (!preview && status === "signed-in" && user)
-    return (
-      <>
-        <Title name="Account" subtitle="You're signed in." back="/settings" />
-        <section className="data-card account-card">
-          <h2>{user.displayName || user.email || "Your account"}</h2>
-          {user.displayName && user.email && <p>{user.email}</p>}
-          <p className="section-note">
-            Signed in with {user.providers.map(p => providerNames[p] || p).join(", ") || "email"}
-            {user.providers.includes("password") && !user.emailVerified
-              ? " · check your inbox to verify your email" : ""}
-          </p>
-          <p style={{ marginTop: 12 }}>Your people, occasions, gifts and ideas are saved to your account and available on any device where you sign in.</p>
-          {info && <p className="section-note" role="status">{info}</p>}
-          {error && <p className="warning" role="alert">{error}</p>}
-          <Button data-ph="account-sign-out" variant="secondary" className="button-full"
-            style={{ marginTop: 16 }} disabled={busy}
-            onClick={() => void run(signOutUser, "You're signed out. Your lists stay safe in your account.")}>
-            <LogOut size={16} /> Sign out
-          </Button>
-        </section>
-      </>
-    );
+  if (!preview && (status==="signed-in" || status==="testing"))
+    return <AccountProfile/>;
 
   return (
     <div className="auth-screen">

@@ -11,6 +11,7 @@ import { Events } from "./pages/Events";
 import { People } from "./pages/People";
 import { Ideas } from "./pages/Ideas";
 import { Settings } from "./pages/Settings";
+import { SettingsBudgets, SettingsHolidays, SettingsAbout, SettingsDeveloper } from "./pages/SettingsSections";
 import { Account } from "./pages/Account";
 import { EventDetail, PersonDetail } from "./pages/Details";
 import { useApp } from "./state/AppState";
@@ -122,6 +123,10 @@ function AuthenticatedApp() {
             <Route path="/people/:id" element={<PersonDetail />} />
             <Route path="/ideas" element={<Ideas />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/settings/budgets" element={<SettingsBudgets />} />
+            <Route path="/settings/holidays" element={<SettingsHolidays />} />
+            <Route path="/settings/about" element={<SettingsAbout />} />
+            <Route path="/settings/developer" element={<SettingsDeveloper />} />
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/account" element={<Account />} />
             <Route path="/welcome" element={<Navigate to="/" replace />} />
@@ -135,7 +140,7 @@ function AuthenticatedApp() {
           <>
             <Navigation />
             {/* Account is a settings screen: no "add" action there. */}
-            {location.pathname !== "/account" && location.pathname !== "/settings" && !(location.pathname === "/ideas" && ui.ideasTab === "discover") && <CreateMenu />}
+            {location.pathname !== "/account" && !location.pathname.startsWith("/settings") && !(location.pathname === "/ideas" && ui.ideasTab === "discover") && <CreateMenu />}
           </>
         )}
       </div>

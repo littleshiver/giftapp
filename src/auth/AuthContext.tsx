@@ -20,7 +20,17 @@ interface AuthState {
   status: AuthStatus;
   user: AccountUser | null;
 }
-const Context = createContext<AuthState>({ status: "disabled", user: null });
+interface AuthContextValue extends AuthState {
+  /** Update the current Firebase profile snapshot after editing it. */
+  refresh: () => Promise<void>;
+}
+const Context = createContext<AuthContextValue>({ status: "disabled", user: null, refresh: async()=>undefined });
+function snapshot(u: import("firebase/auth").User): AccountUser {
+  return {
+    uid:u.uid, email:u.email, displayName:u.displayName,
+    providers:u.providerData.map(p=>p.providerId), emailVerified:u.emailVerified,
+  };
+}
 
 /** Browser-only test mode. This path cannot run in production builds. */
 const e2eBypass = import.meta.env.DEV && import.meta.env.VITE_E2E_AUTH_BYPASS === "1";
@@ -35,6 +45,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     status: testingSession() ? "testing" : authEnabled ? "loading" : "disabled",
     user: null,
   }));
+  const refresh = async () => {
+    if (e2eBypass || !authEnabled) return;
+    const auth = await getFirebaseAuth();
+    const u = auth.currentUser;
+    setState(u ? {status:"signed-in", user:snapshot(u)} : {status:"guest",user:null});
+  };
   useEffect(() => {
     if (e2eBypass || !authEnabled) return;
     let unsubscribe: (() => void) | undefined,
@@ -47,13 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             u
               ? {
                   status: "signed-in",
-                  user: {
-                    uid: u.uid,
-                    email: u.email,
-                    displayName: u.displayName,
-                    providers: u.providerData.map((p) => p.providerId),
-                    emailVerified: u.emailVerified,
-                  },
+                  user: snapshot(u),
                 }
               : { status: "guest", user: null },
           ),
@@ -65,7 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       unsubscribe?.();
     };
   }, []);
-  return <Context.Provider value={state}>{children}</Context.Provider>;
+  return <Context.Provider value={{...state,refresh}}>{children}</Context.Provider>;
 }
 
 export const useAuth = () => useContext(Context);

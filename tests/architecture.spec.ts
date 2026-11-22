@@ -128,7 +128,7 @@ test("People gallery: high-resolution portraits, birthday-only metadata and empt
   await seed(page);
   const personal = await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"));
   await page.goto("/#/settings");
-  await page.locator(".settings-developer summary").click();
+  await page.goto("/#/settings/developer");
   await page.getByRole("button", {name:"Filled",exact:true}).click();
   await page.goto("/#/people");
   const cards = page.locator(".person-gallery-card");
@@ -154,7 +154,7 @@ test("People gallery: high-resolution portraits, birthday-only metadata and empt
   await expect(page.locator(".person-guidance-negative")).toContainText("fragrances");
   await expect(page.getByRole("heading",{name:"About"})).toHaveCount(0);
   await expect(page.locator(".person-ideas .gift-card")).toHaveCount(1);
-  await page.goto("/#/settings");
+  await page.goto("/#/settings/developer");
   await page.getByRole("button", {name:"Empty",exact:true}).click();
   await page.goto("/#/people");
   await expect(page.locator(".person-gallery-card")).toHaveCount(0);

@@ -26,16 +26,20 @@ test("the account screen has no add button", async ({ page }) => {
   await page.goto("/#/settings");
   await expect(page.locator("button.fab")).toHaveCount(0);
   await page.goto("/#/account");
-  await expect(page.getByRole("navigation")).toHaveCount(0);
-  await expect(page.getByRole("heading", {name:"Welcome back"})).toBeVisible();
+  await expect(page.getByRole("heading", {name:"Account",exact:true})).toBeVisible();
+  await expect(page.getByRole("navigation")).toBeVisible();
+  await expect(page.getByRole("button", {name:/Name/})).toBeVisible();
+  await page.getByRole("button",{name:/Name/}).click();
+  await expect(page.getByRole("dialog",{name:"Your name"})).toBeVisible();
+  await page.getByRole("dialog").getByRole("button",{name:"Cancel"}).click();
   await expect(page.locator("button.fab")).toHaveCount(0);
 });
 
 
 test("Settings opens sign-in and registration previews without Firebase", async ({ page }) => {
   await page.goto("/#/settings");
-  if (!(await page.locator(".settings-developer").getAttribute("open") !== null)) await page.locator(".settings-developer summary").click();
-  await page.getByRole("link", { name: "Preview sign in" }).click();
+  await page.goto("/#/settings/developer");
+  await page.goto("/#/account?preview=sign-in");
   await expect(page).toHaveURL(/preview=sign-in/);
   await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
   await expect(page.getByText("Design preview · no account changes")).toBeVisible();
@@ -70,8 +74,8 @@ test("Settings opens sign-in and registration previews without Firebase", async 
 test("Preview registration and reset password never mutate personal data", async ({ page }) => {
   await page.goto("/#/settings");
   const before = await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"));
-  if (!(await page.locator(".settings-developer").getAttribute("open") !== null)) await page.locator(".settings-developer summary").click();
-  await page.getByRole("link", { name: "Preview registration" }).click();
+  await page.goto("/#/settings/developer");
+  await page.goto("/#/account?preview=sign-up");
   await expect(page.getByRole("heading", { name: "Create your account" })).toBeVisible();
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
