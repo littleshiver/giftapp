@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Navigation, CreateMenu } from "./components/UI";
 import { EditorSheet } from "./components/EditorSheet";
-import { GiftPreviewSheet, GiftDetailPage } from "./components/GiftPreview";
+import { GiftPreviewSheet, GiftDetailPage, GiftEditPage } from "./components/GiftPreview";
 import { OccasionRecipientPicker, OccasionGiftPicker } from "./components/OccasionPickers";
 import { Onboarding } from "./pages/Onboarding";
 import { OnboardingGuide } from "./components/OnboardingGuide";
@@ -120,6 +120,7 @@ function AuthenticatedApp() {
             <Route path="/events" element={<Events />} />
             <Route path="/events/:id" element={<EventDetail />} />
             <Route path="/gifts/:id" element={<GiftDetailPage />} />
+            <Route path="/gifts/:id/edit" element={<GiftEditPage />} />
             <Route path="/people" element={<People />} />
             <Route path="/people/:id" element={<PersonDetail />} />
             <Route path="/ideas" element={<Ideas />} />
@@ -141,7 +142,7 @@ function AuthenticatedApp() {
           <>
             <Navigation />
             {/* Account is a settings screen: no "add" action there. */}
-            {location.pathname !== "/account" && !location.pathname.startsWith("/settings") && !(location.pathname === "/ideas" && ui.ideasTab === "discover") && <CreateMenu />}
+            {location.pathname !== "/account" && !location.pathname.startsWith("/settings") && !location.pathname.startsWith("/gifts/") && !(location.pathname === "/ideas" && ui.ideasTab === "discover") && <CreateMenu />}
           </>
         )}
       </div>
