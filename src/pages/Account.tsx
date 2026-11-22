@@ -243,7 +243,7 @@ export function Account() {
             }}>Send reset link</button>
           </div>
         )}
-        {
+        {(
           <>
             <div className="auth-divider"><span>{mode === "sign-up" ? "Or sign up with" : "Or continue with"}</span></div>
             <div className="auth-providers">
