@@ -15,25 +15,28 @@ export interface AccountUser {
   providers: string[];
   emailVerified: boolean;
 }
-export type AuthStatus = "disabled" | "loading" | "guest" | "signed-in";
+export type AuthStatus = "disabled" | "loading" | "guest" | "signed-in" | "testing";
 interface AuthState {
   status: AuthStatus;
   user: AccountUser | null;
 }
 const Context = createContext<AuthState>({ status: "disabled", user: null });
 
-/**
- * Tracks the Firebase session. Signing in never touches local gift data:
- * whatever a guest added (including onboarding) stays in this browser and
- * will be uploaded to the account when cloud sync is added.
- */
+/** Browser-only test mode. This path cannot run in production builds. */
+const e2eBypass = import.meta.env.DEV && import.meta.env.VITE_E2E_AUTH_BYPASS === "1";
+function testingSession() {
+  if (!e2eBypass) return false;
+  try { return sessionStorage.getItem("givvy_e2e_require_auth") !== "1"; }
+  catch { return false; }
+}
+/** Firebase sessions are the only source of real authentication. */
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<AuthState>({
-    status: authEnabled ? "loading" : "disabled",
+  const [state, setState] = useState<AuthState>(() => ({
+    status: testingSession() ? "testing" : authEnabled ? "loading" : "disabled",
     user: null,
-  });
+  }));
   useEffect(() => {
-    if (!authEnabled) return;
+    if (e2eBypass || !authEnabled) return;
     let unsubscribe: (() => void) | undefined,
       cancelled = false;
     Promise.all([getFirebaseAuth(), import("firebase/auth")])
