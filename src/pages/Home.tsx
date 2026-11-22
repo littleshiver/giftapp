@@ -62,7 +62,7 @@ function toneStyle(t: EventTone): CSSProperties {
   } as CSSProperties;
 }
 export function Home() {
-  const { data, ui, setUi, openEditor, budgetsEnabled } = useApp(),
+  const { data, ui, setUi, openEditor, openGiftPreview, budgetsEnabled } = useApp(),
     navigate = useNavigate(),
     upcoming = enabledEvents(data).filter((e) => e.date >= today()),
     selected = upcoming.find((e) => e.id === ui.selectedEvent) || upcoming[0],
@@ -275,7 +275,7 @@ export function Home() {
                   person={selected.people.length > 1}
                   home
                   showEdit={false}
-                  onClick={() => navigate(`/gifts/${g.id}`)}
+                  onClick={() => openGiftPreview(g.id)}
                 />
               )) : (
                 <div className="home-empty-gifts" role="status">

@@ -1,126 +1,109 @@
-import { t } from "../utils/format";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { CalendarDays, Check, ExternalLink, Gift, Heart, Pencil, ShoppingBasket, UserRound } from "lucide-react";
-import { useApp } from "../state/AppState";
-import { currency, fullDate } from "../utils/format";
-import { Photo, GiftStatus } from "./UI";
-import { EditorSheet } from "./EditorSheet";
-import { Button, Sheet } from "./Primitives";
+import {useEffect} from "react";
+import {Link,useNavigate,useParams} from "react-router-dom";
+import {CalendarDays,Check,ExternalLink,Gift,Heart,Pencil,UserRound} from "lucide-react";
+import {useApp} from "../state/AppState";
+import {currency,fmtDate,t} from "../utils/format";
+import {Photo,GiftStatus} from "./UI";
+import {EditorSheet} from "./EditorSheet";
+import {Sheet} from "./Primitives";
 
-function GiftOverview({ id, onEdit, onDone }: {
-  id: string; onEdit: () => void; onDone?: () => void;
+/** Product-first gift sheet. Purchase state is editable here, not by accidental
+ * taps on the miniature cards underneath.
+ */
+function GiftOverview({id,onEdit,onDone}:{
+  id:string;onEdit:()=>void;onDone?:()=>void;
 }) {
-  const { data, commit, tour, updateTour, notify } = useApp();
-  const gift = data.gifts.find(item => item.id === id);
-  if (!gift) return <p className="gift-preview-empty">This gift is no longer available.</p>;
-  const event = data.events.find(e => e.id === gift.eventId);
-  const person = data.people.find(p => p.id === gift.personId);
-  const isTourGift = tour?.step === "gift-status" && tour.giftId === gift.id;
-  const toggleBought = () => {
-    if (commit({
-      ...data,
-      gifts: data.gifts.map(g => g.id === gift.id ? { ...g, status: gift.status === "bought" ? "to_buy" as const : "bought" as const } : g),
-    })) {
-      notify(gift.status==="bought"?"Moved back to To buy":"Marked as bought ✓","success");
-      if (isTourGift && gift.status!=="bought") { updateTour({ step: "complete" }); onDone?.(); }
+  const {data,commit,tour,updateTour,notify}=useApp();
+  const gift=data.gifts.find(item=>item.id===id);
+  if(!gift)return <p className="gift-preview-empty">{t("This gift is no longer available.","Этот подарок больше недоступен.")}</p>;
+  const occasion=data.events.find(e=>e.id===gift.eventId);
+  const person=data.people.find(p=>p.id===gift.personId);
+  const isTourGift=tour?.step==="gift-status"&&tour.giftId===gift.id;
+  const toggleBought=()=>{
+    if(commit({...data,gifts:data.gifts.map(g=>g.id===gift.id
+      ? {...g,status:g.status==="bought"?"to_buy" as const:"bought" as const}:g)})){
+      notify(gift.status==="bought"?t("Moved back to To buy","Вернули в список покупок"):t("Marked as bought ✓","Отметили как купленный ✓"),"success");
+      if(isTourGift&&gift.status!=="bought"){updateTour({step:"complete"});onDone?.();}
     }
   };
-  const keepToBuy = () => {
-    if (isTourGift) updateTour({ step: "complete" });
-    onDone?.();
-  };
-  const safeLink = (() => {
-    try {
-      const url = new URL(gift.link || "");
-      return ["https:", "http:"].includes(url.protocol) ? url.href : "";
-    } catch { return ""; }
+  const keepToBuy=()=>{if(isTourGift)updateTour({step:"complete"});onDone?.();};
+  const safeLink=(()=>{
+    try{const url=new URL(gift.link||"");return ["https:","http:"].includes(url.protocol)?url.href:"";}
+    catch{return "";}
   })();
-
-  return (
-    <div className="gift-preview-content">
-      <div className="gift-preview-photo">
-        {gift.image ? <Photo src={gift.image} name={gift.name}/> : <Gift size={47} strokeWidth={1.4} aria-hidden="true"/>}
-        <div className="gift-preview-top-status">
-          <GiftStatus status={gift.status} name={gift.name} onToggle={toggleBought}/>
-        </div>
+  return <article className="gift-preview-content gift-product-card">
+    <div className="gift-preview-photo gift-product-media">
+      {gift.image?<Photo src={gift.image} name={gift.name}/>:<Gift size={46} strokeWidth={1.5} aria-hidden="true"/>}
+      <div className="gift-preview-top-status">
+        <GiftStatus status={gift.status} name={gift.name} onToggle={toggleBought}/>
+        <span>{gift.status==="bought"?t("Bought","Куплено"):t("To buy","Купить")}</span>
       </div>
-      <div className="gift-preview-heading">
+    </div>
+    <div className="gift-product-body">
+      <header className="gift-preview-heading gift-product-heading">
         <h2>{gift.name}</h2>
-      </div>
-      <div className="gift-preview-facts">
-        <div><UserRound size={17}/><span>{t("For","Для кого")}</span>
-          {person ? <Link to={`/people/${person.id}`}>{person.name}</Link> : <strong>Recipient not assigned</strong>}
-        </div>
-        <div><CalendarDays size={17}/><span>{t("Occasion","Событие")}</span>
-          {event ? <Link to={`/events/${event.id}`}>{event.name} · {fullDate(event.date)}</Link> : <strong>Occasion missing</strong>}
-        </div>
-        <div><Heart size={17}/><span>{t("Price","Цена")}</span><strong>{currency(gift.price)}</strong></div>
-      </div>
-      {gift.note && <section className="gift-preview-notes"><h3>{t("Details","Подробности")}</h3><p>{gift.note}</p></section>}
-      {safeLink && <a className="gift-preview-product-link" href={safeLink} target="_blank" rel="noopener noreferrer">
-        Product link <ExternalLink size={16}/>
-      </a>}
-      {isTourGift && (
-        <p className="gift-preview-tour-message">This is the actual gift. When you buy it, mark it Bought. Otherwise you can leave it on your list for later.</p>
-      )}
-      <div className="gift-preview-actions">
-        {isTourGift && gift.status !== "bought" && (
-          <Button type="button" className="button-full gift-preview-buy" onClick={toggleBought}>
-            <Check size={18}/> Mark as bought
-          </Button>
-        )}
-        {isTourGift && gift.status !== "bought" && (
-          <button type="button" className="gift-preview-later" onClick={keepToBuy}>
-            I'll buy it later — finish tour
-          </button>
-        )}
-        <button type="button" className="button-secondary button-full gift-preview-edit" onClick={onEdit}>
-          <Pencil size={16}/> Edit gift
+        <strong className="gift-product-price">{currency(gift.price)}</strong>
+      </header>
+      {(person||occasion)&&<div className="gift-preview-facts gift-product-facts">
+        {person&&<div><UserRound size={16}/><span>{t("For","Для кого")}</span><Link onClick={onDone} to={`/people/${person.id}`}>{person.name}</Link></div>}
+        {occasion&&<div><CalendarDays size={16}/><span>{t("Occasion","Событие")}</span><Link onClick={onDone} to={`/events/${occasion.id}`}>{occasion.name} · {fmtDate(occasion.date)}</Link></div>}
+      </div>}
+      {gift.note&&<section className="gift-preview-notes gift-product-notes" aria-label={t("Gift notes","Заметки о подарке")}>
+        <p>{gift.note}</p>
+      </section>}
+      {isTourGift&&<p className="gift-preview-tour-message">{t("Mark it Bought after purchasing, or finish with To buy.","Отметьте «Куплено» после покупки или пока оставьте в списке.")}</p>}
+      <div className="gift-preview-actions gift-product-actions">
+        {safeLink&&<a className="gift-preview-product-link gift-product-open-link" href={safeLink} target="_blank" rel="noopener noreferrer">
+          {t("Open product","Открыть товар")} <ExternalLink size={16} strokeWidth={2.1}/>
+        </a>}
+        {isTourGift&&gift.status!=="bought"&&<button type="button" className="gift-preview-buy" onClick={toggleBought}>
+          <Check size={18}/>{t("Mark as bought","Отметить купленным")}
+        </button>}
+        {isTourGift&&gift.status!=="bought"&&<button type="button" className="gift-preview-later" onClick={keepToBuy}>
+          {t("I'll buy it later — finish tour","Куплю позже — закончить обучение")}
+        </button>}
+        <button type="button" className="gift-preview-edit" onClick={onEdit}>
+          <Pencil size={16} strokeWidth={2.1}/>{t("Edit gift","Редактировать подарок")}
         </button>
       </div>
     </div>
-  );
+  </article>;
 }
 
-/** Reusable read-only gift view, available without opening the editor. */
 export function GiftPreviewSheet() {
-  const { giftPreviewId, closeGiftPreview, openEditor } = useApp();
-  if (!giftPreviewId) return null;
-  return (
-    <Sheet title={t("Gift details","Информация о подарке")} onClose={closeGiftPreview}>
-      <GiftOverview id={giftPreviewId} onDone={closeGiftPreview} onEdit={() => {
-        const id = giftPreviewId;
-        closeGiftPreview();
-        openEditor({ type: "gift", id });
-      }}/>
-      <Link className="gift-preview-full-link" to={`/gifts/${giftPreviewId}`} onClick={closeGiftPreview}>
-        Open full gift page
-      </Link>
-    </Sheet>
-  );
+  const {giftPreviewId,closeGiftPreview}=useApp();
+  const navigate=useNavigate();
+  if(!giftPreviewId)return null;
+  return <Sheet title={t("Gift details","Подарок")} onClose={closeGiftPreview}>
+    <GiftOverview id={giftPreviewId} onDone={closeGiftPreview} onEdit={()=>{
+      const id=giftPreviewId;
+      closeGiftPreview();
+      navigate(`/gifts/${id}/edit`);
+    }}/>
+  </Sheet>;
 }
 
-/** Deep-linkable page uses the exact same detail view as the preview sheet. */
+/** Existing deep links resolve to the same sheet as every gift-card tap. */
 export function GiftDetailPage() {
-  const { id = "" } = useParams();
-  const { data } = useApp();
-  const navigate = useNavigate();
-  const gift = data.gifts.find(g => g.id === id);
-  return (
-    <div className="gift-preview-page">
-      <div className="gift-preview-page-bar">
-        <button type="button" onClick={() => navigate(gift ? `/events/${gift.eventId}` : "/events")}>‹ Back to occasion</button>
-        <strong>{t("Gift details","Информация о подарке")}</strong>
-      </div>
-      <GiftOverview id={id} onEdit={() => navigate(`/gifts/${id}/edit`)}/>
-    </div>
-  );
+  const {id=""}=useParams();
+  const {data,openGiftPreview}=useApp();
+  const navigate=useNavigate();
+  const gift=data.gifts.find(g=>g.id===id);
+  const eventId=gift?.eventId;
+  useEffect(()=>{
+    if(!id||!eventId)return;
+    navigate(`/events/${eventId}`,{replace:true});
+    openGiftPreview(id);
+  },[id,eventId]);
+  if(!gift)return <p className="gift-preview-empty">{t("Gift not found","Подарок не найден")} <Link to="/events">{t("Back to events","К событиям")}</Link></p>;
+  return <div role="status" className="gift-preview-loading">{t("Opening gift…","Открываем подарок…")}</div>;
 }
 
-/** Full-page gift editing, separate from read-only gift details. */
+/** Editing remains a real page, but is reached via the product sheet. */
 export function GiftEditPage() {
   const {id=""}=useParams();
   const {data}=useApp();
-  if(!data.gifts.some(g=>g.id===id))return <div className="gift-preview-page"><p className="gift-preview-empty">This gift is unavailable.</p><Link to="/events">Back to occasions</Link></div>;
+  if(!data.gifts.some(g=>g.id===id))
+    return <div className="gift-preview-page"><p className="gift-preview-empty">{t("This gift is unavailable.","Этот подарок недоступен.")}</p><Link to="/events">{t("Back to occasions","К событиям")}</Link></div>;
   return <EditorSheet key={id} standalone editId={id}/>;
 }

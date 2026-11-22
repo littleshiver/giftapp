@@ -171,8 +171,8 @@ export function EventDetail() {
           {event.people.map(personId => (
             <GiftGroup key={personId} person={data.people.find(p => p.id===personId)}
               items={giftsFor(data,event.id,personId)} limit={event.budgets[personId]} data={data}
-              onEdit={gift=>tour ? openEditor({type:"gift",id:gift.id}) : navigate(`/gifts/${gift.id}/edit`)}
-              onView={gift=>tour?.step==="gift-status" ? openGiftPreview(gift.id) : navigate(`/gifts/${gift.id}`)}
+              onEdit={gift=>openGiftPreview(gift.id)}
+              onView={gift=>openGiftPreview(gift.id)}
               onChooseIdeas={()=>setUi({giftPickerEventId:event.id,giftPickerPersonId:personId})}
 />
           ))}
@@ -186,7 +186,7 @@ export function EventDetail() {
         <section className="event-needs-attention">
           <h2>Needs attention</h2>
           <p>These gifts are not assigned to a current recipient. Edit them to repair their links.</p>
-          <GiftShelf gifts={unassigned} data={data} onEdit={gift=>navigate(`/gifts/${gift.id}/edit`)} onView={gift=>navigate(`/gifts/${gift.id}`)}/>
+          <GiftShelf gifts={unassigned} data={data} onEdit={gift=>openGiftPreview(gift.id)} onView={gift=>openGiftPreview(gift.id)}/>
         </section>
       )}
 
@@ -294,7 +294,7 @@ export function PersonDetail() {
               {gifted.map((gift) => {
                 const occasion = eventById.get(gift.eventId)!;
                 return (
-                  <Product key={gift.id} item={gift} statusReadOnly
+                  <Product key={gift.id} item={gift}
                     captionText={`${occasion.name} · ${fmtDate(occasion.date)}, ${occasion.date.slice(0, 4)}`}
                     onClick={() => openGiftPreview(gift.id)}/>
                 );

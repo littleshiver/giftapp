@@ -256,11 +256,9 @@ export function Photo({
 export function GiftStatus({
   status,
   name,
-  onToggle,
 }: {
   status: Gift["status"];
   name: string;
-  onToggle?: () => void;
 }) {
   const purchased = status === "bought";
   const Icon = purchased ? Check : ShoppingBasket;
@@ -296,7 +294,6 @@ export function Product({
   showEdit = true,
   actionLabel,
   captionText,
-  statusReadOnly = false,
 }: {
   item: Gift | Idea;
   person?: boolean;
@@ -307,19 +304,9 @@ export function Product({
   showEdit?: boolean;
   actionLabel?: string;
   captionText?: string;
-  statusReadOnly?: boolean;
 }) {
-  const { data, commit } = useApp();
+  const { data } = useApp();
   const gift = "status" in item ? item as Gift : null;
-  const defaultToggle = () => {
-    if (!gift) return;
-    commit({
-      ...data,
-      gifts: data.gifts.map((value) => value.id === gift.id
-        ? { ...value, status: value.status === "bought" ? "to_buy" as const : "bought" as const }
-        : value),
-    });
-  };
   const caption = captionText ?? (person
     ? `For ${data.people.find((p) => p.id === item.personId)?.name || "Someone"}`
     : currency(item.price));
@@ -353,9 +340,8 @@ export function Product({
           </span>}
         </div>
       )}
-      {gift && <GiftStatus status={gift.status} name={gift.name}
-        onToggle={statusReadOnly ? undefined : (onToggle || defaultToggle)} />}
-      {onClick && showEdit && !home && (
+      {gift && <GiftStatus status={gift.status} name={gift.name} />}
+      {onClick && showEdit && !home && !gift && (
         <button data-ph="gift-card-edit" type="button" className="gift-card-edit"
           aria-label={`Edit ${gift ? "gift" : "idea"} ${item.name}`}
           title="Edit"
