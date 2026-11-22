@@ -1,6 +1,6 @@
 import {useEffect} from "react";
 import {Link,useNavigate,useParams} from "react-router-dom";
-import {CalendarDays,Check,ExternalLink,Gift,Heart,Pencil,UserRound} from "lucide-react";
+import {CalendarDays,Check,ExternalLink,Gift,Pencil,UserRound} from "lucide-react";
 import {useApp} from "../state/AppState";
 import {currency,fmtDate,t} from "../utils/format";
 import {Photo,GiftStatus} from "./UI";

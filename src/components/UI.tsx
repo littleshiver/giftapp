@@ -256,9 +256,11 @@ export function Photo({
 export function GiftStatus({
   status,
   name,
+  onToggle,
 }: {
   status: Gift["status"];
   name: string;
+  onToggle?: () => void;
 }) {
   const purchased = status === "bought";
   const Icon = purchased ? Check : ShoppingBasket;
@@ -290,7 +292,6 @@ export function Product({
   home = false,
   onClick,
   onEdit,
-  onToggle,
   showEdit = true,
   actionLabel,
   captionText,
@@ -300,7 +301,6 @@ export function Product({
   home?: boolean;
   onClick?: () => void;
   onEdit?: () => void;
-  onToggle?: () => void;
   showEdit?: boolean;
   actionLabel?: string;
   captionText?: string;

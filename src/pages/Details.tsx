@@ -1,6 +1,6 @@
 import { t } from "../utils/format";
 import { useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { Pencil, Plus, Minus, Cake, Gift as GiftIcon, UsersRound } from "lucide-react";
 import { birthdayMonthDay, ageFromBirthday } from "../domain/birthdays";
 import {
@@ -96,8 +96,7 @@ function GiftGroup({
 
 export function EventDetail() {
   const { id } = useParams();
-  const { data, openEditor, openGiftPreview, setUi, budgetsEnabled, tour } = useApp();
-  const navigate=useNavigate();
+  const { data, openEditor, openGiftPreview, setUi, budgetsEnabled } = useApp();
   const event = data.events.find(item => item.id === id);
   if (!event) return <><Title name="Occasion not found" back="/events"/><Empty>This occasion is unavailable.</Empty></>;
 
@@ -197,7 +196,6 @@ export function EventDetail() {
 export function PersonDetail() {
   const { id } = useParams();
   const { data, openEditor, openGiftPreview } = useApp();
-  const navigate=useNavigate();
   const [collection, setCollection] = useState<"ideas" | "gifted">("ideas");
   const person = data.people.find((candidate) => candidate.id === id);
   if (!person) return <Title name="Person not found" back="/people"/>;
