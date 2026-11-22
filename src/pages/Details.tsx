@@ -97,7 +97,7 @@ function GiftGroup({
 
 export function EventDetail() {
   const { id } = useParams();
-  const { data, openEditor, setUi, budgetsEnabled } = useApp();
+  const { data, openEditor, openGiftPreview, setUi, budgetsEnabled, tour } = useApp();
   const navigate=useNavigate();
   const event = data.events.find(item => item.id === id);
   if (!event) return <><Title name="Occasion not found" back="/events"/><Empty>This occasion is unavailable.</Empty></>;
@@ -174,7 +174,8 @@ export function EventDetail() {
           {event.people.map(personId => (
             <GiftGroup key={personId} person={data.people.find(p => p.id===personId)}
               items={giftsFor(data,event.id,personId)} limit={event.budgets[personId]} data={data}
-              onEdit={gift=>navigate(`/gifts/${gift.id}/edit`)} onView={gift=>navigate(`/gifts/${gift.id}`)}
+              onEdit={gift=>tour ? openEditor({type:"gift",id:gift.id}) : navigate(`/gifts/${gift.id}/edit`)}
+              onView={gift=>tour?.step==="gift-status" ? openGiftPreview(gift.id) : navigate(`/gifts/${gift.id}`)}
               onChooseIdeas={()=>setUi({giftPickerEventId:event.id,giftPickerPersonId:personId})}
               onAddGift={()=>openEditor({type:"gift",eventId:event.id,personId})}/>
           ))}

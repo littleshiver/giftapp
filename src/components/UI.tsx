@@ -16,7 +16,7 @@ import {
   Pencil,
   X,
 } from "lucide-react";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import type { Event, Gift, Idea, Person } from "../domain/models";
 import { useApp } from "../state/AppState";
 import demoPhotoSheet from "../assets/demo/catalog-hifi.avif";
@@ -64,7 +64,8 @@ export function CreateMenu() {
     [open, setOpen] = useState(false),
     location = useLocation(),
     root = useRef<HTMLDivElement>(null);
-  useEffect(() => setOpen(false), [location.pathname]);
+  // Close on navigation before paint, so a rapid click on Create is not discarded.
+  useLayoutEffect(() => setOpen(false), [location.pathname]);
   useEffect(() => {
     if (!open) return;
     const dismiss = (e: PointerEvent) => {

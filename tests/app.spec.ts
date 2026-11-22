@@ -17,10 +17,11 @@ test("Home gift links open a read-only page, and contextual empty cards launch t
   await expect(page).toHaveURL(/#\/events\/e1$/);
   await page.goto("/#/");
   await page.getByRole("button",{name:/Dec 31.*New Year/}).click();
-  const empty=page.locator(".home-empty-gifts");
-  await expect(empty.getByRole("button",{name:"Choose a gift"})).toBeVisible();
-  await empty.getByRole("button",{name:"Choose a gift"}).click();
-  await expect(page.getByRole("dialog",{name:"Choose recipient"})).toBeVisible();
+  await expect(page.locator(".focus-gifts .home-product")).toHaveCount(1);
+  await page.getByRole("button",{name:"Create",exact:true}).click();
+  await page.getByRole("button",{name:"Add gift"}).click();
+  await expect(page.getByRole("dialog",{name:"Add gift"})).toBeVisible();
+  await expect(page.getByRole("combobox",{name:"Save to"})).toHaveValue("e2");
   await page.getByRole("dialog").getByRole("button",{name:"Close"}).click();
   await page.goto("/#/events/e2?addGift=1");
   await expect(page.getByRole("dialog",{name:"Add gift"})).toBeVisible();
@@ -514,7 +515,7 @@ test("calendar shows whole month first, filters by day and restores month view",
   await expect(page.locator(".calendar-event-card")).toHaveCount(1);
   await expect(page.locator(".calendar-event-card")).toContainText("Anna's birthday");
   await expect(page.locator(".calendar-event-card .calendar-event-status")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Add occasion", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Add occasion", exact: true })).toHaveCount(0);
 
   // The initial date is an outline for Today, but never an active filter.
   await expect(page.locator(".cal-day.is-selected")).toHaveCount(0);
@@ -588,7 +589,7 @@ test("empty calendar is navigable without adding duplicate create buttons", asyn
   await expect(page.getByText("No occasions this month")).toBeVisible();
   await page.getByRole("button", { name: "Next month" }).click();
   await expect(page.locator(".calendar-top strong")).toHaveText("December 2026");
-  await expect(page.getByRole("button", { name: "Add occasion", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Add occasion", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Create", exact: true })).toBeVisible();
 });
 
@@ -1137,7 +1138,7 @@ test("Home empty occasion has an accessible gift chooser instead of an inert pla
   expect(bounds.height).toBeGreaterThanOrEqual(145);
   expect(bounds.overflow).toBeLessThanOrEqual(1);
   await empty.getByRole("button",{name:"Choose a gift"}).click();
-  await expect(page.getByRole("dialog",{name:"Choose recipient"})).toBeVisible();
+  await expect(page.getByRole("dialog",{name:"Gift for Denis"})).toBeVisible();
 });
 test("Scrolling Coming up chooses the nearest centered occasion without snap-back", async ({page}) => {
   await page.setViewportSize({width:390,height:844});
