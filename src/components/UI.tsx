@@ -104,12 +104,15 @@ export function CreateMenu() {
                 const personId = location.pathname.startsWith("/people/")
                   ? location.pathname.split("/")[2]
                   : undefined;
-                // One gift form: save as an independent idea, or choose an
-                // occasion + recipient to create a planned gift directly.
+                // Occasion gifts use the same saved/suggested picker as Home.
+                if(type==="idea" && onEventDetail && eventId && !tour) {
+                  setUi({giftPickerEventId:eventId,giftPickerPersonId:""});
+                  return;
+                }
                 openEditor({
-                  type: type as "idea" | "event" | "person",
-                  eventId: type === "idea" ? eventId : undefined,
-                  personId: type === "idea" ? personId : undefined,
+                  type:type as "idea" | "event" | "person",
+                  eventId:type === "idea" || (type==="person"&&onEventDetail) ? eventId:undefined,
+                  personId:type === "idea" ? personId:undefined,
                 });
               }}
             >

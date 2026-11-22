@@ -17,3 +17,9 @@
 .empty-state-action.is-secondary {background:#ebe6f1;color:#675279;}
 .empty-state-action:focus-visible {outline:3px solid #9a7fba;outline-offset:2px;}
 @media(max-width:350px){.givvy-empty-state{padding:18px 13px;}.empty-state-actions{flex-direction:column;}.empty-state-action{width:100%;}}
+
+/* Use the same compact state inside Home's approved featured-card geometry. */
+.home-empty-gifts .givvy-empty-state{width:100%;background:#ffffffee;border:1px solid #ffffffdd;box-shadow:0 6px 23px #1d24301a;}
+.home-empty-gifts .empty-state-copy h3{color:#343b42;}
+.home-empty-gifts .empty-state-copy p{color:#617079;}
+.event-gift-groups .givvy-empty-state{margin-inline:0;}

@@ -14,6 +14,8 @@ import { birthdayFromParts } from "../domain/birthdays";
 import { Button, Field, Sheet } from "./Primitives";
 import { Photo } from "./UI";
 import { PhotoCropSheet, validatePhoto } from "./PhotoCropSheet";
+import { EmptyState } from "./EmptyState";
+import { UsersRound } from "lucide-react";
 export function EditorSheet() {
   const { data, editor, commit, closeEditor, notify, openEditor, setUi, tour, updateTour, budgetsEnabled } = useApp(),
     navigate = useNavigate(),
@@ -123,6 +125,12 @@ export function EditorSheet() {
         next.people = id
           ? data.people.map((p) => (p.id === id ? value : p))
           : [...data.people, value];
+        // When a person is created from an occasion's empty state, link them
+        // to that occasion immediately; don't lose the user's context.
+        if(!id && editor.eventId) {
+          next.events = data.events.map(e=>e.id===editor.eventId && e.kind!=="birthday"
+            ? {...e,people:[...new Set([...e.people,value.id])]} : e);
+        }
       } else if (type === "event") {
         const people = lockedBirthday && birthdayPerson
           ? [birthdayPerson.id]
@@ -455,9 +463,10 @@ export function EditorSheet() {
                 </div>
               ))
             ) : (
-              <p className="section-note">
-                Add people first, then assign them to the occasion.
-              </p>
+              <EmptyState compact Icon={UsersRound}
+                title={t("No people yet","Пока нет людей")}
+                description={t("Add a person first. Then they can be included in this occasion.","Сначала создайте человека, чтобы добавить его в событие.")}
+                action={{label:t("Add a person","Добавить человека"),onClick:()=>{closeEditor();openEditor({type:"person",eventId:id});}}}/>
             )}
             {budgetsEnabled && <p className="section-note">
               {t("Leave a budget blank for not set. Zero is a valid limit.","Оставьте поле пустым, если лимита нет. Ноль — допустимый лимит.")}
