@@ -37,28 +37,49 @@ export function SettingsBudgets() {
     </SettingsFormSheet>}
   </div>;
 }
+const holidayGroups = [
+  { title:"EVERYDAY FAVORITES", ru:"ПОПУЛЯРНЫЕ", items:[
+    {key:"newyear", en:"New Year · Jan 1", ru:"Новый год · 1 января",legacy:"New Year"},
+    {key:"valentines", en:"Valentine's Day · Feb 14", ru:"День святого Валентина · 14 февраля"},
+    {key:"womens-day", en:"International Women's Day · Mar 8", ru:"Международный женский день · 8 марта"},
+    {key:"mothers-day", en:"Mother's Day · date varies", ru:"День матери · дата зависит от страны"},
+    {key:"fathers-day", en:"Father's Day · date varies", ru:"День отца · дата зависит от страны"},
+    {key:"halloween", en:"Halloween · Oct 31", ru:"Хеллоуин · 31 октября"},
+  ]},
+  { title:"CULTURAL & SEASONAL",ru:"КУЛЬТУРНЫЕ И СЕЗОННЫЕ",items:[
+    {key:"lunar-new-year",en:"Lunar New Year · date varies",ru:"Лунный Новый год · дата меняется"},
+    {key:"easter",en:"Easter · date varies",ru:"Пасха · дата меняется"},
+    {key:"diwali",en:"Diwali · date varies",ru:"Дивали · дата меняется"},
+    {key:"christmas",en:"Christmas · Dec 25",ru:"Рождество · 25 декабря"},
+    {key:"hanukkah",en:"Hanukkah · date varies",ru:"Ханука · дата меняется"},
+    {key:"thanksgiving",en:"Thanksgiving · US, November",ru:"День благодарения · США, ноябрь"},
+  ]},
+] as const;
 export function SettingsHolidays() {
-  const {data,commit} = useApp();
-  const change = (key:"newyear"|"christmas"|"hanukkah",enabled:boolean) => {
+  const {data,commit,notify} = useApp();
+  const enabled=(key:string, legacy?:string)=>{
+    if(key==="christmas" || key==="hanukkah") return !!data.settings[key];
+    return (data.settings.holidays||[]).includes(legacy||key);
+  };
+  const change=(key:string,value:boolean,legacy?:string)=>{
     const settings={...data.settings};
-    if(key==="newyear") settings.holidays=enabled?[...new Set([...(settings.holidays||[]),"New Year"])]: (settings.holidays||[]).filter(item=>item!=="New Year");
-    else settings[key]=enabled;
-    commit({...data,settings});
+    if(key==="christmas"||key==="hanukkah") settings[key]=value;
+    else {
+      const id=legacy||key;
+      settings.holidays=value?[...new Set([...(settings.holidays||[]),id])]: (settings.holidays||[]).filter(item=>item!==id);
+    }
+    if(commit({...data,settings})) notify(t("Holiday preferences updated","Праздники обновлены"));
   };
   return <div className="settings-page settings-subpage">
     <Title name={t("Holidays","Праздники")} back="/settings"/>
     <PreviewBanner/>
-    <p className="settings-page-intro">{t("Choose the holidays that matter to you. These preferences do not automatically create calendar events.","Выберите важные праздники. Эти настройки не создают события в календаре автоматически.")}</p>
-    <SettingsGroup title={t("HOLIDAYS","ПРАЗДНИКИ")}>
-      {([
-        ["newyear","New Year · Jan 1","Новый год · 1 января", (data.settings.holidays||[]).includes("New Year")],
-        ["christmas","Christmas · Dec 25","Рождество · 25 декабря",!!data.settings.christmas],
-        ["hanukkah","Hanukkah","Ханука",!!data.settings.hanukkah],
-      ] as const).map(([key,en,ru,enabled])=><label className="settings-switch-row settings-holiday-row" key={key}>
-        <span><strong>{t(en,ru)}</strong></span>
-        <input type="checkbox" role="switch" checked={enabled} onChange={e=>change(key,e.target.checked)}/>
+    <p className="settings-page-intro">{t("Choose the holidays you celebrate. Preferences do not automatically create calendar events. Dates vary by country for some holidays.","Выберите праздники, которые отмечаете. Они не создают события в календаре автоматически. Некоторые даты зависят от страны.")}</p>
+    {holidayGroups.map(group=><SettingsGroup key={group.title} title={t(group.title,group.ru)}>
+      {group.items.map(item=><label className="settings-switch-row settings-holiday-row" key={item.key}>
+        <span><strong>{t(item.en,item.ru)}</strong></span>
+        <input type="checkbox" role="switch" aria-label={t(item.en,item.ru)} checked={enabled(item.key,"legacy" in item ? item.legacy:undefined)} onChange={e=>change(item.key,e.target.checked,"legacy" in item ? item.legacy:undefined)}/>
       </label>)}
-    </SettingsGroup>
+    </SettingsGroup>)}
   </div>;
 }
 export function SettingsAbout() {

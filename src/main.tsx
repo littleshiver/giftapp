@@ -38,3 +38,4 @@ import "./styles/event-overview-polish.css";
 import "./styles/gift-onboarding-polish.css";
 
 import "./styles/settings.css";
+import "./styles/empty-states.css";
