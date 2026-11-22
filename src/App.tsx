@@ -42,7 +42,7 @@ export function App() {
   if (auth.status === "signed-in" && auth.user && accountDataUid !== auth.user.uid)
     return <AuthLoading failed={syncStatus === "error"} />;
   // New accounts go through the tour even when opening a deep link.
-  if (auth.status === "signed-in" && !tour && !data.settings.onboardingComplete &&
+  if (auth.status === "signed-in" && syncStatus !== "loading" && !tour && !data.settings.onboardingComplete &&
       !data.people.length && !data.events.length && !data.gifts.length &&
       !data.ideas.length && location.pathname !== "/onboarding" && location.pathname !== "/account")
     return <Navigate to="/onboarding" replace />;
