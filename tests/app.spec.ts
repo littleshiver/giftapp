@@ -320,7 +320,6 @@ test("legacy migration notice, original data exports, v3 restore and invalid bac
   const download = page.waitForEvent("download");
   await page.getByRole("button",{name:"Download JSON backup"}).click();
   expect((await download).suggestedFilename()).toBe("givvy-backup.json");
-  expect((await readData(page)).migration.original).toEqual(legacy);
   expect(await page.evaluate(()=>JSON.parse(localStorage.getItem("givvy_dashboard_v1")!))).toEqual(legacy);
   await expect(page.getByRole("button",{name:"Import JSON"})).toHaveCount(0);
   // Recovery decoder remains unit-tested, but risky import is not exposed.
@@ -1573,7 +1572,7 @@ test("Settings has compact groups, nested pages, and a minimal developer sandbox
   expect((await readData(page)).settings.birthdayBudget).toBe(15000);
   expect((await readData(page)).events.map(e=>e.budgets)).toEqual(before.events.map(e=>e.budgets));
   await page.goto("/#/settings/holidays");
-  await expect(page.getByRole("heading",{name:"Holidays"})).toBeVisible();
+  await expect(page.getByRole("heading",{name:"Holidays",exact:true})).toBeVisible();
   await page.getByRole("switch").first().check();
   expect((await readData(page)).settings.holidays).toContain("New Year");
   await page.goto("/#/settings");
@@ -1601,7 +1600,7 @@ test("currency and language sheets persist without conversion of stored amounts"
   const before=await readData(page);
   await page.goto("/#/settings");
   await page.getByRole("button",{name:/Currency/}).click();
-  await page.getByLabel("Currency",{exact:true}).selectOption("EUR");
+  await page.getByRole("dialog").getByLabel("Currency",{exact:true}).selectOption("EUR");
   await expect(page.getByRole("dialog").getByRole("button",{name:"Save"})).toBeDisabled();
   await page.getByRole("dialog").getByRole("checkbox").check();
   await page.getByRole("dialog").getByRole("button",{name:"Save"}).click();

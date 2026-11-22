@@ -431,7 +431,7 @@ test("filled People gallery and portrait profile visual QA at 320 and 390", asyn
       fullPage:true,animations:"disabled",
     });
   }
-  await page.goto("/#/settings");
+  await page.goto("/#/settings/developer");
   await page.getByRole("button", {name:"Empty",exact:true}).click();
   await page.goto("/#/people");
   await expect(page.locator(".person-gallery-card")).toHaveCount(0);
