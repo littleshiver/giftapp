@@ -1,13 +1,15 @@
 import { t } from "../utils/format";
 import { useState } from "react";
 import { Search } from "lucide-react";
-import { Empty, PersonRow, Title } from "../components/UI";
+import { PersonRow, Title } from "../components/UI";
+import { EmptyState } from "../components/EmptyState";
+import { UsersRound, SearchX } from "lucide-react";
 import { useApp } from "../state/AppState";
 import { nextBirthdayDate } from "../domain/birthdays";
 import { today } from "../utils/format";
 
 export function People() {
-  const { data } = useApp();
+  const { data, openEditor } = useApp();
   const [query, setQuery] = useState("");
   const from = today();
   // Nearest birthday first; people without one stay at the end.
@@ -37,9 +39,9 @@ export function People() {
           {people.map((person) => <PersonRow key={person.id} person={person}/>)}
         </div>
       ) : data.people.length ? (
-        <Empty>No one matches your search.</Empty>
+        <EmptyState compact Icon={SearchX} title={t("No matches","Ничего не найдено")} description={t("No one matches your search.","Поиск не нашёл совпадений.")} action={{label:t("Clear search","Сбросить поиск"),onClick:()=>setQuery("")}}/>
       ) : (
-        <Empty>Keep your favorite people and gift ideas together. Add someone with the + button.</Empty>
+        <EmptyState Icon={UsersRound} title={t("Your people live here","Здесь будут ваши близкие")} description={t("Keep people and gift ideas together. Start by adding someone.","Сохраняйте людей и идеи подарков вместе. Начните с первого человека.")} action={{label:t("Add a person","Добавить человека"),onClick:()=>openEditor({type:"person"})}}/>
       )}
     </>
   );
