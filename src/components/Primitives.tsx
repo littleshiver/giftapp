@@ -71,6 +71,8 @@ export function Sheet({
   useEffect(() => {
     const escape = (e: KeyboardEvent) => {
       if (e.key === "Escape" && !busy) {
+        // A nested image crop owns Escape; do not discard the underlying editor.
+        if (document.querySelector(".photo-crop-layer") && !ref.current?.closest(".photo-crop-layer")) return;
         e.preventDefault();
         onClose();
       }

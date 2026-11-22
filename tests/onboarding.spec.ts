@@ -39,8 +39,8 @@ async function planGiftOnRealEvent(page: Page) {
   await page.locator('.calendar-event-card[data-guided-event="true"]').click();
   await expect(page).toHaveURL(/#\/events\/birthday:/);
   await expect(page.locator(".event-overview")).toBeVisible();
-  await expect(page.locator(".event-saved-ideas")).toContainText("Throw blanket");
-  await page.locator(".event-saved-ideas-choose").click();
+  await expect(page.locator(".event-gift-empty")).toContainText("No gifts planned yet");
+  await page.locator(".event-gift-empty").getByRole("button",{name:"Choose a gift"}).click();
   await expect(page.getByRole("dialog", { name: /^Gift for / })).toBeVisible();
   await page.getByRole("dialog").getByRole("button", { name: "Use idea Throw blanket" }).click();
   await expect(page.getByRole("dialog", { name: "Add gift" })).toBeVisible();
@@ -125,7 +125,7 @@ test("first-run can finish without pretending the present was purchased", async 
 test("guest can skip Welcome and contextual hints without invented content", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Explore on my own" }).click();
-  await expect(page.locator(".empty-card")).toContainText("Add your first occasion");
+  await expect(page.getByRole("heading",{name:"No upcoming occasions"})).toBeVisible();
   expect((await readData(page)).people).toEqual([]);
   expect((await readData(page)).settings.onboardingComplete).toBe(true);
   await page.getByRole("button", { name: "Create", exact: true }).click();
@@ -295,25 +295,27 @@ test("spotlight exposes actual actions and Discover keeps its normal geometry", 
   expect(Math.abs(guided!.height-ordinary!.height)).toBeLessThan(2);
 });
 
-test("saved ideas replace the empty gift list outside the tour", async ({page}) => {
+test("an empty occasion guides people to saved ideas, then a gift opens on its own page",async({page})=>{
   await page.goto("/");
   await page.getByRole("button",{name:"Start guided tour"}).click();
   await addPersonViaRealFab(page,"Ada","12","15");
   await saveIdeaThroughRealDiscover(page,"Ada");
   await page.locator('[data-guided-event="true"]').click();
   await coach(page).getByRole("button",{name:"Skip tutorial"}).click();
-  const offer = page.locator(".event-recipient-group .event-saved-ideas");
-  await expect(offer).toContainText("Throw blanket");
-  await expect(page.locator(".event-empty-gifts")).toHaveCount(0);
-  await offer.getByRole("button",{name:"Choose idea"}).click();
-  await page.getByRole("button",{name:"Use idea Throw blanket"}).click();
+  const group=page.locator(".event-recipient-group");
+  await expect(group.locator(".event-gift-empty")).toContainText("No gifts planned yet");
+  await group.locator(".event-gift-empty").getByRole("button",{name:"Choose a gift"}).click();
+  const picker=page.getByRole("dialog",{name:/^Gift for /});
+  await expect(picker.getByRole("button",{name:/Saved ideas/})).toBeVisible();
+  await expect(picker.getByRole("button",{name:/From Givvy/})).toBeVisible();
+  await picker.getByRole("button",{name:"Use idea Throw blanket"}).click();
   await page.getByRole("button",{name:"Save gift"}).click();
-  await expect(offer).toHaveCount(0);
-  await page.getByRole("button",{name:"View gift Throw blanket"}).click();
-  const dialog=page.getByRole("dialog",{name:"Gift details"});
-  await expect(dialog).toContainText("Throw blanket");
-  await expect(dialog.locator("input, select, textarea")).toHaveCount(0);
-  await dialog.getByRole("button",{name:"Mark as bought"}).click();
-  await expect(dialog).toContainText("Bought");
-  await expect(dialog.getByRole("button",{name:"Edit gift"})).toBeVisible();
+  await expect(page).toHaveURL(/#\/gifts\//);
+  await expect(page.locator(".gift-preview-page")).toContainText("Throw blanket");
+  await expect(page.locator(".gift-preview-page input,.gift-preview-page select,.gift-preview-page textarea")).toHaveCount(0);
+  const status=page.locator(".gift-preview-top-status");
+  await expect(status).toBeVisible();
+  await status.getByRole("button",{name:/Mark Throw blanket as Bought/}).click();
+  await expect(status.locator(".gift-status-icon.is-bought")).toBeVisible();
+  await expect(page.locator(".gift-preview-page").getByRole("button",{name:"Edit gift"})).toBeVisible();
 });

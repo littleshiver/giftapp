@@ -645,7 +645,7 @@ export function EditorSheet({standalone=false,editId}:{standalone?:boolean;editI
                   }
                   setBusy(true);
                   try {
-                    let image = idea.image;
+                    let image = croppedPhoto || idea.image;
                     const file = fd.get("imageFile");
                     if (file instanceof File && file.size)
                       image = await readImage(file);
