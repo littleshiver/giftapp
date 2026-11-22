@@ -602,7 +602,7 @@ export function EditorSheet({standalone=false,editId}:{standalone?:boolean;editI
                          if(!file)return;
                          try{validatePhoto(file);setChosenPhotoName(file.name);setCropSource(URL.createObjectURL(file));}
                          catch(error){setSaveError((error as Error).message);}
-                       }
+                       }}
                     />
                   </label>
                   {(chosenPhotoUrl || source?.image?.startsWith("data:")) && <button type="button" className="person-photo-remove" onClick={()=>setCropSource(chosenPhotoUrl||source?.image||"")}>{t("Adjust crop","Изменить кадрирование")}</button>}
