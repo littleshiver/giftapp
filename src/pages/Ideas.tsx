@@ -3,7 +3,9 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown, ChevronRight, Heart, SlidersHorizontal, UsersRound, X } from "lucide-react";
 import type { Idea } from "../domain/models";
-import { Empty, PersonAvatar, Product, Title } from "../components/UI";
+import { PersonAvatar, Product, Title } from "../components/UI";
+import { EmptyState } from "../components/EmptyState";
+import { Gift as GiftIcon } from "lucide-react";
 import { Button, Sheet } from "../components/Primitives";
 import { WAVE_SHAPE_PATH } from "../components/WaveShape";
 import { useApp } from "../state/AppState";
@@ -280,7 +282,10 @@ export function Ideas() {
             </div>
           ) : (
             <div className="ideas-discover-empty">
-              <Empty>You've seen all the ideas in this selection.</Empty>
+              <EmptyState compact Icon={GiftIcon}
+                title={t("You've seen all the ideas in this selection.","Все идеи в этой подборке просмотрены")}
+                description={t("Explore saved ideas or revisit something you skipped.","Откройте сохранённые идеи или верните пропущенные.")}
+                action={{label:t("See saved ideas","К сохранённым идеям"),onClick:()=>setUi({ideasTab:"saved"})}}/>
               {data.skipped.some(id => suggestions.some(suggestion => suggestion.id === id)) && (
                 <button type="button" className="ideas-review-skipped"
                   onClick={() => {
@@ -316,7 +321,13 @@ export function Ideas() {
               ))}
             </div>
           ) : (
-            <Empty>No saved ideas here yet. Discover one you like or add your own with +.</Empty>
+            <EmptyState Icon={GiftIcon}
+              title={savedPerson!=="all"&&data.ideas.length?t("No matches for this person","Для этого человека идей нет"):t("No saved ideas yet","Пока нет сохранённых идей")}
+              description={t("Find inspiration in Discover or add an idea of your own.","Посмотрите Discover или добавьте свою идею.")}
+              action={savedPerson!=="all"&&data.ideas.length
+                ? {label:t("Show all ideas","Все идеи"),onClick:()=>setUi({filterPerson:"all"})}
+                : {label:t("Explore ideas","Посмотреть идеи"),onClick:()=>setUi({ideasTab:"discover"})}}
+              secondaryAction={{label:t("Add my own","Добавить свою"),onClick:()=>openEditor({type:"idea"})}}/>
           )}
         </section>
       )}
