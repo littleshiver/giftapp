@@ -1,15 +1,26 @@
 import { test, expect } from "@playwright/test";
 
-// CI and local tests run without Firebase env vars: the app must stay fully
-// usable as a guest and the account screen must explain sign-in isn't ready.
-test("without Firebase config the app stays in guest mode", async ({ page }) => {
-  await page.goto("/#/account");
-  await expect(page.getByRole("heading", { name: "Sign-in isn't available yet" })).toBeVisible();
-  await page.goto("/#/onboarding");
-  await expect(page.getByRole("link", { name: "I already have an account" })).toHaveCount(0);
-  await page.goto("/#/settings");
-  await expect(page.getByRole("heading", { name: "Account", exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Sign in or create account" })).toHaveCount(0);
+// UI tests normally use a dev-only fake session. Opt out to test real gating.
+test("without a Firebase session all app routes require authentication", async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem("givvy_e2e_require_auth", "1"));
+  await page.goto("/#/people");
+  await expect(page).toHaveURL(/#\\/welcome\\?next=/);
+  await expect(page.getByRole("heading", { name: "All your gifts, in one place." })).toBeVisible();
+  await expect(page.getByRole("navigation")).toHaveCount(0);
+  await expect(page.locator(".person-gallery-card")).toHaveCount(0);
+  await page.getByRole("link", { name: "Get started" }).click();
+  await expect(page.getByRole("heading", { name: "Sign-in is temporarily unavailable" })).toBeVisible();
+  await expect(page.locator(".bottom-nav, .create-menu")).toHaveCount(0);
+});
+test("deep links and preview links cannot bypass the auth gate", async ({page}) => {
+  await page.addInitScript(() => sessionStorage.setItem("givvy_e2e_require_auth", "1"));
+  for (const path of ["/settings","/events/e1","/onboarding?preview=1","/components"]) {
+    await page.goto("/#" + path);
+    await expect(page.getByRole("heading", {name:"All your gifts, in one place."})).toBeVisible();
+  }
+  await page.goto("/#/account?preview=sign-up");
+  await expect(page.getByRole("heading", {name:"Sign-in is temporarily unavailable"})).toBeVisible();
+  await expect(page.getByText("Design preview · no account changes")).toHaveCount(0);
 });
 test("the account screen has no add button", async ({ page }) => {
   await page.goto("/#/settings");

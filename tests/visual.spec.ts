@@ -873,7 +873,7 @@ test("In-app guide stays inside 320px and Pixel viewports while using real scree
       }
     };
     await check();
-    await page.getByRole("button", { name: "Try in the app" }).click();
+    await page.getByRole("button", { name: "Start guided tour" }).click();
     await expect(page.locator(".home-heading > .home-brandbar")).toBeVisible();
     await check();
     await page.getByRole("button", { name: "Create", exact: true }).click();
@@ -906,7 +906,7 @@ test("Person editor aligns photo first, compact birthday row and consistent fiel
     await page.setViewportSize(viewport);
     await page.goto("/#/settings");
     await page.goto("/#/onboarding?preview=1");
-    await page.getByRole("button",{name:"Try in the app"}).click();
+    await page.getByRole("button",{name:"Start guided tour"}).click();
     await page.getByRole("button",{name:"Create",exact:true}).click();
     await page.getByRole("button",{name:"Add person",exact:true}).click();
     const dialog=page.getByRole("dialog",{name:"Add person"});
