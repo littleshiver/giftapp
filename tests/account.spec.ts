@@ -26,8 +26,12 @@ test("the account screen has no add button", async ({ page }) => {
   await page.goto("/#/settings");
   await expect(page.locator("button.fab")).toHaveCount(0);
   await page.goto("/#/account");
-  await expect(page.getByRole("navigation")).toHaveCount(0);
-  await expect(page.getByRole("heading", {name:"Welcome back"})).toBeVisible();
+  await expect(page.getByRole("heading", {name:"Account",exact:true})).toBeVisible();
+  await expect(page.getByRole("navigation")).toBeVisible();
+  await expect(page.getByRole("button", {name:/Name/})).toBeVisible();
+  await page.getByRole("button",{name:/Name/}).click();
+  await expect(page.getByRole("dialog",{name:"Your name"})).toBeVisible();
+  await page.getByRole("dialog").getByRole("button",{name:"Cancel"}).click();
   await expect(page.locator("button.fab")).toHaveCount(0);
 });
 
