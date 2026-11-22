@@ -243,9 +243,9 @@ export function Account() {
             }}>Send reset link</button>
           </div>
         )}
-        {mode === "sign-in" && (
+        {
           <>
-            <div className="auth-divider"><span>Or continue with</span></div>
+            <div className="auth-divider"><span>{mode === "sign-up" ? "Or sign up with" : "Or continue with"}</span></div>
             <div className="auth-providers">
               <button data-ph="account-google" className="auth-provider" type="button"
                 disabled={busy || (!preview && status === "loading")} onClick={() => providerClick("google")}>

@@ -51,6 +51,7 @@ test("Settings opens sign-in and registration previews without Firebase", async 
   await expect(page.getByRole("heading", { name: "Create your account" })).toBeVisible();
   await expect(page.getByRole("textbox", { name: "Name" })).toBeVisible();
   await expect(page.getByRole("textbox", { name: "Email" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Continue with Google" })).toBeVisible();
 
   await page.getByRole("textbox", { name: "Name" }).fill("Lina");
   await page.getByRole("textbox", { name: "Email" }).fill("test@example.com");
