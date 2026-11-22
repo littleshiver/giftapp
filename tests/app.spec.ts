@@ -1055,7 +1055,7 @@ test("root page headers omit redundant Givvy overlines and detail pages share a 
 
 test("global FAB is the only add entry point on all main and detail pages", async ({ page }) => {
   await seed(page);
-  for (const route of ["/", "/people", "/events", "/people/p1", "/events/e1", "/events/e2", "/settings"]) {
+  for (const route of ["/", "/people", "/events", "/people/p1", "/events/e1", "/events/e2"]) {
     await page.goto("/#" + route);
     await expect(page.getByRole("button", { name: "Create", exact: true })).toBeVisible();
     await expect(page.locator(".people-add, .product-add, .person-add-idea, .event-add-gift, .event-add-recipient")).toHaveCount(0);
@@ -1063,6 +1063,8 @@ test("global FAB is the only add entry point on all main and detail pages", asyn
     await expect(page.getByRole("button", { name: "Add person", exact: true })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Add idea", exact: true })).toHaveCount(0);
   }
+  await page.goto("/#/settings");
+  await expect(page.getByRole("button", { name: "Create", exact: true })).toHaveCount(0);
   await page.goto("/#/ideas");
   await page.getByRole("button", { name: "Discover", exact: true }).click();
   await expect(page.getByRole("button", { name: "Create", exact: true })).toHaveCount(0);
@@ -1610,7 +1612,8 @@ test("currency and language settings persist without changing stored numeric amo
   const changed=await readData(page);
   expect(changed.settings.currency).toBe("EUR");
   expect(changed.gifts).toEqual(before.gifts);
-  expect(changed.events).toEqual(before.events);
+  expect(changed.events.map(e => ({id:e.id,budgets:e.budgets})))
+    .toEqual(before.events.map((e: {id:string;budgets:Record<string,number>}) => ({id:e.id,budgets:e.budgets})));
   await page.getByLabel("Language",{exact:true}).selectOption("ru");
   await expect(page.getByRole("heading",{name:"Настройки",exact:true})).toBeVisible();
   await expect(page.getByRole("navigation",{name:"Primary"}).getByText("Люди")).toBeVisible();

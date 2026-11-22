@@ -397,6 +397,7 @@ test("filled People gallery and portrait profile visual QA at 320 and 390", asyn
   await mkdir(directory, {recursive:true});
   await seed(page);
   await page.goto("/#/settings");
+  await page.locator(".settings-developer summary").click();
   await page.getByRole("button", {name:"Filled",exact:true}).click();
   for(const width of [320,390]){
     await page.setViewportSize({width,height:844});

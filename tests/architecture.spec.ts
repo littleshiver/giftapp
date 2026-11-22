@@ -128,6 +128,7 @@ test("People gallery: high-resolution portraits, birthday-only metadata and empt
   await seed(page);
   const personal = await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"));
   await page.goto("/#/settings");
+  await page.locator(".settings-developer summary").click();
   await page.getByRole("button", {name:"Filled",exact:true}).click();
   await page.goto("/#/people");
   const cards = page.locator(".person-gallery-card");
