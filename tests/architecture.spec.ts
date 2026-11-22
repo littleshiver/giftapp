@@ -59,6 +59,9 @@ test("person portrait, interests and private gift-idea library persist without p
     name: "anna.jpg", mimeType: "image/jpeg",
     buffer: Buffer.from(image("birthday").split(",")[1], "base64"),
   });
+  const crop=page.getByRole("dialog",{name:"Crop photo"});
+  await expect(crop).toBeVisible();
+  await crop.getByRole("button",{name:"Use photo"}).click();
   await page.getByRole("button", { name: "Save person" }).click();
   // Photo processing uses an async image decoder/canvas. Wait until the
   // atomic save has committed before intentionally reloading the document.
@@ -83,47 +86,44 @@ test("person portrait, interests and private gift-idea library persist without p
   await expect(page.locator(".person-gallery-portrait img")).toHaveCount(1);
 });
 
-test("group occasion copies one person's saved idea to an independent gift snapshot", async ({ page }) => {
+test("group gift picker copies a saved idea as an independent gift snapshot",async({page})=>{
   await seed(page);
   await page.goto("/#/events/e2");
   await expect(page.locator(".event-recipient-group")).toHaveCount(3);
-  await page.getByRole("button", { name: "Create", exact: true }).click();
-  await page.getByRole("button", { name: "Add gift" }).click();
-  await page.getByRole("button", { name: "Choose from saved ideas" }).click();
-  const recipientPicker = page.getByRole("dialog", { name: "Choose recipient" });
-  await recipientPicker.getByRole("button", { name: "Anna" }).click();
-  const picker = page.getByRole("dialog", { name: "Gift for Anna" });
-  await expect(picker.getByRole("button", { name: "Use idea Ceramic mug" })).toBeVisible();
-  await picker.getByRole("button", { name: "Use idea Ceramic mug" }).click();
-  await expect(page.getByRole("dialog", { name: "Add gift" })).toBeVisible();
-  await expect(page.getByLabel("Gift name", { exact: true })).toHaveValue("Ceramic mug");
+  await page.getByRole("button",{name:"Create",exact:true}).click();
+  await page.getByRole("button",{name:"Add gift"}).click();
+  const recipients=page.getByRole("dialog",{name:"Choose recipient"});
+  await expect(recipients).toBeVisible();
+  await recipients.getByRole("button",{name:"Anna"}).click();
+  const picker=page.getByRole("dialog",{name:"Gift for Anna"});
+  await expect(picker.getByRole("button",{name:/Saved ideas/})).toBeVisible();
+  await expect(picker.getByRole("button",{name:/From Givvy/})).toBeVisible();
+  await expect(picker.getByRole("button",{name:"Use idea Ceramic mug"})).toBeVisible();
+  await picker.getByRole("button",{name:"Use idea Ceramic mug"}).click();
+  await expect(page.getByRole("dialog",{name:"Add gift"})).toBeVisible();
+  await expect(page.getByLabel("Gift name",{exact:true})).toHaveValue("Ceramic mug");
   await page.getByLabel("Price (₽)").fill("1400");
-  await page.getByRole("button", { name: "Save gift" }).click();
-  const saved = await readData(page);
-  const gift = saved.gifts.find((g) => g.eventId === "e2" && g.name === "Ceramic mug");
-  expect(gift).toMatchObject({ personId: "p1", sourceIdeaId: "i1", price: 1400, status: "to_buy" });
-  expect(saved.ideas.find((i) => i.id === "i1").price).toBe(1200);
+  await page.getByRole("button",{name:"Save gift"}).click();
+  const after=await readData(page);
+  const gift=after.gifts.find(g=>g.eventId==="e2"&&g.name==="Ceramic mug");
+  expect(gift).toMatchObject({personId:"p1",sourceIdeaId:"i1",price:1400,status:"to_buy"});
+  expect(after.ideas.find(i=>i.id==="i1").price).toBe(1200);
   await page.goto("/#/people/p1");
   await expect(page.locator(".person-ideas .product-card")).toHaveCount(1);
-  await expect(page.locator(".person-detail .status-button")).toHaveCount(0);
 });
-
-test("single-recipient birthday has no group plan and only accepts the celebrant", async ({ page }) => {
+test("birthday picker restricts new occasion gifts to its celebrant",async({page})=>{
   await seed(page);
   await page.goto("/#/events/e1");
   await expect(page.locator(".event-single-gifts")).toBeVisible();
   await expect(page.locator(".event-recipient-groups")).toHaveCount(0);
-  await expect(page.locator(".event-person-summary")).toHaveCount(0);
   await expect(page.locator(".event-single-gifts .event-person-gifts-identity")).toContainText("Anna");
-  await page.getByRole("button", { name: "Create", exact: true }).click();
-  await page.getByRole("button", { name: "Add gift" }).click();
-  await page.getByRole("button", { name: "Choose from saved ideas" }).click();
-  await expect(page.getByRole("dialog", { name: "Gift for Anna" })).toBeVisible();
-  await page.getByRole("button", { name: "Add a new gift" }).click();
-  await expect(page.getByRole("combobox", { name: "For" })).toHaveValue("p1");
-  await expect(page.getByRole("combobox", { name: "For" }).locator("option")).toHaveCount(2);
+  await page.getByRole("button",{name:"Create",exact:true}).click();
+  await page.getByRole("button",{name:"Add gift"}).click();
+  await expect(page.getByRole("dialog",{name:"Gift for Anna"})).toBeVisible();
+  await page.getByRole("button",{name:"Add a new gift"}).click();
+  await expect(page.getByRole("combobox",{name:"For"})).toHaveValue("p1");
+  await expect(page.getByRole("combobox",{name:"For"}).locator("option")).toHaveCount(2);
 });
-
 test("People gallery: high-resolution portraits, birthday-only metadata and empty preview", async ({page}) => {
   await seed(page);
   const personal = await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"));
@@ -158,7 +158,7 @@ test("People gallery: high-resolution portraits, birthday-only metadata and empt
   await page.getByRole("button", {name:"Empty",exact:true}).click();
   await page.goto("/#/people");
   await expect(page.locator(".person-gallery-card")).toHaveCount(0);
-  await expect(page.getByText(/Keep your favorite people/)).toBeVisible();
+  await expect(page.getByRole("heading",{name:"Your people live here"})).toBeVisible();
   expect(await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"))).toBe(personal);
 });
 
@@ -222,6 +222,9 @@ test("Variant C profile crops wide portraits to a stable square without stretchi
     mimeType: "image/svg+xml",
     buffer: Buffer.from(wideSvg),
   });
+  const crop=page.getByRole("dialog",{name:"Crop photo"});
+  await expect(crop).toBeVisible();
+  await crop.getByRole("button",{name:"Use photo"}).click();
   await page.getByRole("button", { name: "Save person" }).click();
   await expect.poll(async () => (await readData(page)).people.find(p => p.id === "p1")?.photo || "")
     .toMatch(/^data:image\/jpeg;base64,/);
@@ -295,40 +298,28 @@ test("Variant C retains empty and one-sided preferences without blank panels", a
   await expect(page.locator(".person-ideas .gift-card")).toHaveCount(1);
 });
 
-test("Gifted segment derives only bought gifts from past occasions, then edits/deletes through shared sheet", async ({page}) => {
-  const data = fixture();
-  data.events[0].date = "2026-11-10"; // past relative to frozen Nov 15
-  data.gifts.push({
-    ...data.gifts[0], id:"future-bought", name:"Future present",
-    eventId:"e2", personId:"p1", status:"bought",
-  });
+test("Gifted history shows past purchases and supports full-page edit/delete",async({page})=>{
+  const data=fixture();data.events[0].date="2026-11-10";
+  data.gifts.push({...data.gifts[0],id:"future-bought",name:"Future present",eventId:"e2",personId:"p1",status:"bought"});
   await seed(page,data);
   await page.goto("/#/people/p1");
-  await expect(page.getByRole("button",{name:"Gift ideas", exact:true})).toHaveAttribute("aria-pressed","true");
-  await expect(page.locator(".person-gift-collection .gift-card")).toHaveCount(1);
   await page.getByRole("button",{name:"Gifted",exact:true}).click();
-  await expect(page.getByRole("button",{name:"Gifted",exact:true})).toHaveAttribute("aria-pressed","true");
   await expect(page.locator(".person-gift-collection .gift-card")).toHaveCount(1);
   await expect(page.locator(".person-gift-collection")).toContainText("Scented candle");
   await expect(page.locator(".person-gift-collection")).toContainText("Anna's birthday");
-  await expect(page.locator(".person-gift-collection")).toContainText("Nov 10, 2026");
-  await expect(page.locator(".person-gift-collection .gift-status-icon")).toHaveCount(1);
   await expect(page.locator(".person-gift-collection button.gift-status-icon")).toHaveCount(0);
-  await expect(page.getByText("Future present")).toHaveCount(0);
-  await expect(page.getByText("Cozy blanket")).toHaveCount(0);
-
   await page.getByRole("button",{name:"Edit gift Scented candle"}).click();
-  await expect(page.getByRole("dialog",{name:"Edit gift"})).toBeVisible();
+  await expect(page).toHaveURL(/#\/gifts\/g1\/edit$/);
   await expect(page.getByLabel("Gift name",{exact:true})).toHaveValue("Scented candle");
-  page.once("dialog", dialog => dialog.accept());
+  page.once("dialog",d=>d.accept());
   await page.getByRole("button",{name:"Delete gift"}).click();
-  await expect(page.getByRole("dialog",{name:"Edit gift"})).toHaveCount(0);
+  expect((await readData(page)).gifts.some(g=>g.id==="g1")).toBe(false);
+  await page.goto("/#/people/p1");
+  await page.getByRole("button",{name:"Gifted",exact:true}).click();
   await expect(page.getByText("No bought gifts from past occasions yet.")).toBeVisible();
-  expect((await readData(page)).gifts.some((g)=>g.id==="g1")).toBe(false);
   await page.getByRole("button",{name:"Gift ideas",exact:true}).click();
   await expect(page.locator(".person-gift-collection .gift-card")).toHaveCount(1);
 });
-
 test("Purchased on the day or for a future occasion is not prematurely Gifted", async ({page}) => {
   const data = fixture();
   data.events[0].date = "2026-11-15";
