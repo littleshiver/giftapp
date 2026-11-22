@@ -33,3 +33,6 @@
 .gift-product-card .gift-product-actions .gift-preview-later{background:#f6f4f8;color:#60556b;border:0;}
 .gift-card.is-gift .gift-status-icon {pointer-events:none;}
 @media(max-width:350px){.gift-product-card .gift-product-media{height:clamp(200px,36dvh,310px)}}
+
+/* With editing moved into the sheet, the sole miniature status sits top-right. */
+.gift-card.is-gift > .gift-status-icon {left:auto!important;right:9px!important;top:9px!important;cursor:inherit!important;pointer-events:none!important;}
