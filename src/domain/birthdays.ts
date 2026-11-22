@@ -110,3 +110,15 @@ export function birthdayFromParts(month: string, day: string, year: string): str
   }
   return full;
 }
+
+/** Age is shown only for an actual, valid birth year, never for month/day-only dates. */
+export function ageFromBirthday(birthday:string,asOf=today()):number|null {
+  const match=/^(\d{4})-(\d{2})-(\d{2})$/.exec(birthday);
+  if(!match||!birthdayMonthDay(birthday))return null;
+  const [birthYear,month,day]=match.slice(1).map(Number);
+  const d=new Date(birthYear,month-1,day,12);
+  if(iso(d)!==birthday)return null;
+  const [year,currentMonth,currentDay]=asOf.split("-").map(Number);
+  const age=year-birthYear-(currentMonth<month || (currentMonth===month&&currentDay<day)?1:0);
+  return age>=0 && age<=130?age:null;
+}

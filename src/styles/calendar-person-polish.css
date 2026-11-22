@@ -1,0 +1,16 @@
+.calendar-selected-actions{display:flex;gap:9px;align-items:center;justify-content:flex-end;flex-wrap:wrap;}
+.calendar-date-create{display:inline-flex;gap:5px;align-items:center;justify-content:center;padding:8px 10px;
+  min-height:42px;border:0;border-radius:12px;background:#f1eaf6;color:#705388;font:inherit;font-size:12px;font-weight:790;cursor:pointer;}
+.calendar-date-create:focus-visible{outline:3px solid #9b80b8;outline-offset:2px;}
+.calendar-create-choices{display:grid;gap:10px;padding:0 0 12px;}
+.calendar-create-choices>p{margin:0 0 7px;color:#7b7b83;font-size:13px;}
+.calendar-create-choices>button{display:flex;align-items:center;gap:11px;width:100%;text-align:left;
+  background:#faf8fc;border:1px solid #eee8f1;border-radius:16px;padding:14px 12px;min-height:70px;cursor:pointer;color:#30363e;}
+.calendar-create-choices>button>span:nth-child(2){flex:1;display:grid;gap:4px;}
+.calendar-create-choices strong{font-size:15px;}
+.calendar-create-choices small{font-size:12px;line-height:1.4;color:#77808b;}
+.calendar-choice-icon{display:grid;place-items:center;flex:none;width:42px;height:42px;border-radius:13px;background:#ede5f5;color:#81689b;}
+.person-profile-identity .person-profile-age{display:inline-flex;align-items:center;margin:9px auto 0;padding:5px 11px;
+  border-radius:99px;background:#f1edf6;color:#6e5681;font-size:12px;font-weight:790;line-height:1.3;}
+.person-detail .person-preferences-prompt{margin:18px 0 0;}
+@media(max-width:350px){.calendar-selected-actions{justify-content:flex-start;}.calendar-date-create{font-size:11px;padding-inline:9px;}}

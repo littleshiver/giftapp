@@ -43,3 +43,4 @@ import "./styles/photo-crop.css";
 import "./styles/occasion-pickers.css";
 import "./styles/form-polish.css";
 import "./styles/event-editor-polish.css";
+import "./styles/calendar-person-polish.css";
