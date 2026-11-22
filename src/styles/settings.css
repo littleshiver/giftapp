@@ -68,3 +68,12 @@
  .settings-list-row:not(:last-child)::after {left:49px;}
  .settings-page {gap:14px;}
 }
+
+.settings-profile-static {cursor:default;}
+.settings-list-row.is-static {cursor:default;}
+.settings-list-row.is-static:active {background:#fff;}
+.settings-signout {display:flex;align-items:center;justify-content:center;gap:10px;padding:15px 16px;width:100%;background:#fff;border:0;border-radius:16px;color:#b15d63;font:inherit;font-size:14px;font-weight:770;cursor:pointer;}
+.settings-signout:disabled {opacity:.5;cursor:not-allowed;}
+.settings-error,.settings-info {padding:12px 13px;border-radius:12px;font-size:13px;line-height:1.5;}
+.settings-error {background:#fff0ed;color:#a04a48;}
+.settings-info {background:#eef7f0;color:#476452;}

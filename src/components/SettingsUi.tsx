@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { ChevronRight, X } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useApp } from "../state/AppState";
 import { t } from "../utils/format";
@@ -23,8 +23,9 @@ export function SettingsRow({ icon: Icon, title, detail, value, to, onClick, tes
     {!destructive && <ChevronRight className="settings-chevron" size={19}/>}
   </>;
   const cls="settings-list-row"+(destructive?" is-destructive":"");
-  return to ? <Link data-ph={testId} className={cls} to={to}>{children}</Link>
-    : <button type="button" data-ph={testId} className={cls} onClick={onClick}>{children}</button>;
+  if(to) return <Link data-ph={testId} className={cls} to={to}>{children}</Link>;
+  if(onClick) return <button type="button" data-ph={testId} className={cls} onClick={onClick}>{children}</button>;
+  return <div className={cls+" is-static"}>{children}</div>;
 }
 
 export function PreviewBanner() {
