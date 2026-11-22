@@ -3,6 +3,7 @@ import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Navigation, CreateMenu } from "./components/UI";
 import { EditorSheet } from "./components/EditorSheet";
 import { GiftPreviewSheet, GiftDetailPage } from "./components/GiftPreview";
+import { OccasionRecipientPicker, OccasionGiftPicker } from "./components/OccasionPickers";
 import { Onboarding } from "./pages/Onboarding";
 import { OnboardingGuide } from "./components/OnboardingGuide";
 import { Components } from "./pages/Components";
@@ -146,6 +147,8 @@ function AuthenticatedApp() {
       </div>
       <OnboardingGuide />
       <GiftPreviewSheet />
+      <OccasionRecipientPicker />
+      <OccasionGiftPicker />
       {editor && (
         <EditorSheet
           key={`${editor.type}-${editor.id || "new"}-${editor.prefill?.id || ""}`}

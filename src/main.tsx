@@ -40,3 +40,4 @@ import "./styles/gift-onboarding-polish.css";
 import "./styles/settings.css";
 import "./styles/empty-states.css";
 import "./styles/photo-crop.css";
+import "./styles/occasion-pickers.css";
