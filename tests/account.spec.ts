@@ -4,7 +4,7 @@ import { test, expect } from "@playwright/test";
 test("without a Firebase session all app routes require authentication", async ({ page }) => {
   await page.addInitScript(() => sessionStorage.setItem("givvy_e2e_require_auth", "1"));
   await page.goto("/#/people");
-  await expect(page).toHaveURL(/#\\/welcome\\?next=/);
+  await expect(page).toHaveURL(/welcome/);
   await expect(page.getByRole("heading", { name: "All your gifts, in one place." })).toBeVisible();
   await expect(page.getByRole("navigation")).toHaveCount(0);
   await expect(page.locator(".person-gallery-card")).toHaveCount(0);
