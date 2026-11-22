@@ -47,9 +47,12 @@ export function Account() {
 
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const preview = params.get("preview") === "sign-in" || params.get("preview") === "sign-up";
+  // Only authenticated users can access design-only previews.
+  const preview = (status === "signed-in" || status === "testing") &&
+    (params.get("preview") === "sign-in" || params.get("preview") === "sign-up");
   const requestedMode = params.get("preview") === "sign-up" || (!preview && params.get("mode") === "sign-up") ? "sign-up" : "sign-in";
-  const next = params.get("next") || "/settings";
+  const requestedNext = params.get("next") || "/";
+  const next = requestedNext.startsWith("/") && !requestedNext.startsWith("//") ? requestedNext : "/";
   const [mode, setMode] = useState<"sign-in" | "sign-up">(requestedMode);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -119,15 +122,12 @@ export function Account() {
   // A design preview stays available regardless of Firebase credentials or
   // current signed-in account and must never change auth or persistent data.
   if (!preview && status === "disabled")
-    return (
-      <>
-        <Title name="Account" subtitle="Sign in to keep your lists safe." back="/settings" />
-        <section className="data-card">
-          <h2>Sign-in isn't available yet</h2>
-          <p>Accounts are coming soon. Until then everything you add stays in this browser — you can export a backup in Settings.</p>
-        </section>
-      </>
-    );
+    return <div className="auth-unavailable">
+      <HomeBrand />
+      <h1>Sign-in is temporarily unavailable</h1>
+      <p>Givvy requires an account. Authentication isn't configured for this build. Your existing data remains untouched.</p>
+      <Link className="button-secondary" to="/welcome">Back</Link>
+    </div>;
 
   if (!preview && status === "signed-in" && user)
     return (
@@ -156,7 +156,7 @@ export function Account() {
   return (
     <div className="auth-screen">
       <header className="auth-brand">
-        <Link to={preview ? "/settings" : next} className="auth-back"
+        <Link to={preview || status === "signed-in" || status === "testing" ? "/settings" : "/welcome"} className="auth-back"
           aria-label={preview ? "Back to Settings" : "Back"}>
           <ArrowLeft size={20} aria-hidden="true"/>
         </Link>

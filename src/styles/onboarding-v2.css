@@ -47,3 +47,7 @@
   .guided-topbar,.guided-content { max-width:530px; width:100%; }
   .guided-content { padding-bottom:45px; }
 }
+
+/* The public welcome is an entry point, not a guest demo. */
+.auth-welcome .guided-actions a {text-decoration:none;}
+.auth-welcome .guided-actions .guided-text-action {display:flex;justify-content:center;align-items:center;}
