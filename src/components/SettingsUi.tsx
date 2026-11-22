@@ -20,7 +20,7 @@ export function SettingsRow({ icon: Icon, title, detail, value, to, onClick, tes
     {Icon && <span className="settings-list-icon"><Icon size={20} strokeWidth={1.9} /></span>}
     <span className="settings-row-copy"><strong>{title}</strong>{detail && <small>{detail}</small>}</span>
     {value && <span className="settings-row-value">{value}</span>}
-    {!destructive && <ChevronRight className="settings-chevron" size={19}/>}
+    {!destructive && (to||onClick) && <ChevronRight className="settings-chevron" size={19}/>}
   </>;
   const cls="settings-list-row"+(destructive?" is-destructive":"");
   if(to) return <Link data-ph={testId} className={cls} to={to}>{children}</Link>;

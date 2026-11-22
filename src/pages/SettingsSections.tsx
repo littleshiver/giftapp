@@ -84,7 +84,7 @@ export function SettingsDeveloper() {
           {(["empty","filled"] as const).map(mode=><button data-ph={"settings-preview-"+mode} type="button" key={mode} aria-pressed={previewMode===mode} className={previewMode===mode?"is-active":""} onClick={()=>setPreviewMode(mode)}>{mode==="empty"?"Empty":"Filled"}</button>)}
         </div>
         <p className="settings-help">{previewMode==="my"?"Choose a state to see sample screens.":previewMode==="empty"?"No people, occasions, gifts or ideas.":"Sample people, occasions and gifts are shown."}</p>
-        {previewMode!=="my" && <button type="button" data-ph="settings-preview-my-data" className="settings-exit-button" onClick={()=>setPreviewMode("my")}>Exit preview</button>}
+
       </div>
     </SettingsGroup>
     <SettingsGroup title="FEATURE FLAGS">

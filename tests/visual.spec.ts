@@ -115,7 +115,7 @@ test("preview empty and filled mobile screenshots", async ({ page }, testInfo) =
   await mkdir(directory, { recursive: true });
 
   await page.goto("/#/settings");
-  if (!(await page.locator(".settings-developer").getAttribute("open") !== null)) await page.locator(".settings-developer summary").click();
+  await page.goto("/#/settings/developer");
   await page.getByRole("button", { name: "Filled", exact: true }).click();
   await page.goto("/#/");
   await expect(page.locator(".demo-product-sprite").first()).toBeVisible();
@@ -206,7 +206,7 @@ test("preview empty and filled mobile screenshots", async ({ page }, testInfo) =
   });
 
   await page.goto("/#/settings");
-  if (!(await page.locator(".settings-developer").getAttribute("open") !== null)) await page.locator(".settings-developer summary").click();
+  await page.goto("/#/settings/developer");
   await page.getByRole("button", { name: "Empty", exact: true }).click();
   await page.goto("/#/");
   await expect(page.getByText("Add your first occasion to start planning.")).toBeVisible();
@@ -272,7 +272,7 @@ test("selected occasion animates unless reduced motion is requested", async ({ p
   await page.setViewportSize({ width: 390, height: 844 });
   await seed(page);
   await page.goto("/#/settings");
-  if (!(await page.locator(".settings-developer").getAttribute("open") !== null)) await page.locator(".settings-developer summary").click();
+  await page.goto("/#/settings/developer");
   await page.getByRole("button", { name: "Filled", exact: true }).click();
   await page.goto("/#/");
   await page.getByRole("button", { name: /New Year/ }).click();
@@ -397,7 +397,7 @@ test("filled People gallery and portrait profile visual QA at 320 and 390", asyn
   await mkdir(directory, {recursive:true});
   await seed(page);
   await page.goto("/#/settings");
-  await page.locator(".settings-developer summary").click();
+  await page.goto("/#/settings/developer");
   await page.getByRole("button", {name:"Filled",exact:true}).click();
   for(const width of [320,390]){
     await page.setViewportSize({width,height:844});
@@ -446,7 +446,7 @@ test("Variant C profile with portrait and preferences at mobile widths", async (
   await mkdir(dir, { recursive: true });
   await seed(page);
   await page.goto("/#/settings");
-  if (!(await page.locator(".settings-developer").getAttribute("open") !== null)) await page.locator(".settings-developer summary").click();
+  await page.goto("/#/settings/developer");
   await page.getByRole("button", { name: "Filled", exact: true }).click();
   for (const width of [320, 390, 430]) {
     await page.setViewportSize({ width, height: 844 });

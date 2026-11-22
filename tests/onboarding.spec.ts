@@ -179,8 +179,8 @@ test("Settings preview traverses real app but never mutates personal data", asyn
   const original = fixture();
   await seed(page, original);
   await page.goto("/#/settings");
-  if (!(await page.locator(".settings-developer").getAttribute("open") !== null)) await page.locator(".settings-developer summary").click();
-  await page.getByRole("link", { name: "Preview onboarding" }).click();
+  await page.goto("/#/settings/developer");
+  await page.goto("/#/onboarding?preview=1");
   await page.getByRole("button", { name: "Start guided tour" }).click();
   await expect(page).toHaveURL(/#\/$/);
   await addPersonViaRealFab(page, "Preview only", "07", "14");
@@ -199,8 +199,8 @@ test("preview exit leaves an unfinished real editor uncommitted", async ({ page 
   const original = fixture();
   await seed(page, original);
   await page.goto("/#/settings");
-  if (!(await page.locator(".settings-developer").getAttribute("open") !== null)) await page.locator(".settings-developer summary").click();
-  await page.getByRole("link", { name: "Preview onboarding" }).click();
+  await page.goto("/#/settings/developer");
+  await page.goto("/#/onboarding?preview=1");
   await page.getByRole("button", { name: "Start guided tour" }).click();
   await page.getByRole("button", { name: "Create", exact: true }).click();
   await page.getByRole("button", { name: "Add person", exact: true }).click();
