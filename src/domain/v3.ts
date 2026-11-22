@@ -79,4 +79,8 @@ export type Editor = {
   personId?: string;
   eventId?: string;
   prefill?: Idea;
+  /** Calendar-context date for creating an occasion. */
+  date?: string;
+  /** Calendar-selected month/day (year never inferred as a birth year). */
+  birthdayDate?: string;
 };

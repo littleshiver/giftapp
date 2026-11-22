@@ -46,7 +46,6 @@ export function PhotoCropSheet({src,onClose,onApply,aspect=1}:{
   };
   return createPortal(<div className="photo-crop-layer"><Sheet title={t("Crop photo","Кадрировать фото")} onClose={onClose}>
     <div className="photo-crop-content">
-      <p className="photo-crop-help">{t("Drag to position the photo, then adjust zoom. Only the framed area will be saved.","Переместите фото и настройте масштаб. Сохранится только область внутри рамки.")}</p>
       <div className="photo-crop-frame" style={{aspectRatio:String(aspect)}}>
         <canvas ref={canvas} width={SIZE} height={Math.round(SIZE/aspect)} role="img" aria-label={t("Crop preview","Предпросмотр кадрирования")} onPointerDown={down} onPointerMove={move} onPointerUp={()=>{drag.current=null;}} onPointerCancel={()=>{drag.current=null;}}/>
         {!image&&!error&&<span className="photo-crop-loading">{t("Loading photo…","Загрузка фото…")}</span>}

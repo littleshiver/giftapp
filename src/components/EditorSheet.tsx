@@ -5,6 +5,7 @@ import {
   Gift as GiftIcon,
   Image as ImageIcon,
   Trash2,
+  ChevronDown,
 } from "lucide-react";
 import { useApp } from "../state/AppState";
 import type { Event, Gift, Idea, Person, Editor } from "../domain/models";
@@ -50,8 +51,8 @@ export function EditorSheet({standalone=false,editId}:{standalone?:boolean;editI
     ? data.people.find((person) => person.id === (event.birthdayPersonId || event.people[0])) : undefined;
   const lockedBirthday = !!birthdayPerson && !!event;
   const birthdayParts = (p?.birthday || "").split("-");
-  const birthMonth = birthdayParts.length === 3 ? birthdayParts[1] : birthdayParts.length === 2 ? birthdayParts[0] : "";
-  const birthDay = birthdayParts.length === 3 ? birthdayParts[2] : birthdayParts.length === 2 ? birthdayParts[1] : "";
+  const birthMonth = birthdayParts.length === 3 ? birthdayParts[1] : birthdayParts.length === 2 ? birthdayParts[0] : editor?.birthdayDate?.slice(5,7) || "";
+  const birthDay = birthdayParts.length === 3 ? birthdayParts[2] : birthdayParts.length === 2 ? birthdayParts[1] : editor?.birthdayDate?.slice(8,10) || "";
   const birthYear = birthdayParts.length === 3 ? birthdayParts[0] : "";
   const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   const formRef = useRef<HTMLFormElement>(null);
@@ -376,32 +377,32 @@ export function EditorSheet({standalone=false,editId}:{standalone?:boolean;editI
                   <input className="control" name="name" required maxLength={70}
                     defaultValue={p?.name || ""} placeholder="Their name"/>
                 </Field>
-                <div className="field-label person-birthday-label">{t("Birthday","День рождения")}</div>
+              <div className="field-label person-birthday-label">{t("Birthday","День рождения")}</div>
               <div className="person-birthday-fields">
-                <Field label={t("Month","Месяц")}>
-                  <select className="control" name="birthMonth" defaultValue={birthMonth}>
+                <div className="person-select-wrap">
+                  <select className="control" name="birthMonth" aria-label={t("Birth month","Месяц рождения")} defaultValue={birthMonth}>
                     <option value="">{t("Month","Месяц")}</option>
                     {months.map((m, i) => (
-                      <option key={m} value={String(i + 1).padStart(2, "0")}>{m}</option>
+                      <option key={m} value={String(i + 1).padStart(2, "0")}>{t(m,m).slice(0,3)}</option>
                     ))}
                   </select>
-                </Field>
-                <Field label={t("Day","День")}>
-                  <select className="control" name="birthDay" defaultValue={birthDay}>
+                  <ChevronDown size={19} strokeWidth={2.7} aria-hidden="true"/>
+                </div>
+                <div className="person-select-wrap">
+                  <select className="control" name="birthDay" aria-label={t("Birth day","День рождения (число)")} defaultValue={birthDay}>
                     <option value="">{t("Day","День")}</option>
                     {Array.from({length: 31}, (_, i) => (
                       <option key={i + 1} value={String(i + 1).padStart(2, "0")}>{i + 1}</option>
                     ))}
                   </select>
-                </Field>
-                <Field label="Year">
-                  <input className="control" name="birthYear" type="number" min="1900"
-                    max={new Date().getFullYear()} placeholder="Optional" defaultValue={birthYear}/>
-                </Field>
+                  <ChevronDown size={19} strokeWidth={2.7} aria-hidden="true"/>
+                </div>
+                <input className="control" name="birthYear" type="number" inputMode="numeric" min="1900"
+                  aria-label={t("Birth year (optional)","Год рождения (необязательно)")}
+                  max={new Date().getFullYear()} placeholder={t("Year","Год")} defaultValue={birthYear}/>
               </div>
             </div>
             <section className="person-editor-preferences" aria-label="About them">
-              <p className="person-editor-subtitle">{t("Gift preferences","Предпочтения")}</p>
               <Field label={t("Good gifts","Что подарить")}>
                 <textarea className="control textarea" name="likes"
                   defaultValue={[p?.interests, p?.likes].filter(Boolean).join(" · ")}
