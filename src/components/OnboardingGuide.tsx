@@ -3,7 +3,6 @@ import { createPortal } from "react-dom";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowRight, Check, ChevronLeft, ChevronRight, LockKeyhole, X } from "lucide-react";
 import { useApp, type TourStep } from "../state/AppState";
-import { useAuth } from "../auth/AuthContext";
 import { finishFirstRun } from "../domain/onboardingJourney";
 
 const phases: TourStep[] = [
@@ -279,16 +278,15 @@ function Spotlight({ step, children }: {step: TourStep; children: ReactNode}) {
 
 function TourFinish() {
   const { tour, data, stopTour, commit } = useApp();
-  const { status } = useAuth();
   const navigate = useNavigate();
   if (!tour || tour.step !== "complete") return null;
-  const finish = (signUp: boolean) => {
+  const finish = () => {
     if (tour.preview) {
       stopTour();
-      navigate(signUp ? "/account?preview=sign-up" : "/settings", {replace: true});
+      navigate("/settings", {replace: true});
     } else if (commit(finishFirstRun(data))) {
       stopTour();
-      navigate(signUp ? "/account?mode=sign-up&next=/" : "/", {replace: true});
+      navigate("/", {replace: true});
     }
   };
   return (
@@ -301,16 +299,11 @@ function TourFinish() {
           : "You've explored how to keep people, ideas and occasions together. Your next gift plan is one step away."}</p>
         <div className="tour-finish-sync">
           <LockKeyhole size={20}/>
-          <div><strong>Keep your gift plans with you</strong>
-          <span>Create a free account to sync them across your devices. No payment needed.</span></div>
+          <div><strong>Your gifts, all in one place</strong>
+          <span>{tour.preview ? "Preview finished — your personal data is unchanged." : "Your plans are saved to your account and available on your other devices."}</span></div>
         </div>
-        {(status === "guest" || tour.preview) && (
-          <button type="button" className="tour-finish-signup" onClick={() => finish(true)}>
-            Create free account <ArrowRight size={18}/>
-          </button>
-        )}
-        <button type="button" className="tour-finish-guest" onClick={() => finish(false)}>
-          {status === "guest" ? "Continue as guest" : "Go to Home"}
+        <button type="button" className="tour-finish-guest" onClick={finish}>
+          Go to Home <ArrowRight size={18}/>
         </button>
         <small>You're always free to export your data from Settings.</small>
       </section>

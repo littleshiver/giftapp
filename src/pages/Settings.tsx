@@ -43,12 +43,12 @@ export function Settings() {
         <h2 className="settings-section-heading"><UserRound size={20}/>{t("Account","Аккаунт")}</h2>
         <div className="settings-account-identity">
           <span className="settings-account-avatar"><UserRound size={27}/></span>
-          <div><strong>{auth.status==="signed-in" ? auth.user?.displayName || data.settings.name || t("Your account","Ваш аккаунт") : data.settings.name || t("Guest","Гость")}</strong>
-            <small>{auth.status==="signed-in" ? auth.user?.email || t("Signed in","Вход выполнен") : t("Using Givvy without an account","Вы пользуетесь Givvy без аккаунта")}</small></div>
+          <div><strong>{auth.user?.displayName || data.settings.name || t("Your account","Ваш аккаунт")}</strong>
+            <small>{auth.user?.email || t("Signed in","Вход выполнен")}</small></div>
         </div>
-        {auth.status !== "disabled" && <Link data-ph="settings-account" className="settings-row settings-account-link" to="/account">
-          <span><strong>{auth.status === "signed-in" ? t("Manage account","Управление аккаунтом") : t("Sign in or create account","Войти или зарегистрироваться")}</strong>
-            <small>{auth.status==="signed-in" ? (syncStatus==="error" ? t("Sync unavailable — changes kept locally","Нет синхронизации — изменения сохранены локально") : syncStatus==="saving" || syncStatus==="loading" ? t("Syncing…","Синхронизация…") : t("Saved to your account","Сохранено в аккаунте")) : t("Keep your gift plans across devices","Сохраняйте подарки на всех устройствах")}</small>
+        {<Link data-ph="settings-account" className="settings-row settings-account-link" to="/account">
+          <span><strong>{t("Manage account","Управление аккаунтом")}</strong>
+            <small>{syncStatus==="error" ? t("Sync unavailable — changes kept locally","Нет синхронизации — изменения сохранены локально") : syncStatus==="saving" || syncStatus==="loading" ? t("Syncing…","Синхронизация…") : t("Saved to your account","Сохранено в аккаунте")}</small>
           </span><ChevronRight size={19}/>
         </Link>}
         <form key={previewMode + (data.settings.name||"")} onSubmit={e=>{
@@ -107,9 +107,7 @@ export function Settings() {
       <section className="settings-card">
         <h2 className="settings-section-heading"><Database size={20}/>{t("Data & backup","Данные и резервные копии")}</h2>
         <p>
-          {auth.status === "signed-in"
-            ? "Your data is saved to your account and available on any device. You can still export a JSON copy. Preview content is never included."
-            : "Your real data stays in this browser. Export before changing browsers or devices. Preview content is never included in your backup."}
+          {t("Your data is saved to your account and available on any device. You can also export a JSON backup. Preview content is never included.", "Данные сохраняются в аккаунте и доступны на других устройствах. Можно также скачать резервную копию JSON. Тестовые данные не экспортируются.")}
         </p>
         <div className="button-row" style={{ marginTop: 14 }}>
           <Button data-ph="settings-export-json" variant="secondary" onClick={() => exportBackup(personalData)}>

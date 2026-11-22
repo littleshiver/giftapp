@@ -24,13 +24,13 @@ export function Onboarding() {
       <div className="guided-content">
         <section className="guided-stage guided-intro">
           <div className="guided-intro-accent" aria-hidden="true"/>
-          <h1>All your gifts, in one place.</h1>
-          <p>Remember birthdays and special occasions. Find gifts, save ideas for later and decide who they're for.</p>
-          <p>Plan what to buy and keep track of what's ready before the big day.</p>
+          <h1>Your first gift plan starts here.</h1>
+          <p>Let’s make your first gift plan. Add someone you care about, then explore ideas and occasions together.</p>
+          <p>Or skip the guide and explore Givvy at your own pace.</p>
           <div className="guided-actions">
             <Button type="button" data-ph="onboarding-get-started"
               className="button-full guided-primary" onClick={start}>
-              Try in the app <ArrowRight size={18}/>
+              Start guided tour <ArrowRight size={18}/>
             </Button>
             {!preview && (
               <button type="button" className="guided-text-action" onClick={explore}>
