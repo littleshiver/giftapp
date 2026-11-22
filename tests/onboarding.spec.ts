@@ -50,8 +50,8 @@ async function planGiftOnRealEvent(page: Page) {
 
 test("Welcome is compact and does not show tester-only preview exit", async ({page}) => {
   await page.goto("/#/onboarding?preview=1");
-  await expect(page.getByRole("heading", { name: "All your gifts, in one place." })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Try in the app" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Your first gift plan starts here." })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Start guided tour" })).toBeVisible();
   await expect(page.getByText("Exit preview")).toHaveCount(0);
   await expect(page.getByText("Gifting made lighter")).toHaveCount(0);
   await expect(page.locator(".guided-intro-flow, .guided-intro-steps")).toHaveCount(0);
@@ -61,7 +61,7 @@ test("guest uses real Home/FAB, People, swipe gestures, Events and read-only gif
   await page.goto("/");
   await expect(page).toHaveURL(/#\/onboarding$/);
   expect(await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"))).toBeNull();
-  await page.getByRole("button", { name: "Try in the app" }).click();
+  await page.getByRole("button", { name: "Start guided tour" }).click();
   await expect(page).toHaveURL(/#\/$/);
   await expect(page.getByRole("navigation", { name: "Primary" })).toBeVisible();
   await expect(coach(page)).toContainText("I'll show you around");
@@ -100,8 +100,8 @@ test("guest uses real Home/FAB, People, swipe gestures, Events and read-only gif
   await preview.getByRole("button", { name: "Mark as bought" }).click();
   expect((await readData(page)).gifts[0].status).toBe("bought");
   await expect(finishing(page)).toContainText("You've got this!");
-  await expect(finishing(page)).toContainText("Create a free account");
-  await finishing(page).getByRole("button", { name: /Go to Home|Continue as guest/ }).click();
+  await expect(finishing(page)).toContainText("Your plans are saved to your account");
+  await finishing(page).getByRole("button", { name: /Go to Home/ }).click();
   await expect(page).toHaveURL(/#\/$/);
   d = await readData(page);
   expect(d.settings.onboardingComplete).toBe(true);
@@ -111,7 +111,7 @@ test("guest uses real Home/FAB, People, swipe gestures, Events and read-only gif
 
 test("first-run can finish without pretending the present was purchased", async ({page}) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Try in the app" }).click();
+  await page.getByRole("button", { name: "Start guided tour" }).click();
   await addPersonViaRealFab(page, "Eva", "07", "14");
   await saveIdeaThroughRealDiscover(page, "Eva");
   await planGiftOnRealEvent(page);
@@ -135,7 +135,7 @@ test("guest can skip Welcome and contextual hints without invented content", asy
 
 test("skipping after real person save retains only that person and birthday", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Try in the app" }).click();
+  await page.getByRole("button", { name: "Start guided tour" }).click();
   await addPersonViaRealFab(page, "Eva", "06", "03");
   await coach(page).getByRole("button", { name: "Skip tutorial" }).click();
   const d = await readData(page);
@@ -149,7 +149,7 @@ test("skipping after real person save retains only that person and birthday", as
 
 test("tour remembers the real profile after reload", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Try in the app" }).click();
+  await page.getByRole("button", { name: "Start guided tour" }).click();
   await addPersonViaRealFab(page, "Lee", "08", "20");
   await page.reload();
   await expect(coach(page)).toContainText("Here's Lee");
@@ -159,7 +159,7 @@ test("tour remembers the real profile after reload", async ({ page }) => {
 
 test("step controls let the guest move on even when no gift was bought", async ({page}) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Try in the app" }).click();
+  await page.getByRole("button", { name: "Start guided tour" }).click();
   await addPersonViaRealFab(page, "Mira", "09", "10");
   await coach(page).getByRole("button", { name: "Let's find an idea" }).click();
   await coach(page).getByRole("button", { name: "Next tour step" }).click();
@@ -181,7 +181,7 @@ test("Settings preview traverses real app but never mutates personal data", asyn
   await page.goto("/#/settings");
   if (!(await page.locator(".settings-developer").getAttribute("open") !== null)) await page.locator(".settings-developer summary").click();
   await page.getByRole("link", { name: "Preview onboarding" }).click();
-  await page.getByRole("button", { name: "Try in the app" }).click();
+  await page.getByRole("button", { name: "Start guided tour" }).click();
   await expect(page).toHaveURL(/#\/$/);
   await addPersonViaRealFab(page, "Preview only", "07", "14");
   await saveIdeaThroughRealDiscover(page, "Preview only");
@@ -190,7 +190,7 @@ test("Settings preview traverses real app but never mutates personal data", asyn
   await page.getByRole("dialog", { name: "Gift details" })
     .getByRole("button", { name: "I'll buy it later — finish tour" }).click();
   await expect(finishing(page)).toBeVisible();
-  await finishing(page).getByRole("button", { name: /Continue as guest|Go to Home/ }).click();
+  await finishing(page).getByRole("button", { name: /Go to Home/ }).click();
   await expect(page).toHaveURL(/#\/settings$/);
   expect(await readData(page)).toEqual(original);
 });
@@ -201,7 +201,7 @@ test("preview exit leaves an unfinished real editor uncommitted", async ({ page 
   await page.goto("/#/settings");
   if (!(await page.locator(".settings-developer").getAttribute("open") !== null)) await page.locator(".settings-developer summary").click();
   await page.getByRole("link", { name: "Preview onboarding" }).click();
-  await page.getByRole("button", { name: "Try in the app" }).click();
+  await page.getByRole("button", { name: "Start guided tour" }).click();
   await page.getByRole("button", { name: "Create", exact: true }).click();
   await page.getByRole("button", { name: "Add person", exact: true }).click();
   await page.getByLabel("Name", { exact: true }).fill("No persist");
@@ -213,7 +213,7 @@ test("preview exit leaves an unfinished real editor uncommitted", async ({ page 
 
 test("tour requires a valid first birthday and does not partially save", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Try in the app" }).click();
+  await page.getByRole("button", { name: "Start guided tour" }).click();
   await page.getByRole("button", { name: "Create", exact: true }).click();
   await page.getByRole("button", { name: "Add person", exact: true }).click();
   await page.getByLabel("Name", { exact: true }).fill("Date needed");
@@ -279,7 +279,7 @@ test("annual birthday/holiday setup utilities remain additive and preserve exist
 test("spotlight exposes actual actions and Discover keeps its normal geometry", async ({page}) => {
   await page.setViewportSize({width:390,height:740});
   await page.goto("/");
-  await page.getByRole("button", {name:"Try in the app"}).click();
+  await page.getByRole("button", {name:"Start guided tour"}).click();
   await expect(page.locator(".tour-spotlight-cutout")).toBeVisible();
   await addPersonViaRealFab(page,"Test person","12","15");
   await coach(page).getByRole("button",{name:"Let's find an idea"}).click();
@@ -297,7 +297,7 @@ test("spotlight exposes actual actions and Discover keeps its normal geometry", 
 
 test("saved ideas replace the empty gift list outside the tour", async ({page}) => {
   await page.goto("/");
-  await page.getByRole("button",{name:"Try in the app"}).click();
+  await page.getByRole("button",{name:"Start guided tour"}).click();
   await addPersonViaRealFab(page,"Ada","12","15");
   await saveIdeaThroughRealDiscover(page,"Ada");
   await page.locator('[data-guided-event="true"]').click();

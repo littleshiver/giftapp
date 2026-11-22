@@ -5,7 +5,7 @@ import { once } from "node:events";
 
 // Test the real production build, served below the GitHub project path.
 // Build first: npm run build && npm test.
-test("Pages production assets, hash routes, editing and reload on mobile", async () => {
+test("Pages production assets, mandatory login and legacy local-data safety on mobile", async () => {
   const server = spawn(
     process.execPath,
     [
@@ -49,7 +49,6 @@ test("Pages production assets, hash routes, editing and reload on mobile", async
       viewport: { width: 390, height: 844 },
     });
     const page = await context.newPage();
-    await page.clock.install({ time: new Date("2026-11-15T12:00:00Z") });
     await page.addInitScript((data) => {
       if (!localStorage.getItem("givvy_dashboard_v3"))
         localStorage.setItem(
@@ -68,56 +67,31 @@ test("Pages production assets, hash routes, editing and reload on mobile", async
       if (request.url().startsWith(ownOrigin))
         failedAssets.push(request.url());
     });
-    await page.goto("http://127.0.0.1:4174/giftapp/");
-    await expect(
-      page.getByRole("heading", { name: /Hi, Polina/i }),
-    ).toBeVisible();
-    const assets = await page
-      .locator('script[src],link[rel="stylesheet"]')
-      .evaluateAll((elements) =>
-        elements.map((el) => el.getAttribute("src") || el.getAttribute("href")),
-      );
+    const site = "http://127.0.0.1:4174/giftapp/";
+    await page.goto(site);
+    await expect(page.getByRole("heading",{name:"All your gifts, in one place."})).toBeVisible();
+    await expect(page.getByRole("navigation")).toHaveCount(0);
+    await expect(page.getByRole("heading",{name:/Hi, Polina/i})).toHaveCount(0);
+    const assets = await page.locator('script[src],link[rel="stylesheet"]')
+      .evaluateAll(elements => elements.map(el => el.getAttribute("src") || el.getAttribute("href")));
     expect(assets.length).toBeGreaterThanOrEqual(2);
-    expect(assets.filter((path) => path?.startsWith("/")).every((path) =>
+    expect(assets.filter(path => path?.startsWith("/")).every(path =>
       path?.startsWith("/giftapp/assets/")
     )).toBe(true);
-    for (const name of ["Events", "People", "Ideas", "Home"]) {
-      await page
-        .getByRole("navigation")
-        .getByRole("link", { name, exact: true })
-        .click();
+    const before = await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"));
+    for (const route of ["/people", "/events", "/ideas", "/settings", "/components"]) {
+      await page.goto(site + "#" + route);
+      await expect(page.getByRole("heading",{name:"All your gifts, in one place."})).toBeVisible();
+      await expect(page.getByRole("navigation")).toHaveCount(0);
       expect(new URL(page.url()).pathname).toBe("/giftapp/");
-      if (name === "Home") {
-        // The greeting is intentionally dismissed after a client-side revisit.
-        await expect(page.locator(".home-wordmark")).toBeVisible();
-      } else {
-        await expect(page.locator("h1")).toBeVisible();
-      }
     }
-    await page.goto("http://127.0.0.1:4174/giftapp/#/people");
-    await page.getByRole("button", { name: "Create", exact: true }).click();
-    await page.getByRole("button", { name: "Add person" }).click();
-    await page.getByLabel("Name", { exact: true }).fill("Pages mobile test");
-    await page
-      .getByRole("button", { name: "Save person", exact: true })
-      .click();
-    await page.getByRole("link", { name: /Pages mobile test/ }).click();
+    await page.goto(site + "#/account?mode=sign-up");
+    await expect(page.getByRole("heading",{name:"Create your account"})).toBeVisible();
+    await expect(page.getByRole("button",{name:"Continue with Google"})).toBeVisible();
     await page.reload();
-    await expect(
-      page.getByRole("heading", { name: "Pages mobile test", level: 1 }),
-    ).toBeVisible();
-    expect(
-      await page.evaluate(
-        () => document.documentElement.scrollWidth <= innerWidth,
-      ),
-    ).toBe(true);
-    await page.goto("http://127.0.0.1:4174/giftapp/#/components");
-    await expect(
-      page.getByRole("heading", { name: "Component library" }),
-    ).toHaveCount(0);
-    await expect(
-      page.getByRole("heading", { name: /Hi, Polina/i }),
-    ).toBeVisible();
+    await expect(page.locator(".auth-screen")).toBeVisible();
+    expect(await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"))).toBe(before);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     expect(errors).toEqual([]);
     expect(failedAssets).toEqual([]);
   } finally {

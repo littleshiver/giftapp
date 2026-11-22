@@ -15,6 +15,8 @@ export default defineConfig({
   },
   webServer: {
     command: "npm run dev -- --port 5173 --strictPort",
+    // Dev-only fake session keeps UI tests isolated from Firebase.
+    env: { VITE_E2E_AUTH_BYPASS: "1" },
     url: "http://127.0.0.1:5173",
     reuseExistingServer: !process.env.CI,
   },

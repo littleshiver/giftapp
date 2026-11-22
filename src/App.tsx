@@ -14,7 +14,42 @@ import { Settings } from "./pages/Settings";
 import { Account } from "./pages/Account";
 import { EventDetail, PersonDetail } from "./pages/Details";
 import { useApp } from "./state/AppState";
+import { useAuth } from "./auth/AuthContext";
+import { Welcome } from "./pages/Welcome";
+function AuthLoading({ failed }: { failed?: boolean }) {
+  return <div className="auth-gate-loading" role={failed ? "alert" : "status"}>
+    <strong>{failed ? "Could not load your account" : "Getting your gifts ready…"}</strong>
+    <p>{failed ? "Check your connection and try again. Your saved gifts have not been deleted." : "Your plans are being loaded securely."}</p>
+    {failed && <button type="button" className="button-secondary" onClick={() => window.location.reload()}>Try again</button>}
+  </div>;
+}
+
+/** Only verified Firebase sessions can enter the real app. */
 export function App() {
+  const auth = useAuth();
+  const { accountDataUid, syncStatus, data, tour } = useApp();
+  const location = useLocation();
+  if (auth.status === "loading") return <AuthLoading />;
+  if (auth.status !== "signed-in" && auth.status !== "testing") {
+    const intended = location.pathname + location.search;
+    return <Routes>
+      <Route path="/welcome" element={<Welcome />} />
+      <Route path="/account" element={<Account />} />
+      <Route path="*" element={<Navigate to={`/welcome?next=${encodeURIComponent(intended)}`} replace />} />
+    </Routes>;
+  }
+  // Do not render old guest records or data from another account while loading.
+  if (auth.status === "signed-in" && auth.user && accountDataUid !== auth.user.uid)
+    return <AuthLoading failed={syncStatus === "error"} />;
+  // New accounts go through the tour even when opening a deep link.
+  if (auth.status === "signed-in" && syncStatus !== "loading" && !tour && !data.settings.onboardingComplete &&
+      !data.people.length && !data.events.length && !data.gifts.length &&
+      !data.ideas.length && location.pathname !== "/onboarding" && location.pathname !== "/account")
+    return <Navigate to="/onboarding" replace />;
+  return <AuthenticatedApp />;
+}
+
+function AuthenticatedApp() {
   const { data, editor, giftPreviewId, closeGiftPreview, openGiftPreview, ui, tour, warning, upgradeNotice, closeEditor, openEditor, syncStatus, budgetsEnabled } = useApp(),
     location = useLocation();
   useEffect(() => {
@@ -89,6 +124,7 @@ export function App() {
             <Route path="/settings" element={<Settings />} />
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/account" element={<Account />} />
+            <Route path="/welcome" element={<Navigate to="/" replace />} />
             {import.meta.env.DEV && (
               <Route path="/components" element={<Components />} />
             )}

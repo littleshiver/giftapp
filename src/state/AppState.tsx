@@ -81,6 +81,8 @@ interface State {
   commit: (data: AppData, recovery?: boolean) => boolean;
   /** "local" for guests; otherwise the state of the account sync. */
   syncStatus: SyncStatus;
+  /** Account whose saved data is ready to display (never a previous guest). */
+  accountDataUid: string | null;
   editor: Editor | null;
   giftPreviewId: string | null;
   openGiftPreview: (id: string) => void;
@@ -123,6 +125,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [warning, setWarning] = useState(loaded.warning);
   const auth = useAuth(),
     uid = auth.status === "signed-in" ? auth.user!.uid : null,
+    [accountDataUid, setAccountDataUid] = useState<string | null>(null),
     [syncStatus, setSyncStatus] = useState<SyncStatus>(
       auth.status === "loading" ? "loading" : "local",
     ),
@@ -132,6 +135,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (auth.status === "loading") return;
     if (!uid) {
+      setAccountDataUid(null);
       if (accountUid.current) {
         // Signed out: show this browser's guest data again (empty after a
         // migration), never the previous account's lists.
@@ -144,11 +148,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return;
     }
     accountUid.current = uid;
+    setAccountDataUid(null);
     let stop: (() => void) | undefined,
       cancelled = false;
     setSyncStatus("loading");
     const cached = readCache(uid);
-    if (cached) setPersonalData(ensureBirthdayOccasions(cached));
+    if (cached) {
+      setPersonalData(ensureBirthdayOccasions(cached));
+      setAccountDataUid(uid);
+    }
     (async () => {
       const current = await loadRemote(uid);
       if (cancelled) return;
@@ -180,6 +188,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           const ready = ensureBirthdayOccasions(data);
           setPersonalData(ready);
           writeCache(uid, ready);
+          setAccountDataUid(uid);
           setSyncStatus("synced");
         },
         () => setSyncStatus("error"),
@@ -348,6 +357,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setBudgetsEnabled,
         commit,
         syncStatus,
+        accountDataUid,
         editor,
         giftPreviewId,
         openGiftPreview: (id: string) => { setEditor(null); setGiftPreviewId(id); },
