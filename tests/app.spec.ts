@@ -679,8 +679,10 @@ test("gift editor previews and crops a photo without saving until confirmed",asy
   await page.locator(".gift-edit-page-bar").getByRole("button",{name:/Gift details/}).click();
   await expect(page).toHaveURL(/#\/gifts\/g1$/);
   await page.goto("/#/gifts/g1/edit");
-  await expect(page.locator(".gift-edit-page").getByText("Current photo")).toBeVisible();
+  await expect(page.locator(".gift-edit-page")).toBeVisible();
+  await expect(page.locator(".gift-edit-page .photo-upload-preview img")).toBeVisible();
   await expect(page.locator(".gift-edit-page").getByText("replacement.jpg")).toHaveCount(0);
+  expect((await readData(page)).gifts.find(g=>g.id==="g1").image).toBe(before);
 });
 test("demo gift photos render in full-page editor",async({page})=>{
   await seed(page);
