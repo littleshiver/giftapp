@@ -17,3 +17,6 @@
 .event-recipient-option input.control {min-height:40px;max-width:115px;font-size:14px;}
 .event-recipient-locked {display:flex;gap:11px;align-items:center;padding:11px;border:1px solid #e9e6ed;border-radius:14px;margin-bottom:14px;font-size:14px;font-weight:750;}
 .event-recipient-locked .person-avatar {width:36px;height:36px;}
+
+.event-recipient-locked>span:nth-of-type(1){flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;}
+.event-recipient-locked>input.control{max-width:117px;min-height:40px;font-size:14px;}

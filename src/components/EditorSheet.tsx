@@ -437,6 +437,11 @@ export function EditorSheet({standalone=false,editId}:{standalone?:boolean;editI
               <div className="event-recipient-locked">
                 <PersonAvatar person={birthdayPerson}/>
                 <span>{birthdayPerson.name}</span>
+                {budgetsEnabled && <input className="control" type="number" min="0" step="1"
+                  aria-label={`Budget for ${birthdayPerson.name}`}
+                  value={budgetDraft[birthdayPerson.id]??""}
+                  placeholder={t("Budget","Бюджет")}
+                  onChange={ev=>setBudgetDraft(current=>({...current,[birthdayPerson.id]:ev.target.value}))}/>}
               </div>
             ):(
               <div className="event-recipient-control">

@@ -32,3 +32,9 @@ Empty states are part of the product's information architecture. Do not invent a
 - Buttons have 44px minimum tap size and remain above the bottom safe-area.
 - A single dialog open at a time; return focus to the initiating action.
 - No decorative empty controls that cannot perform the described action.
+
+## Interaction refinements, November 23
+- If selecting a gift already includes manual creation, an empty recipient's gift list has **one** primary CTA: Choose a gift. Never repeat the chooser's secondary actions in the parent empty state.
+- Read-only gift cards open a product-first detail sheet on the entire tap surface; purchased state can be changed inside that sheet. Editing is accessed only inside the detail sheet.
+- Empty profile preferences link to person editing. No saved ideas link to an idea editor preassigned to that person.
+- Selecting a calendar date filters the agenda; the contextual Add on this date chooser offers Birthday (create person, month/day only) and Occasion (create event with exact selected date). Do not treat the selected calendar year as a birth year.

@@ -125,7 +125,7 @@ function ReminderEventRow({
 }
 
 export function Events() {
-  const { data, ui, setUi, commit, openEditor, tour } = useApp();
+  const { data, ui, setUi, commit, openEditor, openGiftPreview, tour } = useApp();
   const [params] = useSearchParams();
   const { mode } = ui;
   const month = parseDate(ui.month);
@@ -368,7 +368,7 @@ export function Events() {
           <p className="section-note">Some saved gifts have an unavailable occasion or recipient. You can edit them without losing their details.</p>
           {unlinkedGifts.map((gift) => (
             <button data-ph="repair-gift" type="button" key={gift.id} className="event-repair-item"
-              onClick={() => openEditor({type: "gift", id: gift.id})}
+              onClick={() => openGiftPreview(gift.id)}
               aria-label={`Repair ${gift.name}`}>
               <span>{gift.name}</span><ChevronRight size={17}/>
             </button>
