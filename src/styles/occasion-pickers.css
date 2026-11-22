@@ -19,3 +19,11 @@
 .occasion-picker-content .gift-picker-ideas .gift-card{min-width:0;}
 .occasion-picker-content .gift-picker-new{margin:0;width:100%;}
 @media(max-width:355px){.occasion-picker-buttons{grid-template-columns:1fr;}.gift-picker-tabs button{font-size:11px;}.occasion-picker-content .gift-picker-ideas{gap:7px;}}
+
+/* Persistent contextual next-step after a recipient has one or more gifts. */
+.event-add-another-gift{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:13px;
+  min-height:48px;width:100%;border:1px dashed #b8a9ca;border-radius:16px;background:#f8f5fb;
+  color:#694f83;font:inherit;font-size:13px;font-weight:770;cursor:pointer;}
+.event-add-another-gift:focus-visible{outline:3px solid #947bb2;outline-offset:2px;}
+.event-recipient-prompt{margin:15px 0;}
+.event-gift-empty{margin:12px 0;}

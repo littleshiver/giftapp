@@ -1,7 +1,7 @@
 import { t } from "../utils/format";
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { Pencil, Plus, Minus, ChevronRight, Cake } from "lucide-react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { Pencil, Plus, Minus, Cake, Gift as GiftIcon, UsersRound } from "lucide-react";
 import { birthdayMonthDay } from "../domain/birthdays";
 import {
   Empty, Product, Section, Title, PersonAvatar, BackLink, Photo,
@@ -11,7 +11,7 @@ import {
   associationValid, bought, eventBudget, giftsFor,
 } from "../domain/selectors";
 import { currency, fmtDate, fullDate, today } from "../utils/format";
-import { Button, Sheet } from "../components/Primitives";
+import { EmptyState } from "../components/EmptyState";
 import { EventCover } from "../components/EventCover";
 import type { Gift, Person } from "../domain/models";
 
@@ -50,7 +50,7 @@ function GiftShelf({
   );
 }
 function GiftGroup({
-  person, items, limit, data, onEdit, onView, onChooseIdeas,
+  person, items, limit, data, onEdit, onView, onChooseIdeas, onAddGift,
 }: {
   person: Person | undefined;
   items: Gift[];
@@ -59,62 +59,46 @@ function GiftGroup({
   onEdit: (gift: Gift) => void;
   onView: (gift: Gift) => void;
   onChooseIdeas: () => void;
+  onAddGift: () => void;
 }) {
-  const { budgetsEnabled } = useApp();
-  const [filter, setFilter] = useState<GiftFilter>("all");
-  const visible = filter === "all" ? items : items.filter(g => g.status === filter);
-  const spent = bought(items);
-  const assignedIdeas = person ? data.ideas.filter(idea => idea.personId === person.id) : [];
-  const suggestions = assignedIdeas.length ? assignedIdeas : person ? data.ideas.filter(idea => !idea.personId) : [];
-  const offerIdeas = items.length === 0 && suggestions.length > 0;
-  const recipientIdentity = (
-    <>
-      <PersonAvatar person={person} className="event-person-avatar"/>
-      <strong>{person?.name || "Unknown person"}</strong>
-    </>
-  );
-  return (
-    <section className="event-person-gifts event-recipient-group" aria-label={`Gifts for ${person?.name ?? "recipient"}`}>
-      <div className="event-person-gifts-heading">
-        {person ? (
-          <Link to={`/people/${person.id}`} className="event-person-gifts-identity"
-            aria-label={`Open ${person.name}'s profile`}>
-            {recipientIdentity}
-          </Link>
-        ) : <span className="event-person-gifts-identity">{recipientIdentity}</span>}
-        {budgetsEnabled && <span className="event-person-amount">
-          <strong>{currency(spent)}</strong>
-          {limit !== undefined && <span> / {currency(limit)}</span>}
-        </span>}
-      </div>
-      {offerIdeas ? (
-        <section className="event-saved-ideas" aria-label="Ideas for this occasion">
-          <div className="event-saved-ideas-copy"><strong>{assignedIdeas.length ? `Gift ideas for ${person?.name}` : "Saved ideas"}</strong>
-            <small>{suggestions[0].name}{suggestions.length > 1 ? ` + ${suggestions.length - 1} more` : ""}</small></div>
-          <div className="event-saved-ideas-thumbs">{suggestions.slice(0,3).map(idea => <span key={idea.id} className="event-saved-idea-thumb"><Photo src={idea.image} name={idea.name}/></span>)}</div>
-          <p className="event-saved-ideas-explanation">Choose a saved idea and add it to your gifts to buy.</p>
-          <button type="button" className="event-saved-ideas-choose" onClick={onChooseIdeas}>{t("Choose idea","Выбрать идею")}</button>
-        </section>
-      ) : <>
-      <div className="event-gift-filter" role="group" aria-label={`Filter gifts for ${person?.name || "recipient"}`}>
-        {filterOptions.map(option => (
-          <button type="button" key={option.value}
+  const {budgetsEnabled}=useApp();
+  const [filter,setFilter]=useState<GiftFilter>("all");
+  const visible=filter==="all"?items:items.filter(g=>g.status===filter);
+  const recipientIdentity=<><PersonAvatar person={person} className="event-person-avatar"/><strong>{person?.name||"Unknown person"}</strong></>;
+  return <section className="event-person-gifts event-recipient-group" aria-label={`Gifts for ${person?.name??"recipient"}`}>
+    <div className="event-person-gifts-heading">
+      {person?<Link to={`/people/${person.id}`} className="event-person-gifts-identity" aria-label={`Open ${person.name}'s profile`}>{recipientIdentity}</Link>
+        :<span className="event-person-gifts-identity">{recipientIdentity}</span>}
+      {budgetsEnabled&&<span className="event-person-amount"><span>{t("Budget","Бюджет")}</span>
+        <span>{limit===undefined?t("Not set","Не задан"):currency(limit)}</span></span>}
+    </div>
+    {!items.length?
+      <EmptyState compact className="event-gift-empty" Icon={GiftIcon}
+        title={t("No gifts planned yet","Пока нет подарков")}
+        description={t("Choose from your saved ideas or Givvy suggestions.","Выберите из своих идей или предложений Givvy.")}
+        action={{label:t("Choose a gift","Выбрать подарок"),onClick:onChooseIdeas}}
+        secondaryAction={{label:t("Add manually","Добавить вручную"),onClick:onAddGift}}/>:
+      <>
+        <div className="event-gift-filter" role="group" aria-label={`Filter gifts for ${person?.name||"recipient"}`}>
+          {filterOptions.map(option=><button type="button" key={option.value}
             className={`event-gift-filter-tab ${filter===option.value?"is-active":""}`}
-            aria-pressed={filter===option.value}
-            onClick={() => setFilter(option.value)}>{option.label}</button>
-        ))}
-      </div>
-      <GiftShelf gifts={visible} data={data} onEdit={onEdit} onView={onView}
-        emptyLabel={filter==="all" ? "Add gifts using the + button below." : `No ${filter === "bought" ? "bought" : "to-buy"} gifts yet.`}/>
+            aria-pressed={filter===option.value} onClick={()=>setFilter(option.value)}>{option.label}</button>)}
+        </div>
+        {visible.length?<GiftShelf gifts={visible} data={data} onEdit={onEdit} onView={onView}/>:
+          <EmptyState compact Icon={GiftIcon} title={t("Nothing in this filter","В этом фильтре пусто")}
+            description={t("Your other gifts are still here.","Остальные подарки никуда не исчезли.")}
+            action={{label:t("Show all gifts","Показать все"),onClick:()=>setFilter("all")}}/>}
+        <button type="button" data-ph="event-add-another-gift" className="event-add-another-gift" onClick={onChooseIdeas}>
+          <Plus size={18}/>{t("Choose another gift","Выбрать ещё подарок")}
+        </button>
       </>}
-    </section>
-  );
+  </section>;
 }
 
 export function EventDetail() {
   const { id } = useParams();
-  const { data, openEditor, openGiftPreview, ui, setUi, budgetsEnabled } = useApp();
-  const [giftPersonId, setGiftPersonId] = useState<string | null>(null);
+  const { data, openEditor, setUi, budgetsEnabled } = useApp();
+  const navigate=useNavigate();
   const event = data.events.find(item => item.id === id);
   if (!event) return <><Title name="Occasion not found" back="/events"/><Empty>This occasion is unavailable.</Empty></>;
 
@@ -122,16 +106,6 @@ export function EventDetail() {
   const budget = eventBudget(event);
   const spent = bought(gifts);
   const isGroup = event.people.length > 1;
-  const giftPickerOpen = ui.giftPickerEventId === event.id;
-  const activePersonId = giftPersonId || (
-    giftPickerOpen && event.people.length === 1 ? event.people[0] : null
-  );
-  const selectedPerson = data.people.find(person => person.id === activePersonId);
-  const savedIdeas = data.ideas.filter(idea => !idea.personId || idea.personId === activePersonId);
-  const closeGiftPicker = () => {
-    setGiftPersonId(null);
-    setUi({giftPickerEventId:""});
-  };
   const unassigned = gifts.filter(gift => !event.people.includes(gift.personId));
   return (
     <div className="event-detail event-detail-v2">
@@ -200,69 +174,32 @@ export function EventDetail() {
           {event.people.map(personId => (
             <GiftGroup key={personId} person={data.people.find(p => p.id===personId)}
               items={giftsFor(data,event.id,personId)} limit={event.budgets[personId]} data={data}
-              onEdit={gift => openEditor({type:"gift",id:gift.id})} onView={gift=>openGiftPreview(gift.id)}
-              onChooseIdeas={() => { setGiftPersonId(personId); setUi({giftPickerEventId:event.id}); }}/>
+              onEdit={gift=>navigate(`/gifts/${gift.id}/edit`)} onView={gift=>navigate(`/gifts/${gift.id}`)}
+              onChooseIdeas={()=>setUi({giftPickerEventId:event.id,giftPickerPersonId:personId})}
+              onAddGift={()=>openEditor({type:"gift",eventId:event.id,personId})}/>
           ))}
         </div>
-      ) : <div className="event-recipient-empty">No recipients yet. Add people to start planning gifts.</div>}
+      ) : <EmptyState className="event-recipient-prompt" Icon={UsersRound}
+        title={t("No recipients yet","Пока нет получателей")}
+        description={t("Choose someone to plan gifts for this occasion.","Выберите, кому хотите подготовить подарки к событию.")}
+        action={{label:t("Choose recipients","Выбрать получателей"),onClick:()=>setUi({recipientPickerEventId:event.id})}}/>}
 
       {unassigned.length>0 && (
         <section className="event-needs-attention">
           <h2>Needs attention</h2>
           <p>These gifts are not assigned to a current recipient. Edit them to repair their links.</p>
-          <GiftShelf gifts={unassigned} data={data} onEdit={gift=>openEditor({type:"gift",id:gift.id})} onView={gift=>openGiftPreview(gift.id)}/>
+          <GiftShelf gifts={unassigned} data={data} onEdit={gift=>navigate(`/gifts/${gift.id}/edit`)} onView={gift=>navigate(`/gifts/${gift.id}`)}/>
         </section>
       )}
-      {giftPickerOpen && !selectedPerson && event.people.length > 1 && (
-        <Sheet title={t("Choose recipient","Выберите получателя")} onClose={closeGiftPicker}>
-          <div className="gift-recipient-choices">
-            {event.people.map(personId => {
-              const person = data.people.find(candidate => candidate.id === personId);
-              if (!person) return null;
-              return (
-                <button data-ph="gift-picker-recipient" type="button" className="gift-recipient-option" key={person.id}
-                  onClick={() => setGiftPersonId(person.id)}>
-                  <PersonAvatar person={person} className="event-person-avatar"/>
-                  <span className="item-body"><strong>{person.name}</strong></span>
-                  <ChevronRight size={18} aria-hidden="true"/>
-                </button>
-              );
-            })}
-          </div>
-        </Sheet>
-      )}
-      {giftPickerOpen && selectedPerson && (
-        <Sheet title={`Gift for ${selectedPerson.name}`} onClose={closeGiftPicker}>
-          {savedIdeas.length ? (
-            <>
-              <p className="gift-picker-intro">Choose from saved ideas or add something new.</p>
-              <div className="gift-picker-ideas">
-                {savedIdeas.map(idea => (
-                  <Product key={idea.id} item={idea} showEdit={false}
-                    actionLabel={`Use idea ${idea.name}`}
-                    onClick={() => {
-                      closeGiftPicker();
-                      openEditor({type:"gift",eventId:event.id,personId:selectedPerson.id,prefill:idea});
-                    }}/>
-                ))}
-              </div>
-            </>
-          ) : <p className="gift-picker-intro">No ideas saved for {selectedPerson.name} yet. You can add a new gift.</p>}
-          <Button data-ph="gift-picker-new" className="button-full gift-picker-new" onClick={() => {
-            closeGiftPicker();
-            openEditor({type:"gift",eventId:event.id,personId:selectedPerson.id});
-          }}>
-            <Plus size={16}/> Add a new gift
-          </Button>
-        </Sheet>
-      )}
+
     </div>
   );
 }
 
 export function PersonDetail() {
   const { id } = useParams();
-  const { data, openEditor, openGiftPreview } = useApp();
+  const { data, openEditor } = useApp();
+  const navigate=useNavigate();
   const [collection, setCollection] = useState<"ideas" | "gifted">("ideas");
   const person = data.people.find((candidate) => candidate.id === id);
   if (!person) return <Title name="Person not found" back="/people"/>;
@@ -354,7 +291,7 @@ export function PersonDetail() {
                 return (
                   <Product key={gift.id} item={gift} statusReadOnly
                     captionText={`${occasion.name} · ${fmtDate(occasion.date)}, ${occasion.date.slice(0, 4)}`}
-                    onClick={() => openGiftPreview(gift.id)} onEdit={() => openEditor({type:"gift", id:gift.id})}/>
+                    onClick={() => navigate(`/gifts/${gift.id}`)} onEdit={() => navigate(`/gifts/${gift.id}/edit`)}/>
                 );
               })}
             </div>

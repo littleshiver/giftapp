@@ -62,7 +62,7 @@ export function OccasionGiftPicker() {
   const [source,setSource]=useState<"saved"|"suggested">("saved");
   useEffect(()=>{
     const e=data.events.find(x=>x.id===ui.giftPickerEventId);
-    setPersonId(e?.people.length===1?e.people[0]:"");
+    setPersonId(e?.people.includes(ui.giftPickerPersonId)?ui.giftPickerPersonId:(e?.people.length===1?e.people[0]:""));
     setSource("saved");
   },[ui.giftPickerEventId]);
   if(!event)return null;
