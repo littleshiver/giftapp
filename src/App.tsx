@@ -27,7 +27,7 @@ function AuthLoading({ failed }: { failed?: boolean }) {
 /** Only verified Firebase sessions can enter the real app. */
 export function App() {
   const auth = useAuth();
-  const { accountDataUid, syncStatus } = useApp();
+  const { accountDataUid, syncStatus, data, tour } = useApp();
   const location = useLocation();
   if (auth.status === "loading") return <AuthLoading />;
   if (auth.status !== "signed-in" && auth.status !== "testing") {
@@ -41,6 +41,11 @@ export function App() {
   // Do not render old guest records or data from another account while loading.
   if (auth.status === "signed-in" && auth.user && accountDataUid !== auth.user.uid)
     return <AuthLoading failed={syncStatus === "error"} />;
+  // New accounts go through the tour even when opening a deep link.
+  if (auth.status === "signed-in" && !tour && !data.settings.onboardingComplete &&
+      !data.people.length && !data.events.length && !data.gifts.length &&
+      !data.ideas.length && location.pathname !== "/onboarding" && location.pathname !== "/account")
+    return <Navigate to="/onboarding" replace />;
   return <AuthenticatedApp />;
 }
 
