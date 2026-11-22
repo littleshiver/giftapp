@@ -87,21 +87,19 @@ for (const width of [320, 375, 390, 430])
     await page
       .getByRole("button", { name: "Edit gift Scented candle", exact: true })
       .click();
-    await expect(page.getByRole("dialog")).toBeVisible();
-    expect(
-      await page
-        .locator(".sheet")
-        .evaluate((el) => el.scrollWidth <= el.clientWidth),
-    ).toBe(true);
+    await expect(page).toHaveURL(/#\/gifts\/g1\/edit$/);
+    await expect(page.locator(".gift-edit-page")).toBeVisible();
+    expect(await page.locator(".gift-edit-page")
+      .evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
     if (width === 390)
       await page.screenshot({
         path: `${directory}/gift-editor-${width}.png`,
         animations: "disabled",
       });
     await page.keyboard.press("Shift+Tab");
-    await expect(page.getByRole("dialog")).toBeVisible();
-    await page.keyboard.press("Escape");
-    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(page.locator(".gift-edit-page")).toBeVisible();
+    await page.locator(".gift-edit-page-bar").getByRole("button",{name:/Gift details/}).click();
+    await expect(page).toHaveURL(/#\/gifts\/g1$/);
     expect(errors).toEqual([]);
     expect(failed).toEqual([]);
   });
@@ -377,10 +375,12 @@ test("shared gift card stays consistent in group occasions and the saved-idea pi
     });
     await page.getByRole("button", { name: "Create", exact: true }).click();
     await page.getByRole("button", { name: "Add gift" }).click();
-    await page.getByRole("button", { name: "Choose from saved ideas" }).click();
+
     await page.getByRole("dialog", { name: "Choose recipient" })
       .getByRole("button", { name: "Anna" }).click();
     const chooser = page.getByRole("dialog", { name: "Gift for Anna" });
+    await expect(chooser.getByRole("button",{name:/Saved ideas/})).toBeVisible();
+    await expect(chooser.getByRole("button",{name:/From Givvy/})).toBeVisible();
     await expect(chooser.locator(".gift-card.is-idea")).toHaveCount(1);
     await expect(chooser.locator(".gift-status-icon")).toHaveCount(0);
     await expect(chooser.getByRole("button", { name: "Use idea Ceramic mug" })).toBeVisible();
