@@ -13,6 +13,7 @@ import { readImage, readAvatar } from "../utils/images";
 import { birthdayFromParts } from "../domain/birthdays";
 import { Button, Field, Sheet } from "./Primitives";
 import { Photo } from "./UI";
+import { PhotoCropSheet, validatePhoto } from "./PhotoCropSheet";
 export function EditorSheet() {
   const { data, editor, commit, closeEditor, notify, openEditor, setUi, tour, updateTour, budgetsEnabled } = useApp(),
     navigate = useNavigate(),
@@ -20,11 +21,13 @@ export function EditorSheet() {
     [saveError, setSaveError] = useState(""),
     [chosenPhotoUrl, setChosenPhotoUrl] = useState(""),
     [chosenPhotoName, setChosenPhotoName] = useState(""),
+    [croppedPhoto, setCroppedPhoto] = useState(""),
+    [cropSource, setCropSource] = useState(""),
     [removePersonPhoto, setRemovePersonPhoto] = useState(false);
   // Browser-owned previews are temporary. Stored photos are never modified
   // until the user explicitly saves this editor.
   useEffect(() => () => {
-    if (chosenPhotoUrl) URL.revokeObjectURL(chosenPhotoUrl);
+    if (chosenPhotoUrl.startsWith("blob:")) URL.revokeObjectURL(chosenPhotoUrl);
   }, [chosenPhotoUrl]);
   const g = data.gifts.find((g) => g.id === editor?.id),
     idea = data.ideas.find((i) => i.id === editor?.id),
@@ -103,7 +106,8 @@ export function EditorSheet() {
         }
         let photo = removePersonPhoto ? "" : p?.photo || "";
         const photoFile = fd.get("personPhoto");
-        if (photoFile instanceof File && photoFile.size) photo = await readAvatar(photoFile);
+        if (croppedPhoto) photo = croppedPhoto;
+        else if (photoFile instanceof File && photoFile.size) photo = await readAvatar(photoFile);
         const value: Person = {
           ...p,
           id: id || uid(),
@@ -174,7 +178,8 @@ export function EditorSheet() {
         const old = type === "gift" ? g : idea;
         let image = old?.image || prefill?.image || "";
         const file = fd.get("imageFile");
-        if (file instanceof File && file.size) image = await readImage(file);
+        if (croppedPhoto) image = croppedPhoto;
+        else if (file instanceof File && file.size) image = await readImage(file);
         const value: Idea = {
           ...old,
           id: id || uid(),
@@ -295,6 +300,7 @@ export function EditorSheet() {
     recipientNeedsAssignment =
       !!selectedOccasion && !!personId && !assignedRecipientIds.has(personId);
   return (
+    <>
     <Sheet title={heading} busy={busy} onClose={closeEditor}>
       <form
         className={type === "person" ? "person-editor-form" : ""}
@@ -330,13 +336,16 @@ export function EditorSheet() {
                       <input name="personPhoto" type="file" accept="image/*"
                         aria-label="Person photo" disabled={busy}
                         onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          setChosenPhotoName(file?.name || "");
-                          setChosenPhotoUrl(file ? URL.createObjectURL(file) : "");
-                          if (file) setRemovePersonPhoto(false);
-                        }}
+                           const file=e.target.files?.[0];e.currentTarget.value="";
+                           if(!file)return;
+                           try{validatePhoto(file);setChosenPhotoName(file.name);setCropSource(URL.createObjectURL(file));}
+                           catch(error){setSaveError((error as Error).message);}
+                         }}
                       />
                     </label>
+                    {(chosenPhotoUrl || (!removePersonPhoto && p?.photo?.startsWith("data:"))) && (
+                      <button type="button" className="person-photo-remove" onClick={()=>setCropSource(chosenPhotoUrl||p?.photo||"")}>{t("Adjust crop","Изменить кадрирование")}</button>
+                    )}
                     {p?.photo && !removePersonPhoto && !chosenPhotoUrl && (
                       <button data-ph="person-photo-remove" className="person-photo-remove" type="button"
                         onClick={() => setRemovePersonPhoto(true)}>{t("Remove photo","Удалить фото")}</button>
@@ -574,12 +583,14 @@ export function EditorSheet() {
                       accept="image/*"
                       disabled={busy}
                       onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        setChosenPhotoName(file?.name || "");
-                        setChosenPhotoUrl(file ? URL.createObjectURL(file) : "");
-                      }}
+                         const file=e.target.files?.[0];e.currentTarget.value="";
+                         if(!file)return;
+                         try{validatePhoto(file);setChosenPhotoName(file.name);setCropSource(URL.createObjectURL(file));}
+                         catch(error){setSaveError((error as Error).message);}
+                       }
                     />
                   </label>
+                  {(chosenPhotoUrl || source?.image?.startsWith("data:")) && <button type="button" className="person-photo-remove" onClick={()=>setCropSource(chosenPhotoUrl||source?.image||"")}>{t("Adjust crop","Изменить кадрирование")}</button>}
                   <span className="photo-upload-help">
                     {chosenPhotoName || "JPG, PNG or WebP"}
                   </span>
@@ -692,5 +703,12 @@ export function EditorSheet() {
         </div>
       </form>
     </Sheet>
+    {cropSource && <PhotoCropSheet src={cropSource} onClose={()=>{
+      if(cropSource.startsWith("blob:"))URL.revokeObjectURL(cropSource);
+      setCropSource("");
+    }} onApply={photo=>{
+      setCroppedPhoto(photo);setChosenPhotoUrl(photo);setRemovePersonPhoto(false);setSaveError("");
+    }} aspect={1}/>}
+    </>
   );
 }
