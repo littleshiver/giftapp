@@ -1,0 +1,29 @@
+.occasion-picker-content{display:grid;gap:17px;padding:6px 0 12px;max-height:min(68dvh,620px);overflow-y:auto;overscroll-behavior:contain;}
+.occasion-picker-intro,.gift-picker-intro{color:#6b7681;font-size:13px;line-height:1.5;margin:0;}
+.occasion-recipient-list{border:1px solid #ece9f0;border-radius:16px;overflow:hidden;}
+.occasion-recipient-row{display:flex;align-items:center;gap:12px;min-height:64px;padding:10px 13px;cursor:pointer;}
+.occasion-recipient-row+.occasion-recipient-row{border-top:1px solid #ece9f0;}
+.occasion-recipient-row>span:nth-child(2){display:grid;gap:3px;min-width:0;flex:1;font-size:14px;font-weight:700;}
+.occasion-recipient-row small{font-size:11px;color:#7d8790;font-weight:400;}
+.occasion-recipient-row input{width:20px;height:20px;accent-color:#9076ae;flex:none;}
+.occasion-picker-buttons{display:grid;gap:10px;grid-template-columns:1fr 1fr;padding-bottom:env(safe-area-inset-bottom);}
+.occasion-picker-buttons button,.occasion-picker-create{display:flex;align-items:center;justify-content:center;gap:8px;min-height:46px;border:0;border-radius:13px;font-size:13px;font-weight:750;cursor:pointer;padding:12px;}
+.occasion-picker-buttons .button-secondary{background:#f0edf3;color:#5e5367;}
+.occasion-picker-buttons .button-primary,.occasion-picker-create{background:#292d34;color:white;}
+.occasion-picker-inline-link,.occasion-picker-back{display:inline-flex;align-items:center;gap:6px;font:inherit;color:#795f93;background:transparent;border:0;cursor:pointer;padding:9px 3px;font-size:13px;font-weight:710;justify-self:start;}
+.gift-picker-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:#f3f0f6;padding:4px;border-radius:14px;}
+.gift-picker-tabs button{display:flex;align-items:center;justify-content:center;gap:5px;min-height:44px;background:transparent;border:0;border-radius:11px;color:#777180;font-size:12.5px;font-weight:760;cursor:pointer;white-space:nowrap;}
+.gift-picker-tabs button.is-active{background:white;box-shadow:0 2px 6px #0001;color:#342d3d;}
+.gift-picker-tabs button span{opacity:.7;font-size:11px;}
+.occasion-picker-content .gift-picker-ideas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;max-height:36dvh;overflow-y:auto;padding:3px 1px;}
+.occasion-picker-content .gift-picker-ideas .gift-card{min-width:0;}
+.occasion-picker-content .gift-picker-new{margin:0;width:100%;}
+@media(max-width:355px){.occasion-picker-buttons{grid-template-columns:1fr;}.gift-picker-tabs button{font-size:11px;}.occasion-picker-content .gift-picker-ideas{gap:7px;}}
+
+/* Persistent contextual next-step after a recipient has one or more gifts. */
+.event-add-another-gift{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:13px;
+  min-height:48px;width:100%;border:1px dashed #b8a9ca;border-radius:16px;background:#f8f5fb;
+  color:#694f83;font:inherit;font-size:13px;font-weight:770;cursor:pointer;}
+.event-add-another-gift:focus-visible{outline:3px solid #947bb2;outline-offset:2px;}
+.event-recipient-prompt{margin:15px 0;}
+.event-gift-empty{margin:12px 0;}

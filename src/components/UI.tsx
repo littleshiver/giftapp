@@ -16,7 +16,7 @@ import {
   Pencil,
   X,
 } from "lucide-react";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import type { Event, Gift, Idea, Person } from "../domain/models";
 import { useApp } from "../state/AppState";
 import demoPhotoSheet from "../assets/demo/catalog-hifi.avif";
@@ -60,11 +60,12 @@ export function Navigation() {
   );
 }
 export function CreateMenu() {
-  const { openEditor, ui, tour, updateTour } = useApp(),
+  const { openEditor, ui, setUi, tour, updateTour } = useApp(),
     [open, setOpen] = useState(false),
     location = useLocation(),
     root = useRef<HTMLDivElement>(null);
-  useEffect(() => setOpen(false), [location.pathname]);
+  // Close on navigation before paint, so a rapid click on Create is not discarded.
+  useLayoutEffect(() => setOpen(false), [location.pathname]);
   useEffect(() => {
     if (!open) return;
     const dismiss = (e: PointerEvent) => {
@@ -104,12 +105,15 @@ export function CreateMenu() {
                 const personId = location.pathname.startsWith("/people/")
                   ? location.pathname.split("/")[2]
                   : undefined;
-                // One gift form: save as an independent idea, or choose an
-                // occasion + recipient to create a planned gift directly.
+                // Occasion gifts use the same saved/suggested picker as Home.
+                if(type==="idea" && onEventDetail && eventId && !tour) {
+                  setUi({giftPickerEventId:eventId,giftPickerPersonId:""});
+                  return;
+                }
                 openEditor({
-                  type: type as "idea" | "event" | "person",
-                  eventId: type === "idea" ? eventId : undefined,
-                  personId: type === "idea" ? personId : undefined,
+                  type:type as "idea" | "event" | "person",
+                  eventId:type === "idea" || (type==="person"&&onEventDetail) ? eventId:undefined,
+                  personId:type === "idea" ? personId:undefined,
                 });
               }}
             >

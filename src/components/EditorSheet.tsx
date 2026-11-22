@@ -7,24 +7,39 @@ import {
   Trash2,
 } from "lucide-react";
 import { useApp } from "../state/AppState";
-import type { Event, Gift, Idea, Person } from "../domain/models";
+import type { Event, Gift, Idea, Person, Editor } from "../domain/models";
 import { today, uid, currencyUnit, t } from "../utils/format";
 import { readImage, readAvatar } from "../utils/images";
 import { birthdayFromParts } from "../domain/birthdays";
 import { Button, Field, Sheet } from "./Primitives";
 import { Photo } from "./UI";
-export function EditorSheet() {
-  const { data, editor, commit, closeEditor, notify, openEditor, setUi, tour, updateTour, budgetsEnabled } = useApp(),
+import { PhotoCropSheet, validatePhoto } from "./PhotoCropSheet";
+import { EmptyState } from "./EmptyState";
+import { UsersRound } from "lucide-react";
+export function EditorSheet({standalone=false,editId}:{standalone?:boolean;editId?:string}={}) {
+  const { data, editor: activeEditor, commit, closeEditor: closeGlobalEditor, notify, openEditor, setUi, tour, updateTour, budgetsEnabled } = useApp(),
     navigate = useNavigate(),
     [busy, setBusy] = useState(false),
     [saveError, setSaveError] = useState(""),
     [chosenPhotoUrl, setChosenPhotoUrl] = useState(""),
     [chosenPhotoName, setChosenPhotoName] = useState(""),
+    [croppedPhoto, setCroppedPhoto] = useState(""),
+    [cropSource, setCropSource] = useState(""),
     [removePersonPhoto, setRemovePersonPhoto] = useState(false);
+  const editor = standalone && editId ? ({type:"gift",id:editId} as Editor) : activeEditor;
+  const closeEditor = () => {
+    // Never carry unsaved crop or a pending filename into another editing session.
+    setCroppedPhoto("");
+    setChosenPhotoName("");
+    setChosenPhotoUrl("");
+    setCropSource("");
+    if(standalone && editId) navigate(`/gifts/${editId}`,{replace:true});
+    else closeGlobalEditor();
+  };
   // Browser-owned previews are temporary. Stored photos are never modified
   // until the user explicitly saves this editor.
   useEffect(() => () => {
-    if (chosenPhotoUrl) URL.revokeObjectURL(chosenPhotoUrl);
+    if (chosenPhotoUrl.startsWith("blob:")) URL.revokeObjectURL(chosenPhotoUrl);
   }, [chosenPhotoUrl]);
   const g = data.gifts.find((g) => g.id === editor?.id),
     idea = data.ideas.find((i) => i.id === editor?.id),
@@ -103,7 +118,8 @@ export function EditorSheet() {
         }
         let photo = removePersonPhoto ? "" : p?.photo || "";
         const photoFile = fd.get("personPhoto");
-        if (photoFile instanceof File && photoFile.size) photo = await readAvatar(photoFile);
+        if (croppedPhoto) photo = croppedPhoto;
+        else if (photoFile instanceof File && photoFile.size) photo = await readAvatar(photoFile);
         const value: Person = {
           ...p,
           id: id || uid(),
@@ -119,6 +135,12 @@ export function EditorSheet() {
         next.people = id
           ? data.people.map((p) => (p.id === id ? value : p))
           : [...data.people, value];
+        // When a person is created from an occasion's empty state, link them
+        // to that occasion immediately; don't lose the user's context.
+        if(!id && editor.eventId) {
+          next.events = data.events.map(e=>e.id===editor.eventId && e.kind!=="birthday"
+            ? {...e,people:[...new Set([...e.people,value.id])]} : e);
+        }
       } else if (type === "event") {
         const people = lockedBirthday && birthdayPerson
           ? [birthdayPerson.id]
@@ -174,7 +196,8 @@ export function EditorSheet() {
         const old = type === "gift" ? g : idea;
         let image = old?.image || prefill?.image || "";
         const file = fd.get("imageFile");
-        if (file instanceof File && file.size) image = await readImage(file);
+        if (croppedPhoto) image = croppedPhoto;
+        else if (file instanceof File && file.size) image = await readImage(file);
         const value: Idea = {
           ...old,
           id: id || uid(),
@@ -216,6 +239,9 @@ export function EditorSheet() {
           tour?.step === "gift-status" &&
           next.gifts.find(gift => gift.id === id)?.status === "bought") {
           updateTour({ step: "complete" });
+        }
+        if(saveAsGift && !id && !tour && next.gifts.length) {
+          navigate(`/gifts/${next.gifts[next.gifts.length-1].id}`);
         }
         notify("Saved ✓");
       } else
@@ -276,8 +302,8 @@ export function EditorSheet() {
     else next = { ...data, ideas: data.ideas.filter((i) => i.id !== id) };
     if (commit(next)) {
       closeEditor();
-      if (type === "person" || type === "event")
-        navigate(type === "person" ? "/people" : "/events");
+      if (type === "person" || type === "event" || (type==="gift" && standalone))
+        navigate(type === "person" ? "/people" : type==="event" ? "/events" : `/events/${g?.eventId||""}`,{replace:true});
       notify("Deleted");
     }
   };
@@ -294,9 +320,8 @@ export function EditorSheet() {
       : [],
     recipientNeedsAssignment =
       !!selectedOccasion && !!personId && !assignedRecipientIds.has(personId);
-  return (
-    <Sheet title={heading} busy={busy} onClose={closeEditor}>
-      <form
+  const form = (
+      <form id={standalone?"gift-editor-form":undefined}
         className={type === "person" ? "person-editor-form" : ""}
         ref={formRef}
         onSubmit={(ev) => {
@@ -330,13 +355,16 @@ export function EditorSheet() {
                       <input name="personPhoto" type="file" accept="image/*"
                         aria-label="Person photo" disabled={busy}
                         onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          setChosenPhotoName(file?.name || "");
-                          setChosenPhotoUrl(file ? URL.createObjectURL(file) : "");
-                          if (file) setRemovePersonPhoto(false);
-                        }}
+                           const file=e.target.files?.[0];e.currentTarget.value="";
+                           if(!file)return;
+                           try{validatePhoto(file);setChosenPhotoName(file.name);setCropSource(URL.createObjectURL(file));}
+                           catch(error){setSaveError((error as Error).message);}
+                         }}
                       />
                     </label>
+                    {(chosenPhotoUrl || (!removePersonPhoto && p?.photo?.startsWith("data:"))) && (
+                      <button type="button" className="person-photo-remove" onClick={()=>setCropSource(chosenPhotoUrl||p?.photo||"")}>{t("Adjust crop","Изменить кадрирование")}</button>
+                    )}
                     {p?.photo && !removePersonPhoto && !chosenPhotoUrl && (
                       <button data-ph="person-photo-remove" className="person-photo-remove" type="button"
                         onClick={() => setRemovePersonPhoto(true)}>{t("Remove photo","Удалить фото")}</button>
@@ -446,9 +474,10 @@ export function EditorSheet() {
                 </div>
               ))
             ) : (
-              <p className="section-note">
-                Add people first, then assign them to the occasion.
-              </p>
+              <EmptyState compact Icon={UsersRound}
+                title={t("No people yet","Пока нет людей")}
+                description={t("Add a person first. Then they can be included in this occasion.","Сначала создайте человека, чтобы добавить его в событие.")}
+                action={{label:t("Add a person","Добавить человека"),onClick:()=>{closeEditor();openEditor({type:"person",eventId:id});}}}/>
             )}
             {budgetsEnabled && <p className="section-note">
               {t("Leave a budget blank for not set. Zero is a valid limit.","Оставьте поле пустым, если лимита нет. Ноль — допустимый лимит.")}
@@ -536,7 +565,7 @@ export function EditorSheet() {
                   defaultValue={source?.price ?? 0}
                 />
               </Field>
-              {saveAsGift && (
+              {saveAsGift && !(standalone && type==="gift" && !!id) && (
                 <Field label={t("Status","Статус")}>
                   <select
                     className="control"
@@ -574,12 +603,14 @@ export function EditorSheet() {
                       accept="image/*"
                       disabled={busy}
                       onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        setChosenPhotoName(file?.name || "");
-                        setChosenPhotoUrl(file ? URL.createObjectURL(file) : "");
-                      }}
+                         const file=e.target.files?.[0];e.currentTarget.value="";
+                         if(!file)return;
+                         try{validatePhoto(file);setChosenPhotoName(file.name);setCropSource(URL.createObjectURL(file));}
+                         catch(error){setSaveError((error as Error).message);}
+                       }}
                     />
                   </label>
+                  {(chosenPhotoUrl || source?.image?.startsWith("data:")) && <button type="button" className="person-photo-remove" onClick={()=>setCropSource(chosenPhotoUrl||source?.image||"")}>{t("Adjust crop","Изменить кадрирование")}</button>}
                   <span className="photo-upload-help">
                     {chosenPhotoName || "JPG, PNG or WebP"}
                   </span>
@@ -619,7 +650,7 @@ export function EditorSheet() {
                   }
                   setBusy(true);
                   try {
-                    let image = idea.image;
+                    let image = croppedPhoto || idea.image;
                     const file = fd.get("imageFile");
                     if (file instanceof File && file.size)
                       image = await readImage(file);
@@ -691,6 +722,26 @@ export function EditorSheet() {
           )}
         </div>
       </form>
-    </Sheet>
   );
+  return <>
+    {standalone ? <div className="gift-edit-page">
+      <header className="gift-edit-page-bar">
+        <button type="button" onClick={closeEditor}>{t("‹ Gift details","‹ К подарку")}</button>
+        <strong>{heading}</strong>
+        {type==="gift" && id && <label className="gift-edit-top-status"><span>{t("Status","Статус")}</span>
+          <select className="control" name="status" form="gift-editor-form" defaultValue={g?.status||"to_buy"}>
+            <option value="to_buy">{t("To buy","Купить")}</option>
+            <option value="bought">{t("Bought","Куплено")}</option>
+          </select>
+        </label>}
+      </header>
+      <div className="gift-edit-page-body">{form}</div>
+    </div> : <Sheet title={heading} busy={busy} onClose={closeEditor}>{form}</Sheet>}
+    {cropSource && <PhotoCropSheet src={cropSource} onClose={()=>{
+      if(cropSource.startsWith("blob:"))URL.revokeObjectURL(cropSource);
+      setCropSource("");
+    }} onApply={photo=>{
+      setCroppedPhoto(photo);setChosenPhotoUrl(photo);setRemovePersonPhoto(false);setSaveError("");
+    }} aspect={1}/>}
+  </>;
 }

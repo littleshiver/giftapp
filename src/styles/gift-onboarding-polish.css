@@ -140,3 +140,18 @@
 .event-saved-ideas-copy small {font-size:13px; line-height:1.4;}
 .event-saved-ideas-explanation {flex:1 0 100%; margin:0; font-size:13px; line-height:1.45; color:#655e70;}
 .event-saved-ideas-choose {flex:1 0 100%; min-height:46px; font-size:14px; cursor:pointer;}
+
+/* Gift details are a normal page; the status always lives at image top right. */
+.gift-preview-photo{position:relative;}
+.gift-preview-top-status{position:absolute;right:13px;top:13px;z-index:4;}
+.gift-preview-top-status .gift-status-icon{position:static;width:42px;height:42px;box-shadow:0 3px 12px #0002;}
+.gift-preview-heading h2{margin:0;}
+.gift-edit-page{display:grid;gap:16px;padding-bottom:100px;}
+.gift-edit-page-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:5px 2px 8px;}
+.gift-edit-page-bar>button{border:0;background:none;color:#6e5989;cursor:pointer;font:inherit;font-size:13px;min-height:40px;}
+.gift-edit-page-bar>strong{font-size:17px;flex:1;}
+.gift-edit-top-status{display:grid;gap:3px;font-size:11px;font-weight:750;color:#68737f;}
+.gift-edit-top-status select{min-width:90px;min-height:39px;border:1px solid #e7dfea;border-radius:12px;background:#fff;padding:6px 8px;color:#2e353c;font:inherit;font-size:13px;}
+.gift-edit-page-body{background:#fff;border-radius:21px;padding:18px 16px;box-shadow:0 3px 14px #0000000b;}
+.gift-edit-page-body .sheet-cta{padding-bottom:env(safe-area-inset-bottom);}
+@media(max-width:350px){.gift-edit-page-bar>strong{font-size:15px;}}

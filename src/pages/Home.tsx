@@ -1,8 +1,9 @@
 import { t } from "../utils/format";
 import { useEffect, useRef, type CSSProperties } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, ArrowUpRight, CalendarDays } from "lucide-react";
-import { Section, Photo, Product, Empty } from "../components/UI";
+import { ArrowRight, ArrowUpRight, CalendarDays, Gift as GiftIcon, UsersRound } from "lucide-react";
+import { Section, Photo, Product } from "../components/UI";
+import { EmptyState } from "../components/EmptyState";
 import { HomeBrand } from "../components/HomeBrand";
 import { HomeBudgets } from "../components/HomeBudgets";
 import { HomeInspiration } from "../components/HomeInspiration";
@@ -61,7 +62,7 @@ function toneStyle(t: EventTone): CSSProperties {
   } as CSSProperties;
 }
 export function Home() {
-  const { data, ui, setUi, openGiftPreview, budgetsEnabled } = useApp(),
+  const { data, ui, setUi, openEditor, budgetsEnabled } = useApp(),
     navigate = useNavigate(),
     upcoming = enabledEvents(data).filter((e) => e.date >= today()),
     selected = upcoming.find((e) => e.id === ui.selectedEvent) || upcoming[0],
@@ -223,7 +224,9 @@ export function Home() {
             ))}
           </div>
         ) : (
-          <Empty>Add your first occasion to start planning.</Empty>
+          <EmptyState Icon={CalendarDays} title={t("No upcoming occasions","Пока нет событий")}
+            description={t("Add your first occasion to start planning.","Добавьте первое событие, чтобы начать планировать подарки.")}
+            action={{label:t("Add occasion","Добавить событие"),onClick:()=>openEditor({type:"event"})}}/>
         )}
       </section>
       {selected && (
@@ -272,11 +275,17 @@ export function Home() {
                   person={selected.people.length > 1}
                   home
                   showEdit={false}
-                  onClick={() => openGiftPreview(g.id)}
+                  onClick={() => navigate(`/gifts/${g.id}`)}
                 />
               )) : (
                 <div className="home-empty-gifts" role="status">
-                  Add gifts with the + button and they’ll appear here.
+                  {!selected.people.length?
+                    <EmptyState compact Icon={UsersRound} title={t("Who are you celebrating?","Кого поздравляем?")}
+                      description={t("Choose recipients to start planning gifts.","Выберите получателей, чтобы начать планировать подарки.")}
+                      action={{label:t("Choose recipients","Выбрать получателей"),onClick:()=>setUi({recipientPickerEventId:selected.id})}}/>:
+                    <EmptyState compact Icon={GiftIcon} title={t("No gifts planned yet","Пока нет подарков")}
+                      description={t("Pick from saved ideas or Givvy suggestions.","Выберите из сохранённых идей или предложений Givvy.")}
+                      action={{label:t("Choose a gift","Выбрать подарок"),onClick:()=>setUi({giftPickerEventId:selected.id,giftPickerPersonId:""})}}/>}
                 </div>
               )}
             </div>

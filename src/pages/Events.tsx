@@ -2,7 +2,9 @@ import { t } from "../utils/format";
 import { useEffect, useState, type CSSProperties } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Bell, BellOff, Check, ChevronLeft, ChevronRight } from "lucide-react";
-import { Empty, Section, Photo } from "../components/UI";
+import { Section, Photo } from "../components/UI";
+import { EmptyState } from "../components/EmptyState";
+import { CalendarPlus2 } from "lucide-react";
 import { Sheet } from "../components/Primitives";
 import { OccasionArt } from "../components/OccasionArt";
 import { useApp } from "../state/AppState";
@@ -294,11 +296,10 @@ export function Events() {
               </div>
             ) : (
               <div className="calendar-agenda-empty">
-                <p className="calendar-empty-message">
-                  {activeDate
-                    ? "Nothing planned for this day. Choose another date or show the whole month."
-                    : "No occasions this month. Browse another month to see what's coming."}
-                </p>
+                <EmptyState compact Icon={CalendarPlus2}
+                  title={activeDate?t("Nothing planned for this day","На этот день ничего не запланировано"):t("No occasions this month","В этом месяце нет событий")}
+                  description={activeDate?t("Choose another date or show the whole month.","Выберите другую дату или вернитесь ко всему месяцу."):t("Browse another month or add an occasion.","Перейдите к другому месяцу или добавьте событие.")}
+                  action={activeDate?{label:t("Show whole month","Весь месяц"),onClick:()=>setFilteredDate(null)}:{label:t("Add occasion","Добавить событие"),onClick:()=>openEditor({type:"event"})}}/>
               </div>
             )}
           </section>
@@ -322,7 +323,9 @@ export function Events() {
               </section>
             ))
           ) : (
-            <Empty>Add your first occasion to set a reminder.</Empty>
+            <EmptyState Icon={CalendarPlus2} title={t("No reminders yet","Пока нет напоминаний")}
+              description={t("Add your first occasion to set a reminder.","Создайте событие, чтобы настроить напоминание.")}
+              action={{label:t("Add occasion","Добавить событие"),onClick:()=>openEditor({type:"event"})}}/>
           )}
         </div>
       )}

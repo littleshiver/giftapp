@@ -1,0 +1,34 @@
+.givvy-empty-state {
+  display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;
+  background:#faf8fc;border:1px solid #ebe5f0;border-radius:21px;
+  padding:23px 20px;color:#333c43;min-width:0;
+}
+.givvy-empty-state.is-compact {padding:18px 16px;gap:9px;border-radius:17px;}
+.empty-state-symbol {display:grid;place-items:center;width:46px;height:46px;flex:none;
+  border-radius:16px;background:#ede5f5;color:#8d74a6;}
+.is-compact .empty-state-symbol {width:38px;height:38px;border-radius:13px;}
+.empty-state-copy {display:grid;gap:6px;min-width:0;}
+.empty-state-copy h3 {font-size:15px;font-weight:790;margin:0;line-height:1.4;}
+.empty-state-copy p {font-size:13px;line-height:1.5;color:#6d7781;margin:0;}
+.empty-state-actions {display:flex;flex-wrap:wrap;justify-content:center;gap:8px;width:100%;margin-top:5px;}
+.empty-state-action {display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;
+  background:#2d3036;color:#fff;border:0;border-radius:13px;padding:11px 17px;
+  text-decoration:none;font-size:13px;font-weight:760;cursor:pointer;}
+.empty-state-action.is-secondary {background:#ebe6f1;color:#675279;}
+.empty-state-action:focus-visible {outline:3px solid #9a7fba;outline-offset:2px;}
+@media(max-width:350px){.givvy-empty-state{padding:18px 13px;}.empty-state-actions{flex-direction:column;}.empty-state-action{width:100%;}}
+
+/* Use the same compact state inside Home's approved featured-card geometry. */
+.home-empty-gifts .givvy-empty-state{width:100%;background:#ffffffee;border:1px solid #ffffffdd;box-shadow:0 6px 23px #1d24301a;}
+.home-empty-gifts .empty-state-copy h3{color:#343b42;}
+.home-empty-gifts .empty-state-copy p{color:#617079;}
+.event-gift-groups .givvy-empty-state{margin-inline:0;}
+
+/* Home was a fixed-height passive placeholder. Give its real action room. */
+.app-main-home .focus-gifts .home-empty-gifts {height:auto;min-height:195px;padding:0;border:0;background:transparent;box-shadow:none;display:block;}
+.app-main-home .focus-gifts .home-empty-gifts .givvy-empty-state {min-height:195px;justify-content:center;padding:13px 14px;gap:7px;}
+.app-main-home .focus-gifts .home-empty-gifts .empty-state-symbol {width:31px;height:31px;border-radius:11px;}
+.app-main-home .focus-gifts .home-empty-gifts .empty-state-copy {gap:3px;}
+.app-main-home .focus-gifts .home-empty-gifts .empty-state-copy h3 {font-size:13px;}
+.app-main-home .focus-gifts .home-empty-gifts .empty-state-copy p {font-size:12px;line-height:1.35;}
+.app-main-home .focus-gifts .home-empty-gifts .empty-state-action {min-height:42px;}

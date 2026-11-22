@@ -3,7 +3,8 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { CalendarDays, Check, ExternalLink, Gift, Heart, Pencil, ShoppingBasket, UserRound } from "lucide-react";
 import { useApp } from "../state/AppState";
 import { currency, fullDate } from "../utils/format";
-import { Photo } from "./UI";
+import { Photo, GiftStatus } from "./UI";
+import { EditorSheet } from "./EditorSheet";
 import { Button, Sheet } from "./Primitives";
 
 function GiftOverview({ id, onEdit, onDone }: {
@@ -15,13 +16,13 @@ function GiftOverview({ id, onEdit, onDone }: {
   const event = data.events.find(e => e.id === gift.eventId);
   const person = data.people.find(p => p.id === gift.personId);
   const isTourGift = tour?.step === "gift-status" && tour.giftId === gift.id;
-  const markBought = () => {
+  const toggleBought = () => {
     if (commit({
       ...data,
-      gifts: data.gifts.map(g => g.id === gift.id ? { ...g, status: "bought" as const } : g),
+      gifts: data.gifts.map(g => g.id === gift.id ? { ...g, status: gift.status === "bought" ? "to_buy" as const : "bought" as const } : g),
     })) {
-      notify("Marked as bought ✓", "success");
-      if (isTourGift) { updateTour({ step: "complete" }); onDone?.(); }
+      notify(gift.status==="bought"?"Moved back to To buy":"Marked as bought ✓","success");
+      if (isTourGift && gift.status!=="bought") { updateTour({ step: "complete" }); onDone?.(); }
     }
   };
   const keepToBuy = () => {
@@ -39,13 +40,12 @@ function GiftOverview({ id, onEdit, onDone }: {
     <div className="gift-preview-content">
       <div className="gift-preview-photo">
         {gift.image ? <Photo src={gift.image} name={gift.name}/> : <Gift size={47} strokeWidth={1.4} aria-hidden="true"/>}
+        <div className="gift-preview-top-status">
+          <GiftStatus status={gift.status} name={gift.name} onToggle={toggleBought}/>
+        </div>
       </div>
       <div className="gift-preview-heading">
         <h2>{gift.name}</h2>
-        <span className={`gift-preview-status ${gift.status === "bought" ? "bought" : "to-buy"}`}>
-          {gift.status === "bought" ? <Check size={15}/> : <ShoppingBasket size={15}/>}
-          {gift.status === "bought" ? "Bought" : "To buy"}
-        </span>
       </div>
       <div className="gift-preview-facts">
         <div><UserRound size={17}/><span>{t("For","Для кого")}</span>
@@ -64,8 +64,8 @@ function GiftOverview({ id, onEdit, onDone }: {
         <p className="gift-preview-tour-message">This is the actual gift. When you buy it, mark it Bought. Otherwise you can leave it on your list for later.</p>
       )}
       <div className="gift-preview-actions">
-        {gift.status !== "bought" && (
-          <Button type="button" className="button-full gift-preview-buy" onClick={markBought}>
+        {isTourGift && gift.status !== "bought" && (
+          <Button type="button" className="button-full gift-preview-buy" onClick={toggleBought}>
             <Check size={18}/> Mark as bought
           </Button>
         )}
@@ -103,7 +103,7 @@ export function GiftPreviewSheet() {
 /** Deep-linkable page uses the exact same detail view as the preview sheet. */
 export function GiftDetailPage() {
   const { id = "" } = useParams();
-  const { data, openEditor } = useApp();
+  const { data } = useApp();
   const navigate = useNavigate();
   const gift = data.gifts.find(g => g.id === id);
   return (
@@ -112,7 +112,15 @@ export function GiftDetailPage() {
         <button type="button" onClick={() => navigate(gift ? `/events/${gift.eventId}` : "/events")}>‹ Back to occasion</button>
         <strong>{t("Gift details","Информация о подарке")}</strong>
       </div>
-      <GiftOverview id={id} onEdit={() => openEditor({ type: "gift", id })}/>
+      <GiftOverview id={id} onEdit={() => navigate(`/gifts/${id}/edit`)}/>
     </div>
   );
+}
+
+/** Full-page gift editing, separate from read-only gift details. */
+export function GiftEditPage() {
+  const {id=""}=useParams();
+  const {data}=useApp();
+  if(!data.gifts.some(g=>g.id===id))return <div className="gift-preview-page"><p className="gift-preview-empty">This gift is unavailable.</p><Link to="/events">Back to occasions</Link></div>;
+  return <EditorSheet key={id} standalone editId={id}/>;
 }

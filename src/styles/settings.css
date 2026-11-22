@@ -77,3 +77,6 @@
 .settings-error,.settings-info {padding:12px 13px;border-radius:12px;font-size:13px;line-height:1.5;}
 .settings-error {background:#fff0ed;color:#a04a48;}
 .settings-info {background:#eef7f0;color:#476452;}
+
+/* Holidays share the existing grouped preference layout. */
+.settings-holiday-row strong {line-height:1.4;}

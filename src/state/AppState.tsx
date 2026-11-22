@@ -67,6 +67,8 @@ interface UiState {
   greetingDismissed: boolean;
   /** UI-only request: open recipient / saved-idea chooser from global FAB. */
   giftPickerEventId: string;
+  giftPickerPersonId: string;
+  recipientPickerEventId: string;
 }
 interface State {
   upgradeNotice: boolean;
@@ -112,6 +114,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     ideasTab: "discover",
     greetingDismissed: false,
     giftPickerEventId: "",
+    giftPickerPersonId: "",
+    recipientPickerEventId: "",
   }));
   const setUi = (patch: Partial<UiState>) =>
     updateUi((current) => ({ ...current, ...patch }));
@@ -230,7 +234,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setEditor(null);
     changePreviewMode(mode);
     setPreviewData(mode === "filled" ? filledDemo() : emptyDemo());
-    updateUi((prev) => ({ ...prev, selectedEvent: "", filterPerson: "all", giftPickerEventId: "" }));
+    updateUi((prev) => ({ ...prev, selectedEvent: "", filterPerson: "all", giftPickerEventId: "", giftPickerPersonId: "", recipientPickerEventId: "" }));
     try {
       if (mode === "my") sessionStorage.removeItem(PREVIEW_KEY);
       else sessionStorage.setItem(PREVIEW_KEY, mode);

@@ -120,8 +120,8 @@ export function TourCoach() {
     },
     "occasion": {
       title: "Time to plan",
-      body: "Your saved idea is right here. Choose it to add a To buy gift.",
-      button: "Choose saved idea",
+      body: "Choose a gift from your saved ideas or explore Givvy suggestions.",
+      button: "Choose gift",
       action: () => { if (event) setUi({ giftPickerEventId: event.id }); },
     },
     "gift-status": {
@@ -175,7 +175,7 @@ const targetSelectors: Partial<Record<TourStep, string[]>> = {
   "discover-right": [".ideas-discovery-card", ".ideas-reaction.ideas-like"],
   "discover-recipient": [".ideas-discovery-card"],
   "calendar": ['[data-guided-event="true"]'],
-  "occasion": [".event-saved-ideas-choose"],
+  "occasion": [".event-gift-empty .empty-state-action"],
   "gift-status": ['[data-tour-gift="true"] .product-open'],
 };
 
