@@ -1,14 +1,14 @@
 import { t } from "../utils/format";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Pencil, Plus, Minus, Cake, Gift as GiftIcon, UsersRound } from "lucide-react";
+import { Pencil, Plus, Minus, Cake, Gift as GiftIcon, UsersRound, ChevronDown, AlertCircle } from "lucide-react";
 import { birthdayMonthDay, ageFromBirthday } from "../domain/birthdays";
 import {
   Empty, Product, Section, Title, PersonAvatar, BackLink, Photo,
 } from "../components/UI";
 import { useApp } from "../state/AppState";
 import {
-  associationValid, bought, eventBudget, giftsFor,
+  associationValid, bought, eventBudget, giftsFor, total,
 } from "../domain/selectors";
 import { currency, fmtDate, today } from "../utils/format";
 import { EmptyState } from "../components/EmptyState";
@@ -21,76 +21,94 @@ const filterOptions: {value: GiftFilter; label: string}[] = [
   {value:"to_buy", label:"To buy"},
   {value:"bought", label:"Bought"},
 ];
-function EventGift({gift, onEdit, onView}: {gift: Gift; onEdit: () => void; onView: () => void}) {
-  return <Product item={gift} onClick={onView} onEdit={onEdit}/>;
-}
 function GiftShelf({
-  gifts, data, onEdit, onView, emptyLabel,
-}: {
-  gifts: Gift[];
-  data: ReturnType<typeof useApp>["data"];
-  onEdit: (gift: Gift) => void;
-  onView: (gift: Gift) => void;
-  emptyLabel?: string;
-}) {
-  const { tour } = useApp();
-  const scrollable = gifts.length >= 3;
-  if (!gifts.length) return <p className="event-empty-gifts">{emptyLabel ?? "No gifts here yet."}</p>;
-  return (
-    <div className={`detail-gifts event-gift-shelf ${scrollable ? "is-scrollable" : "is-static"}`}
-      data-scrollable={scrollable} aria-label="Gifts">
-      {gifts.map(gift => (
-        <div className="event-gift-entry" key={gift.id} data-tour-gift={gift.id === tour?.giftId ? "true" : undefined}>
-          <EventGift gift={gift} onEdit={() => onEdit(gift)} onView={() => onView(gift)}/>
-          {!associationValid(data, gift) &&
-            <p className="warning">This gift's recipient is not linked to the occasion. Edit the gift to repair.</p>}
-        </div>
-      ))}
-    </div>
-  );
+  gifts,data,onView,emptyLabel,
+}:{
+  gifts:Gift[];data:ReturnType<typeof useApp>["data"];
+  onView:(gift:Gift)=>void;emptyLabel?:string;
+}){
+  const {tour}=useApp();
+  if(!gifts.length)return <p className="event-empty-gifts">{emptyLabel??t("No gifts yet","Подарков пока нет")}</p>;
+  return <div className="detail-gifts event-gift-shelf" data-scrollable="false" aria-label={t("Gifts","Подарки")}>
+    {gifts.map(gift=><div className="event-gift-entry" key={gift.id} data-tour-gift={gift.id===tour?.giftId?"true":undefined}>
+      <Product item={gift} onClick={()=>onView(gift)}/>
+      {!associationValid(data,gift)&&<p className="warning">{t("Recipient is not linked to this occasion. Open the gift to edit.","Получатель не привязан к событию. Откройте подарок для исправления.")}</p>}
+    </div>)}
+  </div>;
 }
 function GiftGroup({
-  person, items, limit, data, onEdit, onView, onChooseIdeas,
-}: {
-  person: Person | undefined;
-  items: Gift[];
-  limit: number | undefined;
-  data: ReturnType<typeof useApp>["data"];
-  onEdit: (gift: Gift) => void;
-  onView: (gift: Gift) => void;
-  onChooseIdeas: () => void;
-}) {
+  person,items,limit,data,onView,onChooseIdeas,
+}:{
+  person:Person|undefined;items:Gift[];limit:number|undefined;
+  data:ReturnType<typeof useApp>["data"];
+  onView:(gift:Gift)=>void;onChooseIdeas:()=>void;
+}){
   const {budgetsEnabled}=useApp();
   const [filter,setFilter]=useState<GiftFilter>("all");
+  const [expanded,setExpanded]=useState(true);
+  const [showAll,setShowAll]=useState(false);
   const visible=filter==="all"?items:items.filter(g=>g.status===filter);
-  const recipientIdentity=<><PersonAvatar person={person} className="event-person-avatar"/><strong>{person?.name||"Unknown person"}</strong></>;
-  return <section className="event-person-gifts event-recipient-group" aria-label={`Gifts for ${person?.name??"recipient"}`}>
-    <div className="event-person-gifts-heading">
-      {person?<Link to={`/people/${person.id}`} className="event-person-gifts-identity" aria-label={`Open ${person.name}'s profile`}>{recipientIdentity}</Link>
-        :<span className="event-person-gifts-identity">{recipientIdentity}</span>}
-      {budgetsEnabled&&<span className="event-person-amount"><span>{t("Budget","Бюджет")}</span>
-        <span>{limit===undefined?t("Not set","Не задан"):currency(limit)}</span></span>}
+  const shown=showAll?visible:visible.slice(0,4);
+  const planned=total(items),paid=bought(items);
+  const over=limit!==undefined && planned>limit;
+  const remaining=limit===undefined?null:limit-planned;
+  const groupId=`recipient-gifts-${person?.id||"unknown"}`;
+  return <section className={`event-person-gifts event-recipient-group ${expanded?"is-expanded":"is-collapsed"}`} aria-label={`Gifts for ${person?.name??"recipient"}`}>
+    <div className="recipient-group-top">
+      {person?<Link to={`/people/${person.id}`} className="recipient-profile-link" aria-label={`Open ${person.name}'s profile`}>
+        <PersonAvatar person={person} className="event-person-avatar"/>
+      </Link>:<span className="recipient-profile-link"><PersonAvatar className="event-person-avatar"/></span>}
+      <button type="button" className="recipient-accordion-toggle event-person-gifts-identity" aria-expanded={expanded} aria-controls={groupId}
+        aria-label={`${expanded?t("Collapse","Свернуть"):t("Expand","Развернуть")} ${person?.name||"recipient"}`}
+        onClick={()=>setExpanded(current=>!current)}>
+        <span className="recipient-group-name">
+          <strong>{person?.name||t("Unknown person","Получатель не найден")}</strong>
+          <small>{items.length} {t(items.length===1?"gift":"gifts",items.length===1?"подарок":"подарков")}</small>
+        </span>
+        <ChevronDown size={21} strokeWidth={2.5} className="recipient-collapse-chevron" aria-hidden="true"/>
+      </button>
+      <button type="button" className="recipient-quick-add" onClick={onChooseIdeas}
+        aria-label={`Choose a gift for ${person?.name||"recipient"}`}>
+        <Plus size={18} strokeWidth={2.5} aria-hidden="true"/>
+        <span>{t("Add gift","Подарок")}</span>
+      </button>
     </div>
-    {!items.length?
-      <EmptyState compact className="event-gift-empty" Icon={GiftIcon}
-        title={t("No gifts planned yet","Пока нет подарков")}
-        description={t("Choose from your saved ideas or Givvy suggestions.","Выберите из своих идей или предложений Givvy.")}
-        action={{label:t("Choose a gift","Выбрать подарок"),onClick:onChooseIdeas}}
-        />:
+    {budgetsEnabled&&<div className={`recipient-budget-summary ${over?"is-over-budget":""}`} aria-label={`Planning summary for ${person?.name||"recipient"}`}>
+      <div className="recipient-budget-stats">
+        <div><span>{t("Planned","Запланировано")}</span><strong>{currency(planned)}</strong></div>
+        <div><span>{t("Bought","Куплено")}</span><strong>{currency(paid)}</strong></div>
+        <div><span>{t("Limit","Лимит")}</span><strong>{limit===undefined?t("Not set","Не задан"):currency(limit)}</strong></div>
+      </div>
+      {limit!==undefined&&<div className="recipient-budget-track" role="progressbar"
+        aria-label={`Planned for ${person?.name||"recipient"}`} aria-valuemin={0}
+        aria-valuemax={Math.max(limit,1)} aria-valuenow={Math.min(planned,Math.max(limit,1))}>
+        <span className="recipient-budget-paid" style={{width:`${Math.min(100,paid/Math.max(planned,limit,1)*100)}%`}}/>
+        <span className="recipient-budget-unpaid" style={{width:`${Math.min(100,Math.max(0,planned-paid)/Math.max(planned,limit,1)*100)}%`}}/>
+      </div>}
+      {remaining!==null&&<p className="recipient-budget-footnote">
+        {over?<><AlertCircle size={14}/>{t("Over the limit by","Сверх лимита на")} {currency(-remaining)}</>:
+        t(`${currency(remaining)} left to plan`,`Можно запланировать ещё ${currency(remaining)}`)}
+      </p>}
+    </div>}
+    {expanded&&<div className="recipient-group-body" id={groupId}>
+      {!items.length?<p className="recipient-gifts-empty">{t("No gifts yet. Add the first idea for this person.","Пока нет подарков. Добавьте первую идею для этого человека.")}</p>:
       <>
         <div className="event-gift-filter" role="group" aria-label={`Filter gifts for ${person?.name||"recipient"}`}>
           {filterOptions.map(option=><button type="button" key={option.value}
             className={`event-gift-filter-tab ${filter===option.value?"is-active":""}`}
-            aria-pressed={filter===option.value} onClick={()=>setFilter(option.value)}>{option.label}</button>)}
+            aria-pressed={filter===option.value} onClick={()=>{setFilter(option.value);setShowAll(false);}}>
+            {t(option.label,option.value==="all"?"Все":option.value==="to_buy"?"Купить":"Куплено")}
+          </button>)}
         </div>
-        {visible.length?<GiftShelf gifts={visible} data={data} onEdit={onEdit} onView={onView}/>:
-          <EmptyState compact Icon={GiftIcon} title={t("Nothing in this filter","В этом фильтре пусто")}
-            description={t("Your other gifts are still here.","Остальные подарки никуда не исчезли.")}
-            action={{label:t("Show all gifts","Показать все"),onClick:()=>setFilter("all")}}/>}
-        <button type="button" data-ph="event-add-another-gift" className="event-add-another-gift" onClick={onChooseIdeas}>
-          <Plus size={18}/>{t("Choose another gift","Выбрать ещё подарок")}
-        </button>
+        {visible.length?<GiftShelf gifts={shown} data={data} onView={onView}/>:
+          <p className="recipient-gifts-empty">{t("Nothing in this filter","В этом разделе пока пусто")}</p>}
+        {visible.length>4&&<button type="button" className="recipient-show-more"
+          aria-expanded={showAll} onClick={()=>setShowAll(x=>!x)}>
+          {showAll?t("Show fewer","Свернуть список"):t(`Show all ${visible.length} gifts`,`Показать все ${visible.length} подарков`)}
+          <ChevronDown size={17} aria-hidden="true"/>
+        </button>}
       </>}
+    </div>}
   </section>;
 }
 
@@ -103,6 +121,10 @@ export function EventDetail() {
   const gifts = giftsFor(data, event.id);
   const budget = eventBudget(event);
   const spent = bought(gifts);
+  const planned = total(gifts);
+  const hasLimits=event.people.some(pid=>Object.hasOwn(event.budgets,pid));
+  const allLimitsSet=event.people.length>0&&event.people.every(pid=>Object.hasOwn(event.budgets,pid));
+  const limitsCount=event.people.filter(pid=>Object.hasOwn(event.budgets,pid)).length;
   const isGroup = event.people.length > 1;
   const unassigned = gifts.filter(gift => !event.people.includes(gift.personId));
   return (
@@ -150,15 +172,19 @@ export function EventDetail() {
 
             {budgetsEnabled && <div className="event-summary-budget" role="group" aria-label="Occasion budget">
               <div className="event-budget-head">
-                <span>{t("Budget","Бюджет")}</span>
-                <span><strong>{currency(spent)}</strong> <small>of {currency(budget)} spent</small></span>
+                <span>{t("Budget overview","Бюджет события")}</span>
               </div>
-              <div className="event-budget-track" role="progressbar" aria-label="Budget spent"
+              <div className="event-budget-breakdown">
+                <div><small>{t("Planned","Запланировано")}</small><strong>{currency(planned)}</strong></div>
+                <div><small>{t("Bought","Куплено")}</small><strong>{currency(spent)}</strong></div>
+                <div><small>{allLimitsSet?t("Total limits","Сумма лимитов"):t("Limits set","Заданы лимиты") + ` (${limitsCount}/${event.people.length})`}</small><strong>{hasLimits?currency(budget):t("Not set","Не задана")}</strong></div>
+              </div>
+              {allLimitsSet&&<div className="event-budget-track" role="progressbar" aria-label="Budget planned"
                 aria-valuemin={0} aria-valuemax={Math.max(budget, 1)}
-                aria-valuenow={Math.min(spent,Math.max(budget,1))}>
-                <span style={{width:`${budget ? Math.min(100,spent/budget*100) : spent ? 100 : 0}%`}}/>
-              </div>
-              {spent > budget && <p className="event-budget-warning">{currency(spent-budget)} over budget</p>}
+                aria-valuenow={Math.min(planned,Math.max(budget,1))}>
+                <span style={{width:`${budget ? Math.min(100,planned/budget*100) : planned ? 100 : 0}%`}}/>
+              </div>}
+              {allLimitsSet&&planned > budget && <p className="event-budget-warning">{currency(planned-budget)} {t("planned above total limits","запланировано сверх суммы лимитов")}</p>}
             </div>}
           </div>}
         </div>
@@ -170,7 +196,6 @@ export function EventDetail() {
           {event.people.map(personId => (
             <GiftGroup key={personId} person={data.people.find(p => p.id===personId)}
               items={giftsFor(data,event.id,personId)} limit={event.budgets[personId]} data={data}
-              onEdit={gift=>openGiftPreview(gift.id)}
               onView={gift=>openGiftPreview(gift.id)}
               onChooseIdeas={()=>setUi({giftPickerEventId:event.id,giftPickerPersonId:personId})}
 />
@@ -185,7 +210,7 @@ export function EventDetail() {
         <section className="event-needs-attention">
           <h2>Needs attention</h2>
           <p>These gifts are not assigned to a current recipient. Edit them to repair their links.</p>
-          <GiftShelf gifts={unassigned} data={data} onEdit={gift=>openGiftPreview(gift.id)} onView={gift=>openGiftPreview(gift.id)}/>
+          <GiftShelf gifts={unassigned} data={data} onView={gift=>openGiftPreview(gift.id)}/>
         </section>
       )}
 
@@ -280,7 +305,7 @@ export function PersonDetail() {
             <div className="smallcards-grid person-gift-collection">
               {ideas.map((idea) => (
                 <Product key={idea.id} item={idea}
-                  onClick={() => openEditor({ type:"idea", id:idea.id })}/>
+                  onClick={() => openGiftPreview(`idea:${idea.id}`)}/>
               ))}
             </div>
           ) : <EmptyState compact Icon={GiftIcon} title={t("No gift ideas yet","Пока нет идей подарков")}

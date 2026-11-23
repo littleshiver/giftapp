@@ -39,8 +39,8 @@ async function planGiftOnRealEvent(page: Page) {
   await page.locator('.calendar-event-card[data-guided-event="true"]').click();
   await expect(page).toHaveURL(/#\/events\/birthday:/);
   await expect(page.locator(".event-overview")).toBeVisible();
-  await expect(page.locator(".event-gift-empty")).toContainText("No gifts planned yet");
-  await page.locator(".event-gift-empty").getByRole("button",{name:"Choose a gift"}).click();
+  await expect(page.locator(".recipient-gifts-empty")).toContainText("No gifts yet");
+  await page.getByRole("button",{name:/Choose a gift for/}).click();
   await expect(page.getByRole("dialog", { name: /^Gift for / })).toBeVisible();
   await page.getByRole("dialog").getByRole("button", { name: "Use idea Throw blanket" }).click();
   await expect(page.getByRole("dialog", { name: "Add gift" })).toBeVisible();
@@ -97,7 +97,7 @@ test("guest uses real Home/FAB, People, swipe gestures, Events and read-only gif
   await expect(preview).toContainText("Throw blanket");
   await expect(preview).toContainText("New person's birthday");
   await expect(preview.getByRole("button", { name: "Edit gift" })).toBeVisible();
-  await preview.getByRole("button", { name: "Mark as bought" }).click();
+  await preview.getByRole("button",{name:/as Bought/}).click();
   expect((await readData(page)).gifts[0].status).toBe("bought");
   await expect(finishing(page)).toContainText("You've got this!");
   await expect(finishing(page)).toContainText("Your plans are saved to your account");
@@ -303,8 +303,8 @@ test("an empty occasion guides people to saved ideas, then a gift opens on its o
   await page.locator('[data-guided-event="true"]').click();
   await coach(page).getByRole("button",{name:"Skip tutorial"}).click();
   const group=page.locator(".event-recipient-group");
-  await expect(group.locator(".event-gift-empty")).toContainText("No gifts planned yet");
-  await group.locator(".event-gift-empty").getByRole("button",{name:"Choose a gift"}).click();
+  await expect(group.locator(".recipient-gifts-empty")).toContainText("No gifts yet");
+  await group.getByRole("button",{name:/Choose a gift for/}).click();
   const picker=page.getByRole("dialog",{name:/^Gift for /});
   await expect(picker.getByRole("button",{name:/Saved ideas/})).toBeVisible();
   await expect(picker.getByRole("button",{name:/From Givvy/})).toBeVisible();
@@ -315,6 +315,6 @@ test("an empty occasion guides people to saved ideas, then a gift opens on its o
   const status=page.locator(".gift-preview-top-status");
   await expect(status).toBeVisible();
   await status.getByRole("button",{name:/Mark Throw blanket as Bought/}).click();
-  await expect(status.locator(".gift-status-icon.is-bought")).toBeVisible();
+  await expect(status.getByRole("button",{name:/as Bought/})).toHaveAttribute("aria-pressed","true");
   await expect(page.getByRole("dialog",{name:"Gift details"}).getByRole("button",{name:"Edit gift"})).toBeVisible();
 });

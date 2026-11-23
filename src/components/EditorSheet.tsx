@@ -61,13 +61,11 @@ export function EditorSheet({standalone=false,editId}:{standalone?:boolean;editI
   const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   const formRef = useRef<HTMLFormElement>(null);
   const [eventId, setEventId] = useState(
-      g?.eventId ||
-        (editor?.type === "idea" && !editor.id ? editor.eventId || "" : editor?.eventId) ||
-        (editor?.type === "idea" && !editor.id ? "" : data.events.find((e) =>
-          e.people.includes(editor?.personId || prefill?.personId || ""),
-        )?.id) ||
-        (editor?.type === "idea" && !editor.id ? "" : data.events.length === 1 ? data.events[0].id : "") ||
-        "",
+      editor?.type === "idea"
+        ? (editor.eventId || "")
+        : (g?.eventId || editor?.eventId ||
+          data.events.find(e=>e.people.includes(editor?.personId || prefill?.personId || ""))?.id ||
+          (data.events.length===1?data.events[0].id:"") || ""),
     ),
     [personId, setPersonId] = useState(
       g?.personId ||
@@ -81,7 +79,7 @@ export function EditorSheet({standalone=false,editId}:{standalone?:boolean;editI
   if (!editor) return null;
   const { type, id } = editor;
   const newUnifiedGift = type === "idea" && !id;
-  const saveAsGift = type === "gift" || (newUnifiedGift && Boolean(eventId));
+  const saveAsGift = type === "gift" || (type === "idea" && Boolean(eventId));
   const heading =
       type === "person"
         ? id
@@ -218,15 +216,18 @@ export function EditorSheet({standalone=false,editId}:{standalone?:boolean;editI
         if (saveAsGift) {
           const gift: Gift = {
             ...value,
+            id: type === "idea" && id ? uid() : value.id,
             eventId,
             status: text("status") === "bought" ? "bought" : "to_buy",
-            sourceIdeaId: g?.sourceIdeaId || (
+            sourceIdeaId: g?.sourceIdeaId || (type==="idea" && id ? id : undefined) || (
               prefill && data.ideas.some((idea) => idea.id === prefill.id) ? prefill.id : undefined
             ),
           };
           next.gifts = type === "gift" && id
             ? data.gifts.map((g) => (g.id === id ? gift : g))
             : [...data.gifts, gift];
+          // Planning an existing idea creates a separate snapshot, without
+          // changing the saved idea or assigning it to a new recipient.
         } else
           next.ideas = id
             ? data.ideas.map((i) => (i.id === id ? value : i))
@@ -247,7 +248,7 @@ export function EditorSheet({standalone=false,editId}:{standalone?:boolean;editI
           next.gifts.find(gift => gift.id === id)?.status === "bought") {
           updateTour({ step: "complete" });
         }
-        if(saveAsGift && !id && !tour && next.gifts.length) {
+        if(saveAsGift && (type==="idea" || !id) && !tour && next.gifts.length) {
           navigate(`/gifts/${next.gifts[next.gifts.length-1].id}`);
         }
         notify("Saved ✓");
@@ -481,7 +482,7 @@ export function EditorSheet({standalone=false,editId}:{standalone?:boolean;editI
           </>
         ) : (
           <>
-            {newUnifiedGift && (
+            {type === "idea" && (
               <Field label={t("Save to","Сохранить в")}>
                 <select className="control" aria-label={t("Save to","Сохранить в")} value={eventId}
                   onChange={(e) => {
@@ -490,9 +491,9 @@ export function EditorSheet({standalone=false,editId}:{standalone?:boolean;editI
                     const occasion = data.events.find((e) => e.id === id);
                     setPersonId(occasion?.people.includes(personId) ? personId : occasion?.people[0] || "");
                   }}>
-                  <option value="">Ideas · save for later</option>
+                  <option value="">{t("Ideas · save for later","Идеи · на потом")}</option>
                   {data.events.map((occasion) => (
-                    <option key={occasion.id} value={occasion.id}>{occasion.name} · planned gift</option>
+                    <option key={occasion.id} value={occasion.id}>{occasion.name}</option>
                   ))}
                 </select>
               </Field>
@@ -630,68 +631,7 @@ export function EditorSheet({standalone=false,editId}:{standalone?:boolean;editI
                 placeholder="Color, size or where to buy…"
               />
             </Field>
-            {type === "idea" && idea && (
-              <Button data-ph="idea-add-to-occasion"
-                type="button"
-                variant="secondary"
-                className="button-full"
-                disabled={busy}
-                onClick={async () => {
-                  if (!formRef.current) return;
-                  const fd = new FormData(formRef.current),
-                    price = Number(fd.get("price"));
-                  if (!Number.isFinite(price) || price < 0) {
-                    notify("Enter a valid non-negative amount.");
-                    return;
-                  }
-                  setBusy(true);
-                  try {
-                    let image = croppedPhoto || idea.image;
-                    const file = fd.get("imageFile");
-                    if (file instanceof File && file.size)
-                      image = await readImage(file);
-                    openEditor({
-                      type: "gift",
-                      personId: String(fd.get("personId") || ""),
-                      prefill: {
-                        ...idea,
-                        name: String(fd.get("name") || idea.name),
-                        note: String(fd.get("note") || ""),
-                        link: String(fd.get("link") || ""),
-                        personId: String(fd.get("personId") || ""),
-                        price,
-                        image,
-                      },
-                    });
-                  } catch (error) {
-                    notify((error as Error).message);
-                  } finally {
-                    setBusy(false);
-                  }
-                }}
-              >
-                <GiftIcon size={16} />
-                Use for an occasion
-              </Button>
-            )}
-            {saveAsGift && (
-              <>
-                <p className="section-note">
-                  An occasion gift is tracked as To buy or Bought.
-                  Save to Ideas instead to keep an unassigned idea for later.
-                </p>
-                {newUnifiedGift && eventId && (
-                  <button type="button" className="ghostbutton button-full"
-                    data-ph="unified-gift-saved-ideas"
-                    onClick={() => {
-                      closeEditor();
-                      setUi({ giftPickerEventId: eventId });
-                    }}>
-                    Choose from saved ideas
-                  </button>
-                )}
-              </>
-            )}
+
           </>
         )}
         {saveError && (
@@ -702,7 +642,7 @@ export function EditorSheet({standalone=false,editId}:{standalone?:boolean;editI
         <div className="sheet-cta">
           <Button data-ph={`editor-save-${type}`} className="button-full" type="submit" disabled={busy}>
             <Check size={17} />
-            {busy ? "Saving…" : newUnifiedGift ? (saveAsGift ? "Add to occasion" : "Save idea") : `Save ${type}`}
+            {busy ? t("Saving…","Сохраняем…") : type === "idea" ? (saveAsGift ? t("Add to occasion","Добавить к событию") : t("Save idea","Сохранить идею")) : `Save ${type}`}
           </Button>
           {id && (
             <Button data-ph={`editor-delete-${type}`}

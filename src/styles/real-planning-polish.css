@@ -1,0 +1,92 @@
+/* Real-planning pass: recipient accounting and scalable list presentation. */
+.event-detail-v2 .event-budget-breakdown,
+.event-detail-v2 .recipient-budget-stats{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:100%;
+}
+.event-detail-v2 .event-budget-breakdown>div,
+.event-detail-v2 .recipient-budget-stats>div {display:flex;flex-direction:column;gap:5px;min-width:0;}
+.event-detail-v2 .event-budget-breakdown small,
+.event-detail-v2 .recipient-budget-stats span {font-size:11px;font-weight:640;color:#7d8490;line-height:1.3;}
+.event-detail-v2 .event-budget-breakdown strong,
+.event-detail-v2 .recipient-budget-stats strong {font-size:clamp(12px,3.5vw,15px);font-weight:840;color:#303840;letter-spacing:-.15px;line-height:1.26;overflow-wrap:anywhere;}
+.event-detail-v2 .event-summary-budget {display:grid;gap:12px!important;}
+.event-detail-v2 .event-summary-budget .event-budget-head {margin:0!important;}
+.event-detail-v2 .event-budget-breakdown {padding:0 0 1px;}
+.event-detail-v2 .event-budget-track {margin:0!important;}
+.event-detail-v2 .event-person-gifts.event-recipient-group {
+  padding:14px 14px 15px;margin:0;background:#fff;border:1px solid #ede9ef;
+  border-radius:21px;box-shadow:0 3px 17px rgba(27,31,38,.045);min-width:0;
+}
+.event-detail-v2 .event-gift-groups {gap:12px;}
+.event-detail-v2 .event-gifts-title{margin:9px 0 1px;font-size:17px;}
+.event-detail-v2 .recipient-group-top {display:flex;gap:9px;align-items:center;justify-content:space-between;min-width:0;}
+.event-detail-v2 .recipient-accordion-toggle {
+  display:flex;align-items:center;gap:11px;flex:1;min-width:0;padding:0;
+  border:0;background:transparent;text-align:left;cursor:pointer;color:#2b333a;min-height:46px;
+}
+.event-detail-v2 .recipient-accordion-toggle .event-person-avatar {
+  flex:0 0 43px;width:43px;height:43px;border-radius:14px;overflow:hidden;
+}
+.event-detail-v2 .recipient-group-name {display:grid;min-width:0;flex:1;gap:3px;}
+.event-detail-v2 .recipient-group-name strong {font-size:16px;line-height:1.2;font-weight:845;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.event-detail-v2 .recipient-group-name small {font-size:12px;font-weight:620;color:#7d8390;}
+.event-detail-v2 .recipient-collapse-chevron {color:#77707f;flex:0 0 auto;transform:rotate(0);transition:transform .2s;}
+.event-detail-v2 .is-collapsed .recipient-collapse-chevron {transform:rotate(-90deg);}
+.event-detail-v2 .recipient-quick-add {
+  display:inline-flex;align-items:center;justify-content:center;gap:5px;flex:0 0 auto;
+  min-height:40px;padding:8px 10px;border:1px solid #ece4f2;border-radius:12px;
+  color:#735b8a;background:#f5f0f9;font:inherit;font-size:12px;font-weight:800;cursor:pointer;
+}
+.event-detail-v2 .recipient-quick-add svg {display:block;flex:none;}
+.event-detail-v2 .recipient-budget-summary {display:grid;gap:10px;margin:14px 0 0;padding:12px;
+  border-radius:15px;background:#f7f8fa;min-width:0;}
+.event-detail-v2 .recipient-budget-summary.is-over-budget {background:#fcf2f2;}
+.event-detail-v2 .recipient-budget-stats {gap:9px;}
+.event-detail-v2 .recipient-budget-stats strong {font-size:clamp(12px,3.5vw,15px);}
+.event-detail-v2 .recipient-budget-track {display:flex;width:100%;height:8px;overflow:hidden;
+  border-radius:999px;background:#e7e9ed;}
+.event-detail-v2 .recipient-budget-track>span {display:block;height:100%;flex:none;min-width:0;}
+.event-detail-v2 .recipient-budget-paid {background:#92b8a3;border-radius:999px 0 0 999px;}
+.event-detail-v2 .recipient-budget-unpaid {background:#bca3dc;border-radius:0 999px 999px 0;}
+.event-detail-v2 .recipient-budget-footnote {display:flex;align-items:center;gap:5px;margin:0;
+  font-size:11px;line-height:1.35;font-weight:650;color:#777a83;}
+.event-detail-v2 .is-over-budget .recipient-budget-footnote {color:#a3474a;font-weight:760;}
+.event-detail-v2 .recipient-group-body {padding-top:15px;}
+.event-detail-v2 .recipient-gifts-empty {padding:16px 9px;margin:0;border-radius:13px;text-align:center;
+  background:#fbfafc;font-size:13px;line-height:1.5;color:#81838c;}
+.event-detail-v2 .detail-gifts.event-gift-shelf,
+.event-detail-v2 .event-gift-shelf.is-scrollable {display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:11px!important;overflow:visible!important;scroll-snap-type:none!important;
+  margin:0!important;padding:0!important;width:100%;min-width:0;}
+.event-detail-v2 .event-gift-shelf .event-gift-entry,
+.event-detail-v2 .event-gift-shelf.is-scrollable > .event-gift-entry {min-width:0;width:100%;max-width:100%;flex:auto;}
+.event-detail-v2 .recipient-show-more {
+  display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:42px;
+  margin-top:11px;padding:10px;border:1px solid #eae6f0;border-radius:13px;
+  background:#faf8fc;color:#6c5480;font:inherit;font-size:13px;font-weight:760;cursor:pointer;
+}
+.event-detail-v2 .recipient-show-more[aria-expanded="true"] svg {transform:rotate(180deg);}
+.event-detail-v2 .event-gift-filter {margin-bottom:13px;}
+.event-detail-v2 .recipient-accordion-toggle:focus-visible,.event-detail-v2 .recipient-quick-add:focus-visible,
+.event-detail-v2 .recipient-show-more:focus-visible {outline:3px solid #a18cba;outline-offset:2px;}
+@media(max-width:360px) {
+  .event-detail-v2 .event-person-gifts.event-recipient-group {padding:12px 11px;}
+  .event-detail-v2 .recipient-accordion-toggle .event-person-avatar {width:37px;height:37px;flex-basis:37px;}
+  .event-detail-v2 .recipient-quick-add {padding:8px;}
+  .event-detail-v2 .recipient-quick-add span {display:none;}
+  .event-detail-v2 .recipient-quick-add {width:40px;}
+  .event-detail-v2 .recipient-budget-summary {padding:10px;}
+}
+@media(prefers-reduced-motion:reduce){.event-detail-v2 .recipient-collapse-chevron{transition:none;}}
+
+/* Avatar remains a direct link to the profile; name is the independent collapse control. */
+.event-detail-v2 .recipient-profile-link{display:grid;place-items:center;flex:0 0 43px;width:43px;height:43px;
+  border-radius:14px;overflow:hidden;text-decoration:none;min-width:0;}
+.event-detail-v2 .recipient-profile-link .event-person-avatar {width:100%;height:100%;border-radius:14px;}
+.event-detail-v2 .recipient-accordion-toggle{gap:6px;flex:1;}
+.event-detail-v2 .recipient-accordion-toggle.event-person-gifts-identity{gap:8px;}
+.event-detail-v2 .recipient-profile-link:focus-visible {outline:3px solid #a18cba;outline-offset:2px;}
+@media(max-width:360px){
+  .event-detail-v2 .recipient-profile-link{flex-basis:37px;width:37px;height:37px;}
+}

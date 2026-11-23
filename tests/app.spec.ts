@@ -14,7 +14,7 @@ test("Home opens gifts in a product sheet and preserves occasion actions",async(
   await page.getByRole("button",{name:"View gift Scented candle"}).click();
   const sheet=page.getByRole("dialog",{name:"Gift details"});
   await expect(sheet).toContainText("Anna's birthday");
-  await expect(sheet.locator(".gift-preview-top-status .gift-status-icon")).toBeVisible();
+  await expect(sheet.locator(".gift-purchase-toggle button[aria-pressed=true]")).toBeVisible();
   await expect(sheet.getByRole("button",{name:"Edit gift"})).toBeVisible();
   await sheet.getByRole("button",{name:"Close"}).click();
   await page.getByRole("link",{name:"Open Anna's birthday occasion"}).click();
@@ -53,12 +53,12 @@ test("FAB gift ideas crop photos, convert into independent occasion gifts, and e
   expect(saved.eventId).toBeUndefined();
   await page.goto("/#/ideas");
   await page.getByRole("button",{name:"Saved",exact:true}).click();
-  await page.getByRole("button",{name:"Edit idea A photo idea"}).click();
-  await page.getByRole("button",{name:"Use for an occasion"}).click();
-  await expect(page.getByLabel("Gift name",{exact:true})).toHaveValue("A photo idea");
-  await page.getByRole("combobox",{name:"Occasion",exact:true}).selectOption("e1");
+  await page.getByRole("button",{name:"View idea A photo idea"}).click();
+  await page.getByRole("dialog",{name:"Gift idea"}).getByRole("button",{name:"Edit idea"}).click();
+  await expect(page.getByLabel("Idea name",{exact:true})).toHaveValue("A photo idea");
+  await page.getByRole("combobox",{name:"Save to",exact:true}).selectOption("e1");
   await page.getByRole("combobox",{name:"For",exact:true}).selectOption("p1");
-  await page.getByRole("button",{name:"Save gift",exact:true}).click();
+  await page.getByRole("button",{name:"Add to occasion",exact:true}).click();
   await expect(page.getByRole("dialog",{name:"Gift details"})).toContainText("A photo idea");
   await page.getByRole("dialog",{name:"Gift details"}).getByRole("button",{name:"Close"}).click();
   const latest=await readData(page);
@@ -167,7 +167,7 @@ test("Discover like opens the recipient sheet, a canceled like does not save, an
   await expect(page.locator(".ideas-saved-grid .gift-card")).toHaveCount(1);
   await page.getByRole("button", { name: "Anna", exact: true }).click();
   await expect(page.locator(".ideas-saved-grid .gift-card")).toHaveCount(1);
-  await expect(page.getByRole("button", { name: "Edit idea Ceramic mug" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "View idea Ceramic mug" })).toBeVisible();
   await page.getByRole("navigation").getByRole("link", { name: "Home", exact: true }).click();
   await page.getByRole("navigation").getByRole("link", { name: "Ideas", exact: true }).click();
   await page.getByRole("button", { name: "Saved", exact: true }).click();
@@ -212,7 +212,8 @@ test("Discover liking a suggestion for a person uses their Saved filter and avoi
   await page.getByRole("button", { name: "Saved", exact: true }).click();
   await page.getByRole("button", { name: "Mira", exact: true }).click();
   await expect(page.locator(".ideas-saved-grid .gift-card")).toHaveCount(1);
-  await page.getByRole("button", { name: "Edit idea Ceramic mug" }).click();
+  await page.getByRole("button", { name: "View idea Ceramic mug" }).click();
+  await page.getByRole("dialog", { name: "Gift idea" }).getByRole("button",{name:"Edit idea"}).click();
   await expect(page.getByRole("dialog", { name: "Edit idea" })).toBeVisible();
 });
 
@@ -259,7 +260,7 @@ test("legacy migration notice, original data exports, v3 restore and invalid bac
   ).toBeNull();
   await page.goto("/#/ideas");
   await page.getByRole("button", { name: "Saved", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Edit idea Original idea" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "View idea Original idea" })).toBeVisible();
   await page.goto("/#/settings");
   await page.getByRole("button", { name: /Export data/ }).click();
   const download = page.waitForEvent("download");
@@ -276,7 +277,8 @@ test("corrupt data and quota errors never overwrite storage or claim success", a
   await seed(page);
   await page.goto("/#/ideas");
   await page.getByRole("button", { name: "Saved", exact: true }).click();
-  await page.getByRole("button", { name: "Edit idea Ceramic mug" }).click();
+  await page.getByRole("button", { name: "View idea Ceramic mug" }).click();
+  await page.getByRole("dialog",{name:"Gift idea"}).getByRole("button",{name:"Edit idea"}).click();
   await page.getByLabel("Idea name", { exact: true }).fill("Unsaved");
   await page.evaluate(() => {
     Storage.prototype.setItem = () => {
@@ -921,7 +923,7 @@ test("gift cards show a read-only status and editing starts inside the product s
   await expect(home.locator(".gift-status-icon.is-to-buy")).toBeVisible();
   await home.getByRole("button",{name:"View gift Scented candle"}).click();
   await page.getByRole("dialog",{name:"Gift details"}).getByRole("button",{name:"Mark Scented candle as Bought"}).click();
-  await expect(page.locator(".gift-preview-top-status .gift-status-icon.is-bought")).toBeVisible();
+  await expect(page.locator(".gift-purchase-toggle button[aria-label=\"Mark Scented candle as Bought\"][aria-pressed=true]")).toBeVisible();
 });
 test("root page headers omit redundant Givvy overlines and detail pages share a back pattern", async ({ page }) => {
   await seed(page);
@@ -980,7 +982,7 @@ test("Home gift fallback image and top-right status open a full gift page",async
   expect(geometry.size).toBeLessThanOrEqual(34);
   await home.getByRole("button",{name:"View gift Scented candle"}).click();
   await expect(page.getByRole("dialog",{name:"Gift details"})).toContainText("Scented candle");
-  await expect(page.locator(".gift-preview-top-status .gift-status-icon")).toBeVisible();
+  await expect(page.locator(".gift-purchase-toggle button[aria-pressed=true]")).toBeVisible();
 });
 test("Discover exhausts its finite pool and can explicitly revisit dislikes", async ({ page }) => {
   await seed(page);
@@ -1008,9 +1010,10 @@ test("FAB-created gift idea is available under Saved → Anyone and remains edit
   await page.getByLabel("Gift name").fill("A new handmade gift");
   await page.getByRole("button", { name: "Save idea", exact: true }).click();
   await page.getByRole("button", { name: "Anyone", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Edit idea A new handmade gift" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "View idea A new handmade gift" })).toBeVisible();
   expect((await readData(page)).ideas.find(i => i.name === "A new handmade gift").personId).toBe("");
-  await page.getByRole("button", { name: "Edit idea A new handmade gift" }).click();
+  await page.getByRole("button", { name: "View idea A new handmade gift" }).click();
+  await page.getByRole("dialog",{name:"Gift idea"}).getByRole("button",{name:"Edit idea"}).click();
   await expect(page.getByRole("dialog", { name: "Edit idea" })).toBeVisible();
 });
 
@@ -1183,7 +1186,7 @@ test("Event hero shows contextual cover, date, navigation and spent-only budget"
   await expect(budget).toContainText("1 900 ₽");
   await expect(budget).toContainText("10 000 ₽");
   const progress = budget.getByRole("progressbar");
-  await expect(progress).toHaveAttribute("aria-valuenow","1900");
+  await expect(progress).toHaveAttribute("aria-valuenow","7400");
   await expect(progress).toHaveAttribute("aria-valuemax","10000");
   await page.getByRole("button",{name:"To buy",exact:true}).click();
   await expect(page.locator(".event-single-gifts .event-gift-entry")).toHaveCount(2);
@@ -1205,14 +1208,19 @@ test("Multi-person Event filters each recipient independently and scrolls 3+ gif
   await expect(page.locator(".event-avatar-stack .event-stack-avatar")).toHaveCount(3);
   const anna = recipients.first();
   await expect(anna.locator(".event-gift-entry")).toHaveCount(3);
-  await expect(anna.locator(".event-gift-shelf")).toHaveAttribute("data-scrollable","true");
+  await expect(anna.locator(".event-gift-shelf")).toHaveAttribute("data-scrollable","false");
   const row = anna.locator(".event-gift-shelf");
   const dimensions = await row.evaluate(el=>({
     client:el.clientWidth, content:el.scrollWidth,
+    display:getComputedStyle(el).display,
     overflow:getComputedStyle(el).overflowX,
   }));
-  expect(dimensions.content).toBeGreaterThan(dimensions.client);
-  expect(dimensions.overflow).toBe("auto");
+  expect(dimensions.display).toBe("grid");
+  expect(dimensions.content).toBeLessThanOrEqual(dimensions.client+2);
+  expect(dimensions.overflow).not.toBe("auto");
+  await anna.getByRole("button",{name:"Collapse Anna"}).click();
+  await expect(anna.locator(".event-gift-entry")).toHaveCount(0);
+  await anna.getByRole("button",{name:"Expand Anna"}).click();
   await anna.getByRole("button",{name:"Bought",exact:true}).click();
   await expect(anna.locator(".event-gift-entry")).toHaveCount(0);
   const denis = recipients.nth(1);
@@ -1342,7 +1350,7 @@ test("Multi-recipient headings and avatar portraits open the matching People pro
   const groupBorders = await page.locator(".event-recipient-group").evaluateAll(
     elements => elements.map(el => getComputedStyle(el).borderBottomWidth),
   );
-  expect(groupBorders).toEqual(["0px", "0px", "0px"]);
+  expect(groupBorders).toEqual(["1px", "1px", "1px"]);
 
   await page.locator(".event-stack-link[aria-label=\"Open Denis's profile\"]").click();
   await expect(page).toHaveURL(/#\/people\/p2$/);

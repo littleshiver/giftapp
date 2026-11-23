@@ -22,8 +22,8 @@ test("empty occasion can create its first person directly from the recipient pic
   expect(person).toBeTruthy();
   expect(d.events.find(e=>e.id==="e2").people).toContain(person.id);
   await page.goto("/#/events/e2");
-  await expect(page.locator(".event-gift-empty")).toBeVisible();
-  await page.locator(".event-gift-empty").getByRole("button",{name:"Choose a gift"}).click();
+  await expect(page.locator(".recipient-gifts-empty")).toBeVisible();
+  await page.getByRole("button",{name:/Choose a gift for Alex/}).click();
   await expect(page.getByRole("dialog",{name:"Gift for Alex"})).toBeVisible();
   await expect(page.getByRole("button",{name:/Saved ideas/})).toBeVisible();
   await expect(page.getByRole("button",{name:/From Givvy/})).toBeVisible();
@@ -32,7 +32,7 @@ test("empty occasion can create its first person directly from the recipient pic
 test("the gift picker isolates personal saved ideas from service suggestions",async({page})=>{
   await seed(page);
   await page.goto("/#/events/e1");
-  await page.getByRole("button",{name:"Choose another gift"}).click();
+  await page.getByRole("button",{name:/Choose a gift for Anna/}).click();
   const dialog=page.getByRole("dialog",{name:"Gift for Anna"});
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole("button",{name:/Saved ideas/})).toHaveAttribute("aria-pressed","true");

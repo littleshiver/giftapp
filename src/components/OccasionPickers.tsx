@@ -56,7 +56,7 @@ export function OccasionRecipientPicker() {
 
 /** A single gift chooser for both Home and occasion details. */
 export function OccasionGiftPicker() {
-  const {data,ui,setUi,openEditor}=useApp();
+  const {data,ui,setUi,openEditor,openGiftPreview}=useApp();
   const event=data.events.find(e=>e.id===ui.giftPickerEventId);
   const [personId,setPersonId]=useState("");
   const [source,setSource]=useState<"saved"|"suggested">("saved");
@@ -111,11 +111,24 @@ export function OccasionGiftPicker() {
           </div>
           {source==="saved" ? savedIdeas.length?
             <><p className="gift-picker-intro">{t("Your saved ideas for this person (and ideas for anyone).","Ваши идеи для этого человека и универсальные идеи.")}</p>
-              <div className="gift-picker-ideas">{savedIdeas.map(idea=><Product key={idea.id} item={idea} showEdit={false} actionLabel={`Use idea ${idea.name}`} onClick={()=>useSaved(idea)}/>)}</div></>:
+              <div className="gift-picker-ideas">{savedIdeas.map(idea=><div key={idea.id} className="gift-picker-option">
+  <Product item={idea} showEdit={false} onClick={()=>{close();openGiftPreview(`idea:${idea.id}`,{eventId:event.id,personId});}}/>
+  <button type="button" className="gift-picker-select-idea" aria-label={`Use idea ${idea.name}`} onClick={()=>useSaved(idea)}>
+    {t("Choose gift","Выбрать")}
+  </button>
+</div>)}</div></>:
             <EmptyState compact Icon={Lightbulb} title={t("No saved ideas yet","Пока нет сохранённых идей")} description={t("Explore Givvy suggestions or add a gift manually.","Посмотрите предложения Givvy или добавьте подарок сами.")} action={{label:t("See Givvy suggestions","Посмотреть предложения"),onClick:()=>setSource("suggested")}}/>:
             suggested.length?
             <><p className="gift-picker-intro">{t("Suggestions from Givvy, separate from the ideas you've saved.","Предложения Givvy — отдельно от ваших сохранённых идей.")}</p>
-              <div className="gift-picker-ideas">{suggested.map(item=><Product key={item.id} item={ideaFromDiscovery(currencyCode==="RUB"?item:{...item,price:0},personId,item.id)} showEdit={false} actionLabel={`Use suggestion ${item.name}`} onClick={()=>useSuggestion(item)}/>)}</div></>:
+              <div className="gift-picker-ideas">{suggested.map(item=>{
+  const suggestion=ideaFromDiscovery(currencyCode==="RUB"?item:{...item,price:0},personId,item.id);
+  return <div key={item.id} className="gift-picker-option">
+    <Product item={suggestion} showEdit={false} onClick={()=>{close();openGiftPreview(`idea:${item.id}`,{eventId:event.id,personId,prefill:suggestion});}}/>
+    <button type="button" className="gift-picker-select-idea" aria-label={`Use suggestion ${item.name}`} onClick={()=>useSuggestion(item)}>
+      {t("Choose gift","Выбрать")}
+    </button>
+  </div>;
+})}</div></>:
             <EmptyState compact Icon={GiftIcon} title={t("That's all our suggestions for now","Пока больше нет предложений")} description={t("You can create a gift of your own.","Можно добавить собственный подарок.")} action={{label:t("Add a new gift","Добавить подарок"),onClick:addGift}}/>
           }
           <button data-ph="gift-picker-new" type="button" className="button-primary gift-picker-new occasion-picker-create" onClick={addGift}><Plus size={16}/>{t("Add a new gift","Добавить свой подарок")}</button>

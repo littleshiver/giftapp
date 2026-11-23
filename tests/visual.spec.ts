@@ -365,7 +365,7 @@ test("shared gift card stays consistent in group occasions and the saved-idea pi
     await expect(page.locator(".event-recipient-group")).toHaveCount(3);
     const groupBackground = await page.locator(".event-recipient-group").first()
       .evaluate((el) => getComputedStyle(el).backgroundColor);
-    expect(groupBackground).toBe("rgba(0, 0, 0, 0)");
+    expect(groupBackground).toBe("rgb(255, 255, 255)");
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
     expect(overflow).toBeLessThanOrEqual(1);
     await page.screenshot({
