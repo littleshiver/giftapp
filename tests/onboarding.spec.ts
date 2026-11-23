@@ -97,7 +97,7 @@ test("guest uses real Home/FAB, People, swipe gestures, Events and read-only gif
   await expect(preview).toContainText("Throw blanket");
   await expect(preview).toContainText("New person's birthday");
   await expect(preview.getByRole("button", { name: "Edit gift" })).toBeVisible();
-  await preview.getByRole("button", { name: "Mark as bought" }).click();
+  await preview.getByRole("button",{name:/as Bought/}).click();
   expect((await readData(page)).gifts[0].status).toBe("bought");
   await expect(finishing(page)).toContainText("You've got this!");
   await expect(finishing(page)).toContainText("Your plans are saved to your account");

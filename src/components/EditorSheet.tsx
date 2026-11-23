@@ -226,8 +226,8 @@ export function EditorSheet({standalone=false,editId}:{standalone?:boolean;editI
           next.gifts = type === "gift" && id
             ? data.gifts.map((g) => (g.id === id ? gift : g))
             : [...data.gifts, gift];
-          // A planned gift is a separate snapshot. An edited saved idea stays saved.
-          if(type==="idea" && id)next.ideas=data.ideas.map(i=>i.id===id?value:i);
+          // Planning an existing idea creates a separate snapshot, without
+          // changing the saved idea or assigning it to a new recipient.
         } else
           next.ideas = id
             ? data.ideas.map((i) => (i.id === id ? value : i))

@@ -177,7 +177,7 @@ export function EventDetail() {
               <div className="event-budget-breakdown">
                 <div><small>{t("Planned","Запланировано")}</small><strong>{currency(planned)}</strong></div>
                 <div><small>{t("Bought","Куплено")}</small><strong>{currency(spent)}</strong></div>
-                <div><small>{t("Total limits","Сумма лимитов")}</small><strong>{!hasLimits?t("Not set","Не задана"):allLimitsSet?currency(budget):`${currency(budget)} · ${limitsCount}/${event.people.length}`}</strong></div>
+                <div><small>{allLimitsSet?t("Total limits","Сумма лимитов"):t("Limits set","Заданы лимиты") + ` (${limitsCount}/${event.people.length})`}</small><strong>{hasLimits?currency(budget):t("Not set","Не задана")}</strong></div>
               </div>
               {allLimitsSet&&<div className="event-budget-track" role="progressbar" aria-label="Budget planned"
                 aria-valuemin={0} aria-valuemax={Math.max(budget, 1)}

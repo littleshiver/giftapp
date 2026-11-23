@@ -56,7 +56,7 @@ test("opening a saved idea is read-only; saving it to an occasion preserves the 
   await edit.getByRole("combobox",{name:"Save to"}).selectOption("e2");
   await edit.getByRole("button",{name:"Add to occasion"}).click();
   const after=await readData(page);
-  expect(after.ideas.find(i=>i.id==="i1")?.name).toBe("Ceramic mug");
+  expect(after.ideas.find(i=>i.id==="i1")).toEqual(before.ideas.find(i=>i.id==="i1"));
   const planned=after.gifts.find(g=>g.name==="Ceramic mug"&&g.eventId==="e2");
   expect(planned).toBeTruthy();
   expect(planned!.id).not.toBe("i1");
