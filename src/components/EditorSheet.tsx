@@ -5,17 +5,19 @@ import {
   Gift as GiftIcon,
   Image as ImageIcon,
   Trash2,
+  ChevronDown,
 } from "lucide-react";
 import { useApp } from "../state/AppState";
 import type { Event, Gift, Idea, Person, Editor } from "../domain/models";
-import { today, uid, currencyUnit, t } from "../utils/format";
+import { today, uid, currencyUnit, t, language } from "../utils/format";
 import { readImage, readAvatar } from "../utils/images";
 import { birthdayFromParts } from "../domain/birthdays";
 import { Button, Field, Sheet } from "./Primitives";
-import { Photo } from "./UI";
+import { Photo, PersonAvatar } from "./UI";
 import { PhotoCropSheet, validatePhoto } from "./PhotoCropSheet";
 import { EmptyState } from "./EmptyState";
 import { UsersRound } from "lucide-react";
+import { occasionKind } from "../domain/occasionKind";
 export function EditorSheet({standalone=false,editId}:{standalone?:boolean;editId?:string}={}) {
   const { data, editor: activeEditor, commit, closeEditor: closeGlobalEditor, notify, openEditor, setUi, tour, updateTour, budgetsEnabled } = useApp(),
     navigate = useNavigate(),
@@ -25,7 +27,8 @@ export function EditorSheet({standalone=false,editId}:{standalone?:boolean;editI
     [chosenPhotoName, setChosenPhotoName] = useState(""),
     [croppedPhoto, setCroppedPhoto] = useState(""),
     [cropSource, setCropSource] = useState(""),
-    [removePersonPhoto, setRemovePersonPhoto] = useState(false);
+    [removePersonPhoto, setRemovePersonPhoto] = useState(false),
+    [recipientsOpen,setRecipientsOpen]=useState(false);
   const editor = standalone && editId ? ({type:"gift",id:editId} as Editor) : activeEditor;
   const closeEditor = () => {
     // Never carry unsaved crop or a pending filename into another editing session.
@@ -46,12 +49,14 @@ export function EditorSheet({standalone=false,editId}:{standalone?:boolean;editI
     p = data.people.find((p) => p.id === editor?.id),
     event = data.events.find((e) => e.id === editor?.id);
   const prefill = editor?.prefill;
+  const [eventRecipients,setEventRecipients]=useState<string[]>(()=>event?.people||[]);
+  const [budgetDraft,setBudgetDraft]=useState<Record<string,string>>(()=>Object.fromEntries(data.people.map(person=>[person.id,event?.budgets[person.id]!==undefined?String(event.budgets[person.id]):String(data.settings.occasionBudget??data.settings.birthdayBudget)])));
   const birthdayPerson = event?.kind === "birthday" && event.people.length === 1
     ? data.people.find((person) => person.id === (event.birthdayPersonId || event.people[0])) : undefined;
   const lockedBirthday = !!birthdayPerson && !!event;
   const birthdayParts = (p?.birthday || "").split("-");
-  const birthMonth = birthdayParts.length === 3 ? birthdayParts[1] : birthdayParts.length === 2 ? birthdayParts[0] : "";
-  const birthDay = birthdayParts.length === 3 ? birthdayParts[2] : birthdayParts.length === 2 ? birthdayParts[1] : "";
+  const birthMonth = birthdayParts.length === 3 ? birthdayParts[1] : birthdayParts.length === 2 ? birthdayParts[0] : editor?.birthdayDate?.slice(5,7) || "";
+  const birthDay = birthdayParts.length === 3 ? birthdayParts[2] : birthdayParts.length === 2 ? birthdayParts[1] : editor?.birthdayDate?.slice(8,10) || "";
   const birthYear = birthdayParts.length === 3 ? birthdayParts[0] : "";
   const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   const formRef = useRef<HTMLFormElement>(null);
@@ -144,8 +149,7 @@ export function EditorSheet({standalone=false,editId}:{standalone?:boolean;editI
       } else if (type === "event") {
         const people = lockedBirthday && birthdayPerson
           ? [birthdayPerson.id]
-          : data.people.filter((person) => fd.get("person_" + person.id) === "on")
-              .map((person) => person.id);
+          : eventRecipients.filter(pid=>data.people.some(p=>p.id===pid));
         if (
           id &&
           data.gifts.some(
@@ -156,16 +160,19 @@ export function EditorSheet({standalone=false,editId}:{standalone?:boolean;editI
             "Reassign or delete their gifts before removing a recipient from this occasion.",
           );
         const budgets = budgetsEnabled ? Object.fromEntries(
-          people
-            .filter((pid) => text("budget_" + pid) !== "")
-            .map((pid) => [pid, number("budget_" + pid)]),
-        ) : Object.fromEntries(Object.entries(event?.budgets || {}).filter(([pid]) => people.includes(pid)));
+          people.filter(pid=>(budgetDraft[pid]??"").trim()!=="")
+            .map(pid=>{
+              const value=Number(budgetDraft[pid]);
+              if(!Number.isFinite(value)||value<0)throw Error("Enter a valid non-negative budget.");
+              return [pid,value];
+            })
+        ) : Object.fromEntries(Object.entries(event?.budgets||{}).filter(([pid])=>people.includes(pid)));
         const value: Event = {
           ...event,
           id: id || uid(),
           name: lockedBirthday ? event?.name || name : name,
           date: lockedBirthday ? event!.date : text("date"),
-          kind: lockedBirthday ? "birthday" : text("kind") as Event["kind"],
+          kind: lockedBirthday ? "birthday" : occasionKind(name,event?.kind),
           people,
           budgets,
           enabled: event?.enabled ?? true,
@@ -376,32 +383,32 @@ export function EditorSheet({standalone=false,editId}:{standalone?:boolean;editI
                   <input className="control" name="name" required maxLength={70}
                     defaultValue={p?.name || ""} placeholder="Their name"/>
                 </Field>
-                <div className="field-label person-birthday-label">{t("Birthday","День рождения")}</div>
+              <div className="field-label person-birthday-label">{t("Birthday","День рождения")}</div>
               <div className="person-birthday-fields">
-                <Field label={t("Month","Месяц")}>
-                  <select className="control" name="birthMonth" defaultValue={birthMonth}>
+                <div className="person-select-wrap">
+                  <select className="control" name="birthMonth" aria-label={t("Birth month","Месяц рождения")} defaultValue={birthMonth}>
                     <option value="">{t("Month","Месяц")}</option>
                     {months.map((m, i) => (
-                      <option key={m} value={String(i + 1).padStart(2, "0")}>{m}</option>
+                      <option key={m} value={String(i + 1).padStart(2, "0")}>{new Intl.DateTimeFormat(language==="ru"?"ru-RU":"en-US",{month:"short"}).format(new Date(2000,i,1))}</option>
                     ))}
                   </select>
-                </Field>
-                <Field label={t("Day","День")}>
-                  <select className="control" name="birthDay" defaultValue={birthDay}>
+                  <ChevronDown size={19} strokeWidth={2.7} aria-hidden="true"/>
+                </div>
+                <div className="person-select-wrap">
+                  <select className="control" name="birthDay" aria-label={t("Birth day","День рождения (число)")} defaultValue={birthDay}>
                     <option value="">{t("Day","День")}</option>
                     {Array.from({length: 31}, (_, i) => (
                       <option key={i + 1} value={String(i + 1).padStart(2, "0")}>{i + 1}</option>
                     ))}
                   </select>
-                </Field>
-                <Field label="Year">
-                  <input className="control" name="birthYear" type="number" min="1900"
-                    max={new Date().getFullYear()} placeholder="Optional" defaultValue={birthYear}/>
-                </Field>
+                  <ChevronDown size={19} strokeWidth={2.7} aria-hidden="true"/>
+                </div>
+                <input className="control" name="birthYear" type="number" inputMode="numeric" min="1900"
+                  aria-label={t("Birth year (optional)","Год рождения (необязательно)")}
+                  max={new Date().getFullYear()} placeholder={t("Year","Год")} defaultValue={birthYear}/>
               </div>
             </div>
             <section className="person-editor-preferences" aria-label="About them">
-              <p className="person-editor-subtitle">{t("Gift preferences","Предпочтения")}</p>
               <Field label={t("Good gifts","Что подарить")}>
                 <textarea className="control textarea" name="likes"
                   defaultValue={[p?.interests, p?.likes].filter(Boolean).join(" · ")}
@@ -421,67 +428,56 @@ export function EditorSheet({standalone=false,editId}:{standalone?:boolean;editI
                 This birthday belongs to {birthdayPerson.name}. Edit their birthday date in People.
               </p>
             ) : (
-            <div className="form-grid">
-              <Field label={t("Date","Дата")}>
-                <input
-                  className="control"
-                  type="date"
-                  name="date"
-                  required
-                  defaultValue={event?.date || today()}
-                />
-              </Field>
-              <Field label={t("Type","Тип")}>
-                <select
-                  className="control"
-                  name="kind"
-                  defaultValue={event?.kind || "birthday"}
-                >
-                  {event?.kind === "birthday" && <option value="birthday">{t("Birthday","День рождения")}</option>}
-                  <option value="holiday">Holiday</option>
-                  <option value="other">Other</option>
-                </select>
-              </Field>
-            </div>
+            <Field label={t("Date","Дата")}>
+              <input className="control" type="date" name="date" required
+                defaultValue={event?.date || editor.date || today()}/>
+            </Field>
             )}
-            <div className="field-label">{budgetsEnabled ? (lockedBirthday ? t("Birthday budget", "Бюджет на день рождения") : t("Recipients and budgets", "Получатели и бюджеты")) + " (" + currencyUnit() + ")" : t("Recipients","Получатели")}</div>
-            {data.people.length ? (
-              (lockedBirthday && birthdayPerson ? [birthdayPerson] : data.people).map((p) => (
-                <div className="recipient-selector" key={p.id}>
-                  <label className="checkline">
-                    <input
-                      aria-label={`Include ${p.name}`}
-                      type="checkbox"
-                      name={"person_" + p.id}
-                      defaultChecked={event?.people.includes(p.id)}
-                      disabled={lockedBirthday}
-                    />
-                    <span>{p.name}</span>
-                  </label>
-                  {budgetsEnabled && <input
-                    className="control"
-                    aria-label={`Budget for ${p.name}`}
-                    type="number"
-                    min="0"
-                    step="1"
-                    name={"budget_" + p.id}
-                    defaultValue={
-                      event
-                        ? (event.budgets[p.id] ?? "")
-                        : (data.settings.occasionBudget ?? data.settings.birthdayBudget)
-                    }
-                  />}
-                </div>
-              ))
-            ) : (
-              <EmptyState compact Icon={UsersRound}
-                title={t("No people yet","Пока нет людей")}
-                description={t("Add a person first. Then they can be included in this occasion.","Сначала создайте человека, чтобы добавить его в событие.")}
-                action={{label:t("Add a person","Добавить человека"),onClick:()=>{closeEditor();openEditor({type:"person",eventId:id});}}}/>
+            {lockedBirthday && birthdayPerson ? (
+              <div className="event-recipient-locked">
+                <PersonAvatar person={birthdayPerson}/>
+                <span>{birthdayPerson.name}</span>
+                {budgetsEnabled && <input className="control" type="number" min="0" step="1"
+                  aria-label={`Budget for ${birthdayPerson.name}`}
+                  value={budgetDraft[birthdayPerson.id]??""}
+                  placeholder={t("Budget","Бюджет")}
+                  onChange={ev=>setBudgetDraft(current=>({...current,[birthdayPerson.id]:ev.target.value}))}/>}
+              </div>
+            ):(
+              <div className="event-recipient-control">
+                <span className="field-label">{t("Recipients","Получатели")}</span>
+                <button className="event-recipient-trigger control" type="button"
+                  aria-expanded={recipientsOpen} aria-controls="event-recipient-options"
+                  onClick={()=>setRecipientsOpen(open=>!open)}>
+                  <span className={eventRecipients.length?"event-recipient-trigger-value":"event-recipient-trigger-placeholder"}>
+                    {eventRecipients.length
+                      ? data.people.filter(p=>eventRecipients.includes(p.id)).map(p=>p.name).join(", ")
+                      : t("Choose recipients","Выберите получателей")}
+                  </span>
+                  <ChevronDown size={19} strokeWidth={2.7} aria-hidden="true"/>
+                </button>
+                {recipientsOpen && <div id="event-recipient-options" className="event-recipient-options" role="group"
+                  aria-label={t("Recipients","Получатели")}>
+                  {data.people.length ? data.people.map(person=>{
+                    const selected=eventRecipients.includes(person.id);
+                    return <div className="event-recipient-option" key={person.id}>
+                      <label>
+                        <input aria-label={`Include ${person.name}`} type="checkbox" checked={selected}
+                          onChange={ev=>setEventRecipients(current=>ev.target.checked?[...current,person.id]:current.filter(id=>id!==person.id))}/>
+                        <span>{person.name}</span>
+                      </label>
+                      {selected && budgetsEnabled && <input className="control" type="number"
+                        aria-label={`Budget for ${person.name}`} min="0" step="1"
+                        value={budgetDraft[person.id]??""}
+                        onChange={ev=>setBudgetDraft(current=>({...current,[person.id]:ev.target.value}))}
+                        placeholder={t("Budget","Бюджет")}/>}
+                    </div>;
+                  }):<EmptyState compact Icon={UsersRound} title={t("No people yet","Пока нет людей")}
+                    description={t("Create a person to select them here.","Создайте человека, чтобы добавить его в событие.")}
+                    action={{label:t("Add person","Добавить человека"),onClick:()=>{closeEditor();openEditor({type:"person",eventId:id});}}}/>}
+                </div>}
+              </div>
             )}
-            {budgetsEnabled && <p className="section-note">
-              {t("Leave a budget blank for not set. Zero is a valid limit.","Оставьте поле пустым, если лимита нет. Ноль — допустимый лимит.")}
-            </p>}
           </>
         ) : (
           <>

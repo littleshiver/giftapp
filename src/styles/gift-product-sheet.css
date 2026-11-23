@@ -1,0 +1,38 @@
+/* Compact product-like gift preview: photography first, then price and details. */
+.overlay:has(.gift-product-card) .sheet {padding:12px 16px calc(24px + env(safe-area-inset-bottom));background:#fff;}
+.overlay:has(.gift-product-card) .sheet-heading{margin-bottom:12px;padding-inline:2px;}
+.overlay:has(.gift-product-card) .sheet-heading h2{font-size:16px!important;letter-spacing:-.15px;color:#727780;font-weight:740;}
+.gift-product-card{width:100%;overflow:hidden;border-radius:19px;background:#fff;}
+.gift-product-card .gift-product-media {position:relative;display:grid;place-items:center;height:clamp(220px,40dvh,360px);
+  background:#f6f3f7;border:1px solid #f0edf1;border-radius:18px;overflow:hidden;margin:0 0 16px;}
+.gift-product-card .gift-product-media img,
+.gift-product-card .gift-product-media .demo-product-sprite {display:block;width:100%;height:100%;object-fit:contain;}
+.gift-product-card .gift-preview-top-status {position:absolute;top:12px;right:12px;display:inline-flex;align-items:center;gap:5px;
+  padding:5px 10px 5px 5px;border-radius:13px;background:#fffffff2;box-shadow:0 3px 13px #17121e17;z-index:2;}
+.gift-product-card .gift-preview-top-status .gift-status-icon {position:static;display:grid;place-items:center;width:34px;height:34px;
+  border-radius:10px;box-shadow:none;}
+.gift-product-card .gift-preview-top-status span {font-size:12px;font-weight:800;color:#46515b;white-space:nowrap;}
+.gift-product-body{padding:0 3px 4px;display:grid;gap:0;}
+.gift-product-card .gift-product-heading{display:grid;gap:7px;margin:0 0 15px;}
+.gift-product-card .gift-product-heading h2{margin:0;color:#292c33;font-size:23px;font-weight:870;line-height:1.2;letter-spacing:-.4px;overflow-wrap:anywhere;}
+.gift-product-price {font-size:24px;color:#3b333f;line-height:1.25;font-weight:850;}
+.gift-product-card .gift-product-facts{border-top:1px solid #f0edf0;border-bottom:1px solid #f0edf0;padding:6px 0;}
+.gift-product-card .gift-product-facts>div{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:8px 0;min-width:0;}
+.gift-product-card .gift-product-facts svg{color:#987eae;flex:none;}
+.gift-product-card .gift-product-facts span{color:#737982;font-size:13px;min-width:60px;}
+.gift-product-card .gift-product-facts a{font-size:13px;font-weight:760;color:#4b4356;overflow-wrap:anywhere;}
+.gift-product-notes{padding:14px 0 2px;}
+.gift-product-notes p{margin:0;color:#626b73;font-size:14px;line-height:1.55;white-space:pre-wrap;}
+.gift-product-card .gift-product-actions{display:grid;gap:9px;margin:18px 0 0;}
+.gift-product-card .gift-product-actions .gift-product-open-link{display:flex;align-items:center;justify-content:center;
+  width:100%;min-height:47px;margin:0;background:#292c33;color:#fff;border-radius:13px;font-size:14px;font-weight:780;text-decoration:none;}
+.gift-product-card .gift-product-actions button{display:flex;align-items:center;justify-content:center;gap:9px;min-height:47px;
+  width:100%;border-radius:13px;font-size:14px;font-weight:780;cursor:pointer;}
+.gift-product-card .gift-product-actions .gift-preview-edit{background:#f2eef5;color:#6f5687;border:0;}
+.gift-product-card .gift-product-actions .gift-preview-buy{background:#3c3545;color:#fff;border:0;}
+.gift-product-card .gift-product-actions .gift-preview-later{background:#f6f4f8;color:#60556b;border:0;}
+.gift-card.is-gift .gift-status-icon {pointer-events:none;}
+@media(max-width:350px){.gift-product-card .gift-product-media{height:clamp(200px,36dvh,310px)}}
+
+/* With editing moved into the sheet, the sole miniature status sits top-right. */
+.gift-card.is-gift > .gift-status-icon {left:auto!important;right:9px!important;top:9px!important;cursor:inherit!important;pointer-events:none!important;}

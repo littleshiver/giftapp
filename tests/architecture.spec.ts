@@ -27,8 +27,8 @@ test("person birthday with no birth year generates and updates a single linked o
   await page.getByRole("button", { name: "Create", exact: true }).click();
   await page.getByRole("button", { name: "Add person", exact: true }).click();
   await page.getByLabel("Name", { exact: true }).fill("Jamie");
-  await page.getByLabel("Month", { exact: true }).selectOption("11");
-  await page.getByLabel("Day", { exact: true }).selectOption("29");
+  await page.getByRole("combobox",{name:"Birth month"}).selectOption("11");
+  await page.getByRole("combobox",{name:"Birth day"}).selectOption("29");
   await page.getByRole("button", { name: "Save person" }).click();
   const data = await readData(page);
   const person = data.people.find((p) => p.name === "Jamie");
@@ -38,7 +38,7 @@ test("person birthday with no birth year generates and updates a single linked o
   ]);
   await page.getByRole("link", { name: /Jamie/ }).click();
   await page.getByRole("button", { name: "Edit person" }).click();
-  await page.getByLabel("Day", { exact: true }).selectOption("30");
+  await page.getByRole("combobox",{name:"Birth day"}).selectOption("30");
   await page.getByRole("button", { name: "Save person" }).click();
   const updated = await readData(page);
   expect(updated.people.find((p) => p.id === person.id).birthday).toBe("11-30");
@@ -294,7 +294,7 @@ test("Variant C retains empty and one-sided preferences without blank panels", a
   await page.goto("/#/people/p1");
   await expect(page.locator(".person-profile-cover")).toBeVisible();
   await expect(page.locator(".person-profile-panel .person-guidance")).toHaveCount(0);
-  await expect(page.locator(".person-guidance-empty")).toBeVisible();
+  await expect(page.locator(".person-preferences-prompt")).toBeVisible();
   await expect(page.locator(".person-ideas .gift-card")).toHaveCount(1);
 });
 
@@ -308,7 +308,8 @@ test("Gifted history shows past purchases and supports full-page edit/delete",as
   await expect(page.locator(".person-gift-collection")).toContainText("Scented candle");
   await expect(page.locator(".person-gift-collection")).toContainText("Anna's birthday");
   await expect(page.locator(".person-gift-collection button.gift-status-icon")).toHaveCount(0);
-  await page.getByRole("button",{name:"Edit gift Scented candle"}).click();
+  await page.getByRole("button",{name:"View gift Scented candle"}).click();
+  await page.getByRole("dialog",{name:"Gift details"}).getByRole("button",{name:"Edit gift"}).click();
   await expect(page).toHaveURL(/#\/gifts\/g1\/edit$/);
   await expect(page.getByLabel("Gift name",{exact:true})).toHaveValue("Scented candle");
   page.once("dialog",d=>d.accept());
@@ -316,7 +317,7 @@ test("Gifted history shows past purchases and supports full-page edit/delete",as
   expect((await readData(page)).gifts.some(g=>g.id==="g1")).toBe(false);
   await page.goto("/#/people/p1");
   await page.getByRole("button",{name:"Gifted",exact:true}).click();
-  await expect(page.getByText("No bought gifts from past occasions yet.")).toBeVisible();
+  await expect(page.getByRole("heading",{name:"No gifted history yet"})).toBeVisible();
   await page.getByRole("button",{name:"Gift ideas",exact:true}).click();
   await expect(page.locator(".person-gift-collection .gift-card")).toHaveCount(1);
 });
@@ -327,5 +328,5 @@ test("Purchased on the day or for a future occasion is not prematurely Gifted", 
   await seed(page,data);
   await page.goto("/#/people/p1");
   await page.getByRole("button",{name:"Gifted",exact:true}).click();
-  await expect(page.getByText("No bought gifts from past occasions yet.")).toBeVisible();
+  await expect(page.getByRole("heading",{name:"No gifted history yet"})).toBeVisible();
 });

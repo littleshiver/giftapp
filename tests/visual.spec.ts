@@ -84,9 +84,8 @@ for (const width of [320, 375, 390, 430])
         });
     }
     await page.goto("/#/events/e1");
-    await page
-      .getByRole("button", { name: "Edit gift Scented candle", exact: true })
-      .click();
+    await page.getByRole("button",{name:"View gift Scented candle"}).click();
+    await page.getByRole("dialog",{name:"Gift details"}).getByRole("button",{name:"Edit gift"}).click();
     await expect(page).toHaveURL(/#\/gifts\/g1\/edit$/);
     await expect(page.locator(".gift-edit-page")).toBeVisible();
     expect(await page.locator(".gift-edit-page")
@@ -99,7 +98,7 @@ for (const width of [320, 375, 390, 430])
     await page.keyboard.press("Shift+Tab");
     await expect(page.locator(".gift-edit-page")).toBeVisible();
     await page.locator(".gift-edit-page-bar").getByRole("button",{name:/Gift details/}).click();
-    await expect(page).toHaveURL(/#\/gifts\/g1$/);
+    await expect(page.getByRole("dialog",{name:"Gift details"})).toBeVisible();
     expect(errors).toEqual([]);
     expect(failed).toEqual([]);
   });
@@ -511,7 +510,7 @@ test("Gifted history uses the same gift card and stays compact on mobile", async
     await page.goto("/#/people/p1");
     await page.getByRole("button",{name:"Gifted",exact:true}).click();
     await expect(page.locator(".person-gift-collection .gift-card")).toHaveCount(1);
-    await expect(page.getByRole("button",{name:"Edit gift Scented candle"})).toBeVisible();
+    await expect(page.getByRole("button",{name:"View gift Scented candle"})).toBeVisible();
     await expect(page.locator(".person-gift-collection button.gift-status-icon")).toHaveCount(0);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
     expect(overflow).toBeLessThanOrEqual(1);
@@ -879,8 +878,8 @@ test("In-app guide stays inside 320px and Pixel viewports while using real scree
     await page.getByRole("button", { name: "Create", exact: true }).click();
     await page.getByRole("button", { name: "Add person", exact: true }).click();
     await page.getByLabel("Name", { exact: true }).fill("Lee");
-    await page.getByLabel("Month", { exact: true }).selectOption("05");
-    await page.getByLabel("Day", { exact: true }).selectOption("14");
+    await page.getByRole("combobox",{name:"Birth month"}).selectOption("05");
+    await page.getByRole("combobox",{name:"Birth day"}).selectOption("14");
     await page.getByRole("button", { name: "Save person" }).click();
     await expect(page.locator(".person-profile-hero")).toBeVisible();
     await check();
@@ -921,14 +920,12 @@ test("Person editor aligns photo first, compact birthday row and consistent fiel
       const photo=rect('.person-photo-field');
       const name=rect('input[name="name"]');
       const title=el.querySelector(".sheet-heading h2");
-      const subtitle=el.querySelector(".person-editor-subtitle")!;
       const field=el.querySelector('input[name="name"]')!;
       return {
         tops:[month.top,day.top,year.top],
         heights:[month.height,day.height,year.height],
         widths:[month.width,day.width,year.width],
         photoBottom:photo.bottom,nameTop:name.top,
-        subtitleFont:parseFloat(getComputedStyle(subtitle).fontSize),
         controlFont:parseFloat(getComputedStyle(field).fontSize),
         docWidth:document.documentElement.scrollWidth,
         vpWidth:innerWidth,
@@ -940,7 +937,6 @@ test("Person editor aligns photo first, compact birthday row and consistent fiel
     expect(geometry.widths.every(w=>w>55)).toBe(true);
     expect(geometry.photoBottom).toBeLessThan(geometry.nameTop);
     expect(geometry.controlFont).toBeGreaterThanOrEqual(14);
-    expect(geometry.subtitleFont).toBeLessThan(20);
     expect(geometry.docWidth).toBeLessThanOrEqual(geometry.vpWidth+1);
     expect(geometry.titleText).toBe("Add person");
   }

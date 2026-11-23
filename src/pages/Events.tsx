@@ -6,6 +6,7 @@ import { Section, Photo } from "../components/UI";
 import { EmptyState } from "../components/EmptyState";
 import { CalendarPlus2 } from "lucide-react";
 import { Sheet } from "../components/Primitives";
+import { Cake, Plus, CalendarPlus } from "lucide-react";
 import { OccasionArt } from "../components/OccasionArt";
 import { useApp } from "../state/AppState";
 import { associationValid, enabledEvents } from "../domain/selectors";
@@ -124,12 +125,13 @@ function ReminderEventRow({
 }
 
 export function Events() {
-  const { data, ui, setUi, commit, openEditor, tour } = useApp();
+  const { data, ui, setUi, commit, openEditor, openGiftPreview, tour } = useApp();
   const [params] = useSearchParams();
   const { mode } = ui;
   const month = parseDate(ui.month);
   const monthKey = iso(new Date(month.getFullYear(), month.getMonth(), 1)).slice(0, 7);
   const [filteredDate, setFilteredDate] = useState<string | null>(null);
+  const [dateActionOpen,setDateActionOpen]=useState(false);
   const [reminderEventId, setReminderEventId] = useState<string | null>(null);
   const saveReminder = (eventId: string, reminderDays: ReminderDays) =>
     commit({
@@ -176,8 +178,15 @@ export function Events() {
     setUi({ month: iso(next), selected: iso(next) });
   };
   const selectDate = (ds: string) => {
+    setDateActionOpen(false);
     setUi({ selected: ds, month: ds });
     setFilteredDate(ds);
+  };
+  const createFromSelected=(type:"birthday"|"event")=>{
+    if(!activeDate)return;
+    setDateActionOpen(false);
+    if(type==="birthday")openEditor({type:"person",birthdayDate:activeDate});
+    else openEditor({type:"event",date:activeDate});
   };
   // Old birthday plans stay in the calendar/history but should not require
   // reminders in a future year's planning list.
@@ -278,9 +287,14 @@ export function Events() {
                 </p>
               </div>
               {activeDate && (
-                <button data-ph="calendar-show-all" type="button" className="calendar-show-all" onClick={() => setFilteredDate(null)}>
-                  Show all
-                </button>
+                <div className="calendar-selected-actions">
+                  <button type="button" data-ph="calendar-add-date" className="calendar-date-create" onClick={()=>setDateActionOpen(true)}>
+                    <Plus size={17} strokeWidth={2.6}/>{t("Add to this date","Добавить на дату")}
+                  </button>
+                  <button data-ph="calendar-show-all" type="button" className="calendar-show-all" onClick={() => setFilteredDate(null)}>
+                    {t("Show all","Показать все")}
+                  </button>
+                </div>
               )}
             </div>
             {displayedEvents.length ? (
@@ -299,7 +313,7 @@ export function Events() {
                 <EmptyState compact Icon={CalendarPlus2}
                   title={activeDate?t("Nothing planned for this day","На этот день ничего не запланировано"):t("No occasions this month","В этом месяце нет событий")}
                   description={activeDate?t("Choose another date or show the whole month.","Выберите другую дату или вернитесь ко всему месяцу."):t("Browse another month or add an occasion.","Перейдите к другому месяцу или добавьте событие.")}
-                  action={activeDate?{label:t("Show whole month","Весь месяц"),onClick:()=>setFilteredDate(null)}:{label:t("Add occasion","Добавить событие"),onClick:()=>openEditor({type:"event"})}}/>
+                  action={activeDate?undefined:{label:t("Add occasion","Добавить событие"),onClick:()=>openEditor({type:"event"})}}/>
               </div>
             )}
           </section>
@@ -329,13 +343,32 @@ export function Events() {
           )}
         </div>
       )}
+      {dateActionOpen && activeDate && <Sheet title={t("Add to this date","Добавить на эту дату")} onClose={()=>setDateActionOpen(false)}>
+        <div className="calendar-create-choices">
+          <p>{fmtDate(activeDate)}</p>
+          <button type="button" onClick={()=>createFromSelected("birthday")}>
+            <span className="calendar-choice-icon"><Cake size={20}/></span>
+            <span><strong>{t("Birthday","День рождения")}</strong>
+              <small>{t("Add a person. Their birthday will appear in the calendar automatically.","Создайте человека — его день рождения появится в календаре автоматически.")}</small>
+            </span>
+            <ChevronRight size={18}/>
+          </button>
+          <button type="button" onClick={()=>createFromSelected("event")}>
+            <span className="calendar-choice-icon"><CalendarPlus size={20}/></span>
+            <span><strong>{t("Occasion","Событие")}</strong>
+              <small>{t("Plan a celebration on the selected date.","Запланируйте событие на выбранную дату.")}</small>
+            </span>
+            <ChevronRight size={18}/>
+          </button>
+        </div>
+      </Sheet>}
       {unlinkedGifts.length > 0 && (
         <section className="section event-repair">
           <Section title="Gifts needing attention" />
           <p className="section-note">Some saved gifts have an unavailable occasion or recipient. You can edit them without losing their details.</p>
           {unlinkedGifts.map((gift) => (
             <button data-ph="repair-gift" type="button" key={gift.id} className="event-repair-item"
-              onClick={() => openEditor({type: "gift", id: gift.id})}
+              onClick={() => openGiftPreview(gift.id)}
               aria-label={`Repair ${gift.name}`}>
               <span>{gift.name}</span><ChevronRight size={17}/>
             </button>
