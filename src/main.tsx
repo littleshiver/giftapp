@@ -46,3 +46,4 @@ import "./styles/event-editor-polish.css";
 import "./styles/calendar-person-polish.css";
 import "./styles/gift-product-sheet.css";
 import "./styles/real-planning-polish.css";
+import "./styles/planning-v2-controls.css";

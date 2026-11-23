@@ -1,0 +1,88 @@
+/* Form consistency: one control scale in all editor sheets and full-page gift editing. */
+.sheet .control,.gift-edit-page .control {
+  box-sizing:border-box;min-height:48px;font-family:inherit;font-size:16px!important;
+  line-height:1.35;font-weight:500;border-radius:13px;padding:11px 14px;
+  color:#29333c;background-color:#fbfafc;border:1px solid #dfe1e7;
+}
+.sheet .control::placeholder,.gift-edit-page .control::placeholder {font-size:16px!important;color:#8b929d;opacity:1;}
+.sheet select.control,.gift-edit-page select.control {
+  -webkit-appearance:none;appearance:none;
+  padding:10px 42px 10px 14px!important;cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23545d6a' stroke-width='2.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-size:19px 19px;background-position:right 13px center;
+}
+.sheet .person-select-wrap select.control {
+  background-image:none!important;padding-right:34px!important;
+}
+.sheet .field-label,.sheet .field>span {font-size:12px;line-height:1.35;font-weight:735;color:#5f6973;}
+.sheet .field {gap:6px;margin-bottom:15px;}
+.sheet textarea.control,.gift-edit-page textarea.control {resize:vertical;min-height:86px;line-height:1.48;}
+.sheet .event-recipient-control .event-recipient-trigger.control {
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  min-height:48px!important;height:48px;width:100%;border-radius:13px;
+  padding:10px 13px!important;text-align:left;font-size:16px!important;font-weight:500;
+  background-color:#fbfafc;border-color:#dfe1e7;
+}
+.sheet .event-recipient-trigger-value,.sheet .event-recipient-trigger-placeholder {
+  font-size:16px!important;font-weight:500;min-width:0;
+}
+.sheet .event-recipient-trigger svg {width:19px;height:19px;stroke-width:2.7;color:#545d6a;flex:0 0 auto;}
+.sheet .event-recipient-options{border-radius:13px;}
+.sheet .event-recipient-option input.control,.sheet .event-recipient-locked input.control{font-size:16px!important;}
+.sheet input.control:focus-visible,.sheet select.control:focus-visible,
+.sheet textarea.control:focus-visible,.sheet .event-recipient-trigger:focus-visible {
+  outline:3px solid #bca8d2;outline-offset:1px;border-color:#9680a9;
+}
+
+/* Unified preview: big clean photo, inline purchase state, no floating UI over the artwork. */
+.overlay:has(.gift-product-card) .sheet{padding-inline:17px;}
+.gift-product-card .gift-product-media{height:clamp(200px,35dvh,315px);margin-bottom:18px;
+  background:#f5f2f7;border:0;border-radius:19px;}
+.gift-product-card .gift-product-heading{margin-bottom:16px;gap:9px;}
+.gift-product-card .gift-product-heading h2{font-size:clamp(21px,5.6vw,25px);font-weight:860;}
+.gift-product-card .gift-product-price{font-size:24px;font-weight:865;}
+.gift-product-card .gift-preview-top-status.gift-purchase-toggle{
+  position:static;inset:auto;width:100%;display:grid;grid-template-columns:1fr 1fr;
+  gap:4px;padding:4px;margin:0 0 17px;border-radius:14px;
+  background:#f0f0f4;box-shadow:none;transform:none;
+}
+.gift-product-card .gift-purchase-toggle button{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  min-width:0;min-height:44px;padding:10px 8px;border:0;border-radius:11px;
+  font:inherit;font-size:14px;font-weight:735;color:#71747d;background:transparent;
+  cursor:pointer;transition:background .15s,color .15s;
+}
+.gift-product-card .gift-purchase-toggle button.is-selected{
+  color:#2f3640;background:white;box-shadow:0 2px 9px rgba(33,37,44,.075);font-weight:830;
+}
+.gift-product-card .gift-purchase-toggle button.is-selected svg{color:#8464a2;}
+.gift-product-card .gift-purchase-toggle button:focus-visible {outline:3px solid #a88dc4;outline-offset:-2px;}
+.gift-product-card .gift-idea-tag{
+  position:absolute;top:12px;left:12px;display:inline-flex;align-items:center;gap:6px;
+  padding:8px 11px;background:#fffcffe8;border:1px solid #ffffffaf;
+  border-radius:11px;font-size:12px;font-weight:800;color:#716080;
+  box-shadow:0 2px 12px #29233713;
+}
+.gift-product-card .gift-product-facts {margin-top:1px;}
+.gift-product-card .gift-product-facts>div {padding:11px 0;gap:9px;}
+.gift-product-card .gift-product-facts span {min-width:60px;}
+.gift-product-card .gift-product-actions{margin-top:18px;gap:9px;}
+.gift-product-card .gift-product-actions .gift-preview-plan{
+  background:#302f39;color:#fff;border:0;
+}
+.gift-product-card .gift-product-actions .gift-preview-edit {background:#f3edf7;color:#735788;}
+.gift-product-card .gift-product-actions .gift-product-open-link {font-size:14px;}
+
+/* In a chooser the card still previews; a dedicated action selects it. */
+.occasion-picker-content .gift-picker-option{display:grid;gap:7px;min-width:0;align-content:start;}
+.occasion-picker-content .gift-picker-option>.gift-card{width:100%;margin:0;}
+.occasion-picker-content .gift-picker-option .gift-picker-select-idea{
+  width:100%;min-height:39px;border:1px solid #e6ddea;border-radius:11px;
+  background:#f3eef7;color:#6f5687;font:inherit;font-weight:780;font-size:12px;
+  cursor:pointer;padding:8px 5px;
+}
+@media(max-width:360px) {
+  .sheet .control,.gift-edit-page .control{font-size:16px!important;}
+  .gift-product-card .gift-product-media{height:clamp(185px,31dvh,280px);}
+}
+@media(prefers-reduced-motion:reduce){.gift-product-card .gift-purchase-toggle button{transition:none;}}
