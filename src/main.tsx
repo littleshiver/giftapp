@@ -45,3 +45,4 @@ import "./styles/form-polish.css";
 import "./styles/event-editor-polish.css";
 import "./styles/calendar-person-polish.css";
 import "./styles/gift-product-sheet.css";
+import "./styles/real-planning-polish.css";
