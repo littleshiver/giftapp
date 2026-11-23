@@ -6,7 +6,9 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { AppData, Editor } from "../domain/models";
+import type { AppData, Editor, Idea } from "../domain/models";
+/** Optional transient picker context; never saved into account data. */
+export interface PreviewContext {eventId?:string;personId?:string;prefill?:Idea;}
 import { today, setFormatPreferences } from "../utils/format";
 import { CheckCircle2, AlertCircle, Info } from "lucide-react";
 import { ensureBirthdayOccasions } from "../domain/birthdays";
@@ -87,7 +89,8 @@ interface State {
   accountDataUid: string | null;
   editor: Editor | null;
   giftPreviewId: string | null;
-  openGiftPreview: (id: string) => void;
+  giftPreviewContext: PreviewContext | null;
+  openGiftPreview: (id: string, context?: PreviewContext) => void;
   closeGiftPreview: () => void;
   tour: TourState | null;
   startTour: (preview: boolean) => void;
@@ -272,6 +275,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     persistTour(null);
   };
   const [giftPreviewId, setGiftPreviewId] = useState<string | null>(null);
+  const [giftPreviewContext, setGiftPreviewContext] = useState<PreviewContext|null>(null);
   const [editor, setEditor] = useState<Editor | null>(null),
     [toast, setToast] = useState<{
       message: string;
@@ -364,8 +368,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         accountDataUid,
         editor,
         giftPreviewId,
-        openGiftPreview: (id: string) => { setEditor(null); setGiftPreviewId(id); },
-        closeGiftPreview: () => setGiftPreviewId(null),
+        giftPreviewContext,
+        openGiftPreview: (id: string, context?: PreviewContext) => {
+          setEditor(null);setGiftPreviewContext(context||null);setGiftPreviewId(id);
+        },
+        closeGiftPreview: () => {setGiftPreviewId(null);setGiftPreviewContext(null);},
         tour,
         startTour,
         updateTour,
