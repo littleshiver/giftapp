@@ -79,3 +79,14 @@
   .event-detail-v2 .recipient-budget-summary {padding:10px;}
 }
 @media(prefers-reduced-motion:reduce){.event-detail-v2 .recipient-collapse-chevron{transition:none;}}
+
+/* Avatar remains a direct link to the profile; name is the independent collapse control. */
+.event-detail-v2 .recipient-profile-link{display:grid;place-items:center;flex:0 0 43px;width:43px;height:43px;
+  border-radius:14px;overflow:hidden;text-decoration:none;min-width:0;}
+.event-detail-v2 .recipient-profile-link .event-person-avatar {width:100%;height:100%;border-radius:14px;}
+.event-detail-v2 .recipient-accordion-toggle{gap:6px;flex:1;}
+.event-detail-v2 .recipient-accordion-toggle.event-person-gifts-identity{gap:8px;}
+.event-detail-v2 .recipient-profile-link:focus-visible {outline:3px solid #a18cba;outline-offset:2px;}
+@media(max-width:360px){
+  .event-detail-v2 .recipient-profile-link{flex-basis:37px;width:37px;height:37px;}
+}

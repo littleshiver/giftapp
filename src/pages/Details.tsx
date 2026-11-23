@@ -55,10 +55,12 @@ function GiftGroup({
   const groupId=`recipient-gifts-${person?.id||"unknown"}`;
   return <section className={`event-person-gifts event-recipient-group ${expanded?"is-expanded":"is-collapsed"}`} aria-label={`Gifts for ${person?.name??"recipient"}`}>
     <div className="recipient-group-top">
-      <button type="button" className="recipient-accordion-toggle" aria-expanded={expanded} aria-controls={groupId}
+      {person?<Link to={`/people/${person.id}`} className="recipient-profile-link" aria-label={`Open ${person.name}'s profile`}>
+        <PersonAvatar person={person} className="event-person-avatar"/>
+      </Link>:<span className="recipient-profile-link"><PersonAvatar className="event-person-avatar"/></span>}
+      <button type="button" className="recipient-accordion-toggle event-person-gifts-identity" aria-expanded={expanded} aria-controls={groupId}
         aria-label={`${expanded?t("Collapse","Свернуть"):t("Expand","Развернуть")} ${person?.name||"recipient"}`}
         onClick={()=>setExpanded(current=>!current)}>
-        <PersonAvatar person={person} className="event-person-avatar"/>
         <span className="recipient-group-name">
           <strong>{person?.name||t("Unknown person","Получатель не найден")}</strong>
           <small>{items.length} {t(items.length===1?"gift":"gifts",items.length===1?"подарок":"подарков")}</small>
@@ -71,7 +73,7 @@ function GiftGroup({
         <span>{t("Add gift","Подарок")}</span>
       </button>
     </div>
-    {budgetsEnabled&&<div className={`recipient-budget-summary ${over?"is-over-budget":""}`} aria-label={`Budget for ${person?.name||"recipient"}`}>
+    {budgetsEnabled&&<div className={`recipient-budget-summary ${over?"is-over-budget":""}`} aria-label={`Planning summary for ${person?.name||"recipient"}`}>
       <div className="recipient-budget-stats">
         <div><span>{t("Planned","Запланировано")}</span><strong>{currency(planned)}</strong></div>
         <div><span>{t("Bought","Куплено")}</span><strong>{currency(paid)}</strong></div>
@@ -121,6 +123,8 @@ export function EventDetail() {
   const spent = bought(gifts);
   const planned = total(gifts);
   const hasLimits=event.people.some(pid=>Object.hasOwn(event.budgets,pid));
+  const allLimitsSet=event.people.length>0&&event.people.every(pid=>Object.hasOwn(event.budgets,pid));
+  const limitsCount=event.people.filter(pid=>Object.hasOwn(event.budgets,pid)).length;
   const isGroup = event.people.length > 1;
   const unassigned = gifts.filter(gift => !event.people.includes(gift.personId));
   return (
@@ -173,14 +177,14 @@ export function EventDetail() {
               <div className="event-budget-breakdown">
                 <div><small>{t("Planned","Запланировано")}</small><strong>{currency(planned)}</strong></div>
                 <div><small>{t("Bought","Куплено")}</small><strong>{currency(spent)}</strong></div>
-                <div><small>{t("Total limits","Сумма лимитов")}</small><strong>{hasLimits?currency(budget):t("Not set","Не задана")}</strong></div>
+                <div><small>{t("Total limits","Сумма лимитов")}</small><strong>{!hasLimits?t("Not set","Не задана"):allLimitsSet?currency(budget):`${currency(budget)} · ${limitsCount}/${event.people.length}`}</strong></div>
               </div>
-              {hasLimits&&<div className="event-budget-track" role="progressbar" aria-label="Budget planned"
+              {allLimitsSet&&<div className="event-budget-track" role="progressbar" aria-label="Budget planned"
                 aria-valuemin={0} aria-valuemax={Math.max(budget, 1)}
                 aria-valuenow={Math.min(planned,Math.max(budget,1))}>
                 <span style={{width:`${budget ? Math.min(100,planned/budget*100) : planned ? 100 : 0}%`}}/>
               </div>}
-              {hasLimits&&planned > budget && <p className="event-budget-warning">{currency(planned-budget)} {t("planned above total limits","запланировано сверх суммы лимитов")}</p>}
+              {allLimitsSet&&planned > budget && <p className="event-budget-warning">{currency(planned-budget)} {t("planned above total limits","запланировано сверх суммы лимитов")}</p>}
             </div>}
           </div>}
         </div>
