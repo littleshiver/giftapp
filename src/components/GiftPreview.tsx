@@ -86,15 +86,16 @@ export function GiftPreviewSheet() {
 /** Existing deep links resolve to the same sheet as every gift-card tap. */
 export function GiftDetailPage() {
   const {id=""}=useParams();
-  const {data,openGiftPreview}=useApp();
+  const {data}=useApp();
   const navigate=useNavigate();
   const gift=data.gifts.find(g=>g.id===id);
   const eventId=gift?.eventId;
   useEffect(()=>{
     if(!id||!eventId)return;
-    navigate(`/events/${eventId}`,{replace:true});
-    openGiftPreview(id);
-  },[id,eventId]);
+    // The app shell consumes ?gift= after route change. Opening before navigate
+    // would be discarded by its route-change cleanup.
+    navigate(`/events/${eventId}?gift=${encodeURIComponent(id)}`,{replace:true});
+  },[id,eventId,navigate]);
   if(!gift)return <p className="gift-preview-empty">{t("Gift not found","Подарок не найден")} <Link to="/events">{t("Back to events","К событиям")}</Link></p>;
   return <div role="status" className="gift-preview-loading">{t("Opening gift…","Открываем подарок…")}</div>;
 }
