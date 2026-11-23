@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { useApp } from "../state/AppState";
 import type { Event, Gift, Idea, Person, Editor } from "../domain/models";
-import { today, uid, currencyUnit, t } from "../utils/format";
+import { today, uid, currencyUnit, t, language } from "../utils/format";
 import { readImage, readAvatar } from "../utils/images";
 import { birthdayFromParts } from "../domain/birthdays";
 import { Button, Field, Sheet } from "./Primitives";
@@ -389,7 +389,7 @@ export function EditorSheet({standalone=false,editId}:{standalone?:boolean;editI
                   <select className="control" name="birthMonth" aria-label={t("Birth month","Месяц рождения")} defaultValue={birthMonth}>
                     <option value="">{t("Month","Месяц")}</option>
                     {months.map((m, i) => (
-                      <option key={m} value={String(i + 1).padStart(2, "0")}>{t(m,m).slice(0,3)}</option>
+                      <option key={m} value={String(i + 1).padStart(2, "0")}>{new Intl.DateTimeFormat(language==="ru"?"ru-RU":"en-US",{month:"short"}).format(new Date(2000,i,1))}</option>
                     ))}
                   </select>
                   <ChevronDown size={19} strokeWidth={2.7} aria-hidden="true"/>

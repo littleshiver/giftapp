@@ -27,8 +27,8 @@ test("person birthday with no birth year generates and updates a single linked o
   await page.getByRole("button", { name: "Create", exact: true }).click();
   await page.getByRole("button", { name: "Add person", exact: true }).click();
   await page.getByLabel("Name", { exact: true }).fill("Jamie");
-  await page.getByLabel("Month", { exact: true }).selectOption("11");
-  await page.getByLabel("Day", { exact: true }).selectOption("29");
+  await page.getByRole("combobox",{name:"Birth month"}).selectOption("11");
+  await page.getByRole("combobox",{name:"Birth day"}).selectOption("29");
   await page.getByRole("button", { name: "Save person" }).click();
   const data = await readData(page);
   const person = data.people.find((p) => p.name === "Jamie");
@@ -38,7 +38,7 @@ test("person birthday with no birth year generates and updates a single linked o
   ]);
   await page.getByRole("link", { name: /Jamie/ }).click();
   await page.getByRole("button", { name: "Edit person" }).click();
-  await page.getByLabel("Day", { exact: true }).selectOption("30");
+  await page.getByRole("combobox",{name:"Birth day"}).selectOption("30");
   await page.getByRole("button", { name: "Save person" }).click();
   const updated = await readData(page);
   expect(updated.people.find((p) => p.id === person.id).birthday).toBe("11-30");
@@ -317,7 +317,7 @@ test("Gifted history shows past purchases and supports full-page edit/delete",as
   expect((await readData(page)).gifts.some(g=>g.id==="g1")).toBe(false);
   await page.goto("/#/people/p1");
   await page.getByRole("button",{name:"Gifted",exact:true}).click();
-  await expect(page.getByText("No bought gifts from past occasions yet.")).toBeVisible();
+  await expect(page.getByRole("heading",{name:"No gifted history yet"})).toBeVisible();
   await page.getByRole("button",{name:"Gift ideas",exact:true}).click();
   await expect(page.locator(".person-gift-collection .gift-card")).toHaveCount(1);
 });
@@ -328,5 +328,5 @@ test("Purchased on the day or for a future occasion is not prematurely Gifted", 
   await seed(page,data);
   await page.goto("/#/people/p1");
   await page.getByRole("button",{name:"Gifted",exact:true}).click();
-  await expect(page.getByText("No bought gifts from past occasions yet.")).toBeVisible();
+  await expect(page.getByRole("heading",{name:"No gifted history yet"})).toBeVisible();
 });

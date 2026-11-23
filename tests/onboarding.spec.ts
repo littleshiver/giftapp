@@ -14,8 +14,8 @@ async function addPersonViaRealFab(page: Page, name: string, month: string, day:
   await page.getByRole("button", { name: "Add person", exact: true }).click();
   await expect(page.getByRole("dialog", { name: "Add person" })).toBeVisible();
   await page.getByLabel("Name", { exact: true }).fill(name);
-  await page.getByLabel("Month", { exact: true }).selectOption(month);
-  await page.getByLabel("Day", { exact: true }).selectOption(day);
+  await page.getByRole("combobox",{name:"Birth month"}).selectOption(month);
+  await page.getByRole("combobox",{name:"Birth day"}).selectOption(day);
   await page.getByRole("button", { name: "Save person" }).click();
   await expect(page).toHaveURL(/#\/people\/[^/]+$/);
   await expect(coach(page)).toContainText(`Here's ${name}`);
@@ -220,8 +220,8 @@ test("tour requires a valid first birthday and does not partially save", async (
   await page.getByRole("button", { name: "Save person" }).click();
   await expect(page.getByRole("status")).toContainText("please enter a name and birthday");
   expect(await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"))).toBeNull();
-  await page.getByLabel("Month", { exact: true }).selectOption("02");
-  await page.getByLabel("Day", { exact: true }).selectOption("31");
+  await page.getByRole("combobox",{name:"Birth month"}).selectOption("02");
+  await page.getByRole("combobox",{name:"Birth day"}).selectOption("31");
   await page.getByRole("button", { name: "Save person" }).click();
   await expect(page.getByRole("status")).toContainText("Enter a valid birthday.");
   expect(await page.evaluate(() => localStorage.getItem("givvy_dashboard_v3"))).toBeNull();

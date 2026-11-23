@@ -357,6 +357,8 @@ test("an imported gift with a missing occasion stays visible and can be repaired
   await seed(page, data);
   await page.goto("/#/events");
   await page.getByRole("button", { name: "Repair Scented candle" }).click();
+  await expect(page.getByRole("dialog",{name:"Gift details"})).toBeVisible();
+  await page.getByRole("dialog",{name:"Gift details"}).getByRole("button",{name:"Edit gift"}).click();
   await expect(
     page.getByRole("combobox", { name: "Occasion", exact: true }),
   ).toHaveValue("missing-occasion");
@@ -1173,7 +1175,7 @@ test("Event hero shows contextual cover, date, navigation and spent-only budget"
   await seed(page);
   await page.goto("/#/events/e1");
   await expect(page.locator(".event-hero img")).toBeVisible();
-  await expect(page.locator(".event-hero-date")).toContainText("November");
+  await expect(page.locator(".event-hero-date")).toContainText("Nov 28");
   await expect(page.locator(".event-identity h1")).toHaveText("Anna's birthday");
   await expect(page.locator(".event-person-summary")).toHaveCount(0);
   await expect(page.locator(".event-single-gifts .event-person-gifts-identity")).toContainText("Anna");
