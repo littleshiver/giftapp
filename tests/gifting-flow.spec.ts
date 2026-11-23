@@ -44,7 +44,7 @@ test("the gift picker isolates personal saved ideas from service suggestions",as
   await dialog.getByRole("button",{name:/Use suggestion/}).first().click();
   await expect(page.getByRole("dialog",{name:"Add gift"})).toBeVisible();
   await page.getByRole("button",{name:"Save gift"}).click();
-  await expect(page).toHaveURL(/#\/gifts\//);
+  await expect(page.getByRole("dialog",{name:"Gift details"})).toBeVisible();
   expect((await readData(page)).ideas.length).toBe(before);
 });
 

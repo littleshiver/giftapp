@@ -84,9 +84,8 @@ for (const width of [320, 375, 390, 430])
         });
     }
     await page.goto("/#/events/e1");
-    await page
-      .getByRole("button", { name: "Edit gift Scented candle", exact: true })
-      .click();
+    await page.getByRole("button",{name:"View gift Scented candle"}).click();
+    await page.getByRole("dialog",{name:"Gift details"}).getByRole("button",{name:"Edit gift"}).click();
     await expect(page).toHaveURL(/#\/gifts\/g1\/edit$/);
     await expect(page.locator(".gift-edit-page")).toBeVisible();
     expect(await page.locator(".gift-edit-page")
@@ -511,7 +510,7 @@ test("Gifted history uses the same gift card and stays compact on mobile", async
     await page.goto("/#/people/p1");
     await page.getByRole("button",{name:"Gifted",exact:true}).click();
     await expect(page.locator(".person-gift-collection .gift-card")).toHaveCount(1);
-    await expect(page.getByRole("button",{name:"Edit gift Scented candle"})).toBeVisible();
+    await expect(page.getByRole("button",{name:"View gift Scented candle"})).toBeVisible();
     await expect(page.locator(".person-gift-collection button.gift-status-icon")).toHaveCount(0);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
     expect(overflow).toBeLessThanOrEqual(1);
