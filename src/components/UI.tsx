@@ -292,7 +292,7 @@ export function Product({
   home = false,
   onClick,
   onEdit,
-  showEdit = true,
+  showEdit = false,
   actionLabel,
   captionText,
 }: {
@@ -316,7 +316,7 @@ export function Product({
         <button data-ph={home ? "home-gift-open" : "gift-card-open"}
           type="button"
           className="product-open"
-          aria-label={actionLabel || `${gift ? "View gift" : "Edit"} ${item.name}`}
+          aria-label={actionLabel || `${gift ? "View gift" : "View idea"} ${item.name}`}
           onClick={onClick}
         >
           <span className="product-visual" style={{ background: gradientFor(item.name) }}>

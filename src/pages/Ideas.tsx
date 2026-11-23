@@ -35,7 +35,7 @@ const matchesBudget = (price: number, budget: Budget) =>
     budget === "mid" ? price >= 1000 && price <= 2000 : price > 2000;
 
 export function Ideas() {
-  const { data, commit, notify, ui, setUi, openEditor, tour, updateTour, budgetsEnabled } = useApp();
+  const { data, commit, notify, ui, setUi, openEditor, openGiftPreview, tour, updateTour, budgetsEnabled } = useApp();
   const navigate = useNavigate();
   const tab = ui.ideasTab;
   const [filters, setFilters] = useState<DiscoveryFilters>(initialFilters);
@@ -317,7 +317,7 @@ export function Ideas() {
             <div className="smallcards-grid ideas-saved-grid">
               {savedIdeas.map(idea => (
                 <Product key={idea.id} item={idea}
-                  onClick={() => openEditor({type:"idea", id:idea.id})}/>
+                  onClick={() => openGiftPreview(`idea:${idea.id}`)}/>
               ))}
             </div>
           ) : (

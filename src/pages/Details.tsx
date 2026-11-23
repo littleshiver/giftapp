@@ -301,7 +301,7 @@ export function PersonDetail() {
             <div className="smallcards-grid person-gift-collection">
               {ideas.map((idea) => (
                 <Product key={idea.id} item={idea}
-                  onClick={() => openEditor({ type:"idea", id:idea.id })}/>
+                  onClick={() => openGiftPreview(`idea:${idea.id}`)}/>
               ))}
             </div>
           ) : <EmptyState compact Icon={GiftIcon} title={t("No gift ideas yet","Пока нет идей подарков")}
